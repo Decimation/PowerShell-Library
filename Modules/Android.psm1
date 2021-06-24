@@ -1,3 +1,26 @@
+
+
+function Send-File {
+	param (
+		[Parameter(Mandatory=$true)][string]$src,
+		[Parameter(Mandatory=$false)][string]$dest
+	)
+
+	if (!($dest)) {
+		$dest = "sdcard/"
+	}
+
+	adb push $src $dest
+}
+
+function Remove-RemoteFile {
+	param (
+		[Parameter(Mandatory=$true)][string]$src
+	)
+
+	adb shell rm $src
+}
+
 function Send-All {
 	param(
         [Parameter(Mandatory=$false)][string]$dest
@@ -6,7 +29,7 @@ function Send-All {
 	$cd = Get-Location
 
 	if (!($dest)) {
-		$dest="sdcard/"
+		$dest = "sdcard/"
 	}
 
 	#$dest = $(If ($args.Count -eq 0) {"sdcard/"} Else {$dest})
@@ -51,3 +74,6 @@ function Send-Tap {
 	)
 	adb shell input tap $x $y
 }
+
+
+Set-Alias -Name sf -Value Send-File
