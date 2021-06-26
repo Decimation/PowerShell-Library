@@ -13,13 +13,6 @@ function Send-File {
 	adb push $src $dest
 }
 
-function Remove-RemoteFile {
-	param (
-		[Parameter(Mandatory=$true)][string]$src
-	)
-
-	adb shell rm $src
-}
 
 function Send-All {
 	param(
@@ -32,7 +25,6 @@ function Send-All {
 		$dest = "sdcard/"
 	}
 
-	#$dest = $(If ($args.Count -eq 0) {"sdcard/"} Else {$dest})
 
 	Write-Host $cd files to $dest
 
@@ -43,15 +35,45 @@ function Send-All {
 	}
 }
 
-function Get-All {
+function Get-File {
 	param (
 		[Parameter(Mandatory=$true)][string]$src,
-		[Parameter(Mandatory=$true)][string]$f
+		[Parameter(Mandatory=$false)][string]$dest
 	)
-	foreach ($x in (adb shell ls $src | Select-String $f)) {
+
+	if (!($dest)) {
+		$dest = (Get-Location)
+	}
+
+	adb pull $src $dest
+}
+
+function Get-Files {
+	param (
+		[Parameter(Mandatory=$true, Position=0)][string]$src,
+		[Parameter(Mandatory=$false, ParameterSetName="Filter")][string]$filter
+	)
+
+	if (!($filter)) {
+		$filter = "(.*?)"
+	}
+
+	foreach ($x in ((Get-RemoteItems $src) | Select-String -Pattern $filter)) {
 		adb pull "$src/$x"
 	}
 }
+
+
+function Remove-RemoteFile {
+	param (
+		[Parameter(Mandatory=$true)][string]$src
+	)
+
+	adb shell rm $src
+}
+
+
+
 
 function Get-RemoteFileSize {
 	param (
@@ -75,5 +97,8 @@ function Send-Tap {
 	adb shell input tap $x $y
 }
 
+#region
 
 Set-Alias -Name sf -Value Send-File
+
+#endregion
