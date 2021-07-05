@@ -1,5 +1,9 @@
 
 
+<#
+.Description
+Sends file to device destination folder
+#>
 function Send-File {
 	param (
 		[Parameter(Mandatory=$true)][string]$src,
@@ -13,7 +17,10 @@ function Send-File {
 	adb push $src $dest
 }
 
-
+<#
+.Description
+Sends all files within current directory to device destination folder
+#>
 function Send-All {
 	param(
         [Parameter(Mandatory=$false)][string]$dest
@@ -35,6 +42,10 @@ function Send-All {
 	}
 }
 
+<#
+.Description
+Pulls file to destination folder (if specified)
+#>
 function Get-File {
 	param (
 		[Parameter(Mandatory=$true)][string]$src,
@@ -48,6 +59,10 @@ function Get-File {
 	adb pull $src $dest
 }
 
+<#
+.Description
+Pulls files from device folder that match filter (if specified)
+#>
 function Get-Files {
 	param (
 		[Parameter(Mandatory=$true, Position=0)][string]$src,
@@ -55,7 +70,7 @@ function Get-Files {
 	)
 
 	if (!($filter)) {
-		$filter = "(.*?)"
+		$filter = "."
 	}
 
 	foreach ($x in ((Get-RemoteItems $src) | Select-String -Pattern $filter)) {
@@ -63,7 +78,10 @@ function Get-Files {
 	}
 }
 
-
+<#
+.Description
+Deletes file
+#>
 function Remove-RemoteFile {
 	param (
 		[Parameter(Mandatory=$true)][string]$src
@@ -72,9 +90,10 @@ function Remove-RemoteFile {
 	adb shell rm $src
 }
 
-
-
-
+<#
+.Description
+Gets size of file
+#>
 function Get-RemoteFileSize {
 	param (
 		[Parameter(Mandatory=$true)][string]$src
@@ -82,6 +101,10 @@ function Get-RemoteFileSize {
 	return (adb shell wc -c $src) -Split " " | Select-Object -Index 0
 }
 
+<#
+.Description
+Lists directory content
+#>
 function Get-RemoteItems {
 	param (
 		[Parameter(Mandatory=$true)][string]$src
@@ -89,6 +112,10 @@ function Get-RemoteItems {
 	return (adb shell ls $src) -Split "`n"
 }
 
+<#
+.Description
+Sends input tap
+#>
 function Send-Tap {
 	param (
 		[Parameter(Mandatory=$true)][long]$x,
@@ -100,5 +127,6 @@ function Send-Tap {
 #region
 
 Set-Alias -Name sf -Value Send-File
+Set-Alias -Name gf -Value Get-File
 
 #endregion
