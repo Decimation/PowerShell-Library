@@ -7,6 +7,10 @@ function Get-Translation {
 	$cmd = "from googletrans import * `n" +`
 	"tmp = Translator().translate('$x', dest='$y')`n" +`
 	"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))`n"
+	<#"x = tmp.extra_data['synonyms']`n" +`
+	"x2 = x[0][1][0][0]`n" +`
+	"for v in x2:`n" +`
+	"    print(v)"#>
 
 	$out1 = (python -c $cmd)
 
@@ -16,8 +20,8 @@ function Get-Translation {
 
 	$out2 = (python -c $cmd2)
 
-	Write-Host "#1: $out1"
-	Write-Host "#2: $out2"
+	Write-Host "[#1] $out1"
+	Write-Host "[#2] $out2"
 }
 
 
@@ -37,16 +41,26 @@ function Prompt {
 	return " "
 }
 
-#Remove-Module -Name Index
+#region [Modules]
 
-#$WarningPreference = "SilentlyContinue"
+#Remove-Module -Name Index
 
 Import-Module "$Home\Documents\PowerShell\Modules\Index.psm1"
 Import-Module "$Home\Documents\PowerShell\Modules\Android.psm1"
 
+#endregion
+
+#region [Aliases]
 
 #New-Alias -Name wh -Value Write-Host
+
 Set-Alias -Name wh -Value Write-Host
+Set-Alias -Name ytdl -Value youtube-dl
+
+#endregion
+
+
+#$WarningPreference = "SilentlyContinue"
 
 # .
 # &
