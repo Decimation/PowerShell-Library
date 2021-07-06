@@ -7,10 +7,7 @@ function Get-Translation {
 	$cmd = "from googletrans import * `n" +`
 	"tmp = Translator().translate('$x', dest='$y')`n" +`
 	"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))`n"
-	<#"x = tmp.extra_data['synonyms']`n" +`
-	"x2 = x[0][1][0][0]`n" +`
-	"for v in x2:`n" +`
-	"    print(v)"#>
+	
 
 	$out1 = (python -c $cmd)
 
@@ -26,17 +23,6 @@ function Get-Translation {
 
 
 function Prompt {
-	<#$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-	$principal = [Security.Principal.WindowsPrincipal] $identity
-	$adminRole = [Security.Principal.WindowsBuiltInRole]::Administrator#>
-  
-	<#$(if (Test-Path variable:/PSDebugContext) { '[DBG]: ' }
-	  elseif($principal.IsInRole($adminRole)) { "[ADMIN]: " }
-	  else { '' }
-	) + 'PS ' + $(Get-Location) +
-	  $(if ($NestedPromptLevel -ge 1) { '>>' }) + '> '#>
-
-	
 	Write-Host ("PS " + "[$(Get-Date -Format "HH:mm:ss")] " + $(Get-Location) +">") -NoNewLine
 	return " "
 }
@@ -80,37 +66,44 @@ function Set-Constant {
   
 	Set-Variable -n $name -val $mean -opt Constant -s $surround
 }
-  
-Set-Alias const Set-Constant
 
+
+
+
+<#----------------------------------------------------------------------------#>
+
+$DeciModules = @{
+	Index	=	"$Home\Documents\PowerShell\Modules\Index.psm1";
+	Android	=	"$Home\Documents\PowerShell\Modules\Android.psm1";
+	Win32	=	"$Home\Documents\PowerShell\Modules\Win32.psm1";
+}
+
+
+<#
+.Description
+Loads Deci modules
+#>
 function Import-Deci {
 	
-	Import-Module "$Home\Documents\PowerShell\Modules\Index.psm1"
-	Import-Module "$Home\Documents\PowerShell\Modules\Android.psm1"
-	
+	foreach ($x in $DeciModules.Values) {
+		Import-Module $x
+	}
 }
 
+
+
+<#
+.Description
+Unloads Deci modules
+#>
 function Remove-Deci {
-	Remove-Module Index
-	Remove-Module Android
-	
+	foreach ($x in $DeciModules.Keys) {
+		Remove-Module $x
+	}
 }
 
 
-function Import-Profile {
-	. $PROFILE
-}
+<#----------------------------------------------------------------------------#>
 
-#region [Modules]
-
-#Remove-Module -Name Index
-
+Set-Alias const Set-Constant
 Import-Deci
-
-#endregion
-
-#$WarningPreference = "SilentlyContinue"
-
-# Chain commands	;
-# Dot sourcing		.
-# Call				&
