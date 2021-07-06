@@ -1,4 +1,9 @@
 
+<#
+# Android utilities
+#>
+
+<#----------------------------------------------------------------------------#>
 
 <#
 .Description
@@ -124,9 +129,7 @@ function Send-Tap {
 	adb shell input tap $x $y
 }
 
-#region
+<#----------------------------------------------------------------------------#>
 
 Set-Alias -Name sf -Value Send-File
 Set-Alias -Name gf -Value Get-File
-
-#endregion
