@@ -64,9 +64,13 @@ function Get-Missing {
 
 	$m = $a2 | Where-Object{($a1 -notcontains $_)}
 
-	<#foreach ($x in $m) {
+	$remote = Get-ExchangeEscape $remote
+
+	wh $remote
+
+	foreach ($x in $m) {
 		adb push $x $remote
-	}#>
+	}
 
 	return $m
 }
@@ -138,13 +142,9 @@ function Get-RemoteItems {
 	param (
 		[Parameter(Mandatory=$true)][string]$src
 	)
-	
-	$x=adb shell ls $src
 
-	if (!($x) -or $x -contains "No such") {
-		wd "Error"
-		return $null
-	}
+	$src = Get-ShellEscape $src
+	$x = adb shell ls $src
 
 	return ($x) -Split "`n"
 }
@@ -153,8 +153,8 @@ function Get-ShellEscape {
 	param (
 		[Parameter(Mandatory=$true)][string]$v
 	)
-	$v5 = $v.Replace(" ", "`\ ")
-	return $v5
+	$v2 = $v.Replace(" ", "`\ ")
+	return $v2
 }
 
 function Get-ExchangeEscape {
@@ -162,19 +162,19 @@ function Get-ExchangeEscape {
 		[Parameter(Mandatory=$true)][string]$v
 	)
 
-	$v3 = $v.Split("/")
-	$v4 = New-Object -TypeName System.Collections.Generic.List[string]
+	$v2 = $v.Split("/")
+	$v3 = New-Object -TypeName System.Collections.Generic.List[string]
 
-	foreach ($b in $v3) { 
+	foreach ($b in $v2) { 
 		if ($b.Contains(" ")) {
-			$vx = "`"$b/`""
+			$b2 = "`"$b/`""
 		} else {
-			$vx = $b
+			$b2 = $b
 		}
-		$v4.Add($vx)
+		$v3.Add($b2)
 	}
 
-	return [string]::Join("/", $v4).TrimEnd("/")
+	return [string]::Join("/", $v3).TrimEnd("/")
 	
 }
 
