@@ -172,12 +172,6 @@ function Update-Deci {
 Import-Deci
 
 
-function rl {
-	Invoke-Expression ". $PROFILE"
-	Update-Deci
-}
-
-
 <#----------------------------------------------------------------------------#>
 
 function Prompt {
@@ -208,6 +202,7 @@ Set-Alias -Name wd -Value Write-Debug
 Set-Alias -Name so -Value Select-Object
 Set-Alias -Name ss -Value Select-String
 
+Set-Alias -Name ud -Value Update-Deci
 
 Set-Alias -Name gdl -Value gallery-dl
 Set-Alias -Name ytdl -Value youtube-dl
@@ -216,8 +211,5 @@ Set-Alias -Name fp -Value ffprobe
 Set-Alias -Name mg -Value magick
 
 <#----------------------------------------------------------------------------#>
-
-
-
 
 Write-Information Loaded
