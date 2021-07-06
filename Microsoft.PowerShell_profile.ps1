@@ -172,9 +172,13 @@ function Send-GitHubFile {
 		[Parameter(Mandatory=$false)]	[string]	$token
 	)
 
+	if (!($name)) {
+		$name=[System.Environment]::GetEnvironmentVariable("GH_NAME")
+	}
+	if (!($token)) {
+		$token=[System.Environment]::GetEnvironmentVariable("GH_TOKEN").ToString()
+	}
 
-	AutoAssign([ref]$token, [System.Environment]::GetEnvironmentVariable("GH_TOKEN"))
-	AutoAssign([ref]$name, [System.Environment]::GetEnvironmentVariable("GH_NAME"))
 
 	Write-Host "Name: $name `n"
 
