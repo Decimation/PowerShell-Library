@@ -61,6 +61,43 @@ function Set-Constant {
 }
 
 Set-Alias const Set-Constant
+
+function Set-Readonly {
+	
+	[CmdletBinding()]
+	param(
+	  [Parameter(Mandatory=$true, Position=0)]
+	  [string][ValidateNotNullOrEmpty()]$Name,
+  
+	  [Parameter(Mandatory=$true, Position=1)]
+	  [char][ValidateSet("=")]$Link,
+  
+	  [Parameter(Mandatory=$true, Position=2)]
+	  [object][ValidateNotNullOrEmpty()]$Mean,
+  
+	  [Parameter(Mandatory=$false)]
+	  [string]$Surround = "script"
+	)
+
+	$errPref = $ErrorActionPreference
+  
+	$ErrorActionPreference = "SilentlyContinue"
+
+	try {
+		$fn = Set-Variable -n $name -val $mean -opt ReadOnly -s $surround
+		& $fn
+	}
+	catch {
+		Write-Debug "Readonly value $name not written"
+	}
+	finally {
+		$ErrorActionPreference = $errPref
+	}
+	
+}
+
+Set-Alias readonly Set-Readonly
+
 function Flatten($a)
 {
     ,@($a | % {$_})
@@ -134,6 +171,13 @@ function Update-Deci {
 
 Import-Deci
 
+
+function rl {
+	Invoke-Expression ". $PROFILE"
+	Update-Deci
+}
+
+
 <#----------------------------------------------------------------------------#>
 
 function Prompt {
@@ -170,3 +214,10 @@ Set-Alias -Name ytdl -Value youtube-dl
 Set-Alias -Name fg -Value ffmpeg
 Set-Alias -Name fp -Value ffprobe
 Set-Alias -Name mg -Value magick
+
+<#----------------------------------------------------------------------------#>
+
+
+
+
+Write-Information Loaded

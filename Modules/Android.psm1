@@ -219,3 +219,10 @@ function Get-ExchangeEscape {
 
 Set-Alias -Name sf -Value Send-File
 Set-Alias -Name gf -Value Get-File
+
+<#----------------------------------------------------------------------------#>
+
+readonly RD_SD = "sdcard/"
+readonly RD_PIC = "$($R_SD)Pictures/"
+readonly RD_DL = "$($R_SD)Download/"
+
