@@ -4,8 +4,13 @@ My PowerShell library.
 
 ## Features
 
-- Send file to GitHub repo
-- Translate
+- GitHub utilities
+  - Send file
+- Translation
+  - Get translations
+- Editing
+  - Convert image/video formats 
 - Constant variables
 - Android utilities
+  - *ADB* wrappers
 - And more
