@@ -9,6 +9,9 @@ Pushes a file to the specified GitHub repository
 #>
 function Send-GitHubFile {
 	
+
+	#https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-restmethod?view=powershell-7.1
+
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory=$true)]	[string]	$repoName,
@@ -67,8 +70,8 @@ function Send-GitHubFile {
 
 function Get-Symbols {
 	param (
-		[Parameter(Mandatory=$true)][string]$s,
-		[Parameter(Mandatory=$false)][string]$dest
+		[Parameter(Mandatory=$true)]	[string]	$s,
+		[Parameter(Mandatory=$false)]	[string]	$dest
 	)
 
 	if (!($dest)) {
@@ -80,7 +83,7 @@ function Get-Symbols {
 
 function Stop-Task {
 	param (
-		[Parameter(Mandatory=$true)][string]$name
+		[Parameter(Mandatory=$true)]	[string]	$name
 	)
 
 	taskkill /f /im $name

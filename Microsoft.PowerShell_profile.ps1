@@ -111,12 +111,6 @@ Import-Deci
 
 <#----------------------------------------------------------------------------#>
 
-
-
-
-
-
-
 function Prompt {
 	Write-Host ("PS " + "[$(Get-Date -Format "HH:mm:ss")] " + $(Get-Location) +">") -NoNewLine
 	return " "
@@ -129,6 +123,9 @@ Assigns a specified value to a ref input variable if the ref input variable is n
 #>
 function AutoAssign([ref]$name, $val) {
 	
+	#https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_ref?view=powershell-7.1
+	#https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_variables?view=powershell-7.1
+
 	if (!($name) -or !($name.HasValue) -or ($name -eq $null)) {
 		$name.Value = $val
 	}
@@ -139,7 +136,8 @@ function AutoAssign([ref]$name, $val) {
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
 
+Set-Alias -Name so -Value Select-Object
+Set-Alias -Name ss -Value Select-String
+
 Set-Alias -Name ytdl -Value youtube-dl
 Set-Alias -Name fg -Value ffmpeg
-
-Set-Alias -Name so -Value Select-Object

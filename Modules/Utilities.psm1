@@ -1,10 +1,25 @@
 <#
 # General utilities
 #>
+
+
+function ConvertTo-Gif {
+	param (
+		[Parameter(Mandatory=$true)]	[string]	$x,
+		[Parameter(Mandatory=$true)]	[string]	$y
+	)
+	
+	#ffmpeg -i <input> -vf “fps=25,scale=1920:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse” <output gif>
+
+	ffmpeg -i $x -vf “fps=25,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse” $y
+
+}
+
+
 function Get-Translation {
 	param (
-		[Parameter(Mandatory=$true)][string]$x,
-		[Parameter(Mandatory=$true)][string]$y
+		[Parameter(Mandatory=$true)]	[string]	$x,
+		[Parameter(Mandatory=$true)]	[string]	$y
 	)
 
 	$cmd = "from googletrans import * `n" +`
