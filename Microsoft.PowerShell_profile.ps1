@@ -65,9 +65,9 @@ Set-Alias const Set-Constant
 <#----------------------------------------------------------------------------#>
 
 $DeciModules = @{
-	Index		=	"$Home\Documents\PowerShell\Modules\Index.psm1";
+	Utilities		=	"$Home\Documents\PowerShell\Modules\Utilities.psm1";
 	Android		=	"$Home\Documents\PowerShell\Modules\Android.psm1";
-	Win32		=	"$Home\Documents\PowerShell\Modules\Win32.psm1";
+	Development		=	"$Home\Documents\PowerShell\Modules\Development.psm1";
 	Formatting	=	"$Home\Documents\PowerShell\Modules\Formatting.psm1";
 }
 
@@ -113,28 +113,7 @@ Import-Deci
 
 
 
-function Get-Translation {
-	param (
-		[Parameter(Mandatory=$true)][string]$x,
-		[Parameter(Mandatory=$true)][string]$y
-	)
 
-	$cmd = "from googletrans import * `n" +`
-	"tmp = Translator().translate('$x', dest='$y')`n" +`
-	"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))`n"
-	
-
-	$out1 = (python -c $cmd)
-
-	$cmd2 = "from translatepy import * `n" +`
-	"tmp2 = Translator().translate('$x', '$y')`n" +`
-	"print(tmp2)"
-
-	$out2 = (python -c $cmd2)
-
-	Write-Host "[#1] $out1"
-	Write-Host "[#2] $out2"
-}
 
 
 
@@ -155,3 +134,12 @@ function AutoAssign([ref]$name, $val) {
 	}
 }
 
+<#----------------------------------------------------------------------------#>
+
+Set-Alias -Name wh -Value Write-Host
+Set-Alias -Name wd -Value Write-Debug
+
+Set-Alias -Name ytdl -Value youtube-dl
+Set-Alias -Name fg -Value ffmpeg
+
+Set-Alias -Name so -Value Select-Object
