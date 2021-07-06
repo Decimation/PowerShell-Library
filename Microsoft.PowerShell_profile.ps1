@@ -4,28 +4,30 @@
 
 <#----------------------------------------------------------------------------#>
 
+
+<#
+.SYNOPSIS
+	Creates constants.
+.DESCRIPTION
+	This function can help you to create constants so easy as it possible.
+	It works as keyword 'const' as such as in C#.
+.EXAMPLE
+	PS C:\> Set-Constant a = 10
+	PS C:\> $a += 13
+
+	There is a integer constant declaration, so the second line return
+	error.
+.EXAMPLE
+	PS C:\> const str = "this is a constant string"
+
+	You also can use word 'const' for constant declaration. There is a
+	string constant named '$str' in this example.
+.LINK
+	Set-Variable
+	About_Functions_Advanced_Parameters
+#>
 function Set-Constant {
-	<#
-	  .SYNOPSIS
-		  Creates constants.
-	  .DESCRIPTION
-		  This function can help you to create constants so easy as it possible.
-		  It works as keyword 'const' as such as in C#.
-	  .EXAMPLE
-		  PS C:\> Set-Constant a = 10
-		  PS C:\> $a += 13
-  
-		  There is a integer constant declaration, so the second line return
-		  error.
-	  .EXAMPLE
-		  PS C:\> const str = "this is a constant string"
-  
-		  You also can use word 'const' for constant declaration. There is a
-		  string constant named '$str' in this example.
-	  .LINK
-		  Set-Variable
-		  About_Functions_Advanced_Parameters
-	#>
+	
 	[CmdletBinding()]
 	param(
 	  [Parameter(Mandatory=$true, Position=0)]
@@ -41,19 +43,19 @@ function Set-Constant {
 	  [string]$Surround = "script"
 	)
 
-	$errbuf = $ErrorActionPreference
+	$errPref = $ErrorActionPreference
   
 	$ErrorActionPreference = "SilentlyContinue"
 
 	try {
-		$thunk = Set-Variable -n $name -val $mean -opt Constant -s $surround
-		& $thunk
+		$fn = Set-Variable -n $name -val $mean -opt Constant -s $surround
+		& $fn
 	}
 	catch {
-		write-debug "Constant value $name not written"
+		Write-Debug "Constant value $name not written"
 	}
 	finally {
-		$ErrorActionPreference = $errbuf
+		$ErrorActionPreference = $errPref
 	}
 	
 }
@@ -105,13 +107,11 @@ function Update-Deci {
 	
 }
 
-
-
-<#----------------------------------------------------------------------------#>
-
 Import-Deci
 
 <#----------------------------------------------------------------------------#>
+
+
 
 function Get-Translation {
 	param (
@@ -155,60 +155,3 @@ function AutoAssign([ref]$name, $val) {
 	}
 }
 
-<#
-.Description
-Pushes a file to the specified GitHub repository
-#>
-function Send-GitHubFile {
-	
-	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory=$true)]	[string]	$repoName,
-		[Parameter(Mandatory=$true)]	[string]	$fileName,
-		[Parameter(Mandatory=$true)]	[string]	$localFile,
-		[Parameter(Mandatory=$false)]	[string]	$name,
-		[Parameter(Mandatory=$false)]	[string]	$token,
-		[Parameter(Mandatory=$false)]	[string]	$commitMsg
-	)
-
-	
-	$nameEnv = [System.Environment]::GetEnvironmentVariable("GH_NAME")
-	AutoAssign([ref]$name) -val $nameEnv
-
-	$tokenEnv = [System.Environment]::GetEnvironmentVariable("GH_TOKEN")
-	AutoAssign([ref]$token) -val $tokenEnv
-
-	$commitMsgDef = "Update"
-	AutoAssign([ref]$commitMsg) -val $commitMsgDef
-	
-	Write-Host "Name: $name"
-	Write-Host "Token: $token"
-
-	$url = "https://api.github.com/repos/$name/$repoName/contents/$fileName"
-
-	$buf = Invoke-WebRequest $url -Method GET | ConvertFrom-Json -AsHashtable
-	$sha = $buf["sha"].ToString()
-
-	$base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($localFile))
-
-	$headers = @{
-		Accept = "application/vnd.github.v3+json"
-	}
-
-	$body = @{
-		"sha" = "$sha"
-		"message" = "$commitMsg"
-		"content" = "$base64string"
-	} | ConvertTo-Json
-
-	$stoken = ConvertTo-SecureString -AsPlainText $token
-	
-	$res = Invoke-RestMethod -Uri $url -Method PUT -Body $body -Headers $headers -Authentication OAuth -Token $stoken
-
-	
-	Write-Host "Completed"
-	
-	#wh $res | Format-Table
-
-	return $res
-}
