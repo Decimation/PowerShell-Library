@@ -153,15 +153,14 @@ function Send-GitHubFile {
 		[Parameter(Mandatory=$false)]	[string]	$token
 	)
 
-	$name2 = [System.Environment]::GetEnvironmentVariable("GH_NAME")
-	AutoAssign([ref]$name) -val $name2
+	$nameEnv = [System.Environment]::GetEnvironmentVariable("GH_NAME")
+	AutoAssign([ref]$name) -val $nameEnv
 
-	$token2 = [System.Environment]::GetEnvironmentVariable("GH_TOKEN")
-	AutoAssign([ref]$token) -val $token2
+	$tokenEnv = [System.Environment]::GetEnvironmentVariable("GH_TOKEN")
+	AutoAssign([ref]$token) -val $tokenEnv
 	
-
-
-	Write-Host "Name: $name `n"
+	Write-Host "Name: $name `n" `
+	"Token: $token"
 
 	$url = "https://api.github.com/repos/$name/$repoName/contents/$fileName"
 
