@@ -46,6 +46,30 @@ function Send-All {
 		}
 	}
 }
+function Get-Missing {
+	param (
+		[Parameter(Mandatory=$true)][string]$remote,
+		[Parameter(Mandatory=$false)][string]$local
+	)
+
+	#$a1 | ?{($a2 -notcontains $_)}
+
+
+	#| sed "s/ /' '/g"
+	#https://stackoverflow.com/questions/45041320/adb-shell-input-text-with-space
+
+	$a2 = Get-ChildItem -Name
+
+	$a1 = Get-RemoteItems $remote
+
+	$m = $a2 | Where-Object{($a1 -notcontains $_)}
+
+	<#foreach ($x in $m) {
+		adb push $x $remote
+	}#>
+
+	return $m
+}
 
 <#
 .Description
@@ -114,7 +138,15 @@ function Get-RemoteItems {
 	param (
 		[Parameter(Mandatory=$true)][string]$src
 	)
-	return (adb shell ls $src) -Split "`n"
+	
+	$x=adb shell ls $src
+
+	if (!($x) -or $x -contains "No such") {
+		wd "Error"
+		return $null
+	}
+
+	return ($x) -Split "`n"
 }
 
 <#

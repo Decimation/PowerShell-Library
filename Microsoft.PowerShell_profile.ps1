@@ -61,7 +61,10 @@ function Set-Constant {
 }
 
 Set-Alias const Set-Constant
-
+function Flatten($a)
+{
+    ,@($a | % {$_})
+}
 <#-----------------------------------[Modules]-----------------------------------#>
 
 $DeciModules = @{
