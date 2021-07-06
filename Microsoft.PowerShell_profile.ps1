@@ -65,6 +65,29 @@ function Flatten($a)
 {
     ,@($a | % {$_})
 }
+
+function Get-Difference {
+	param (
+		[Parameter(Mandatory=$true)][object[]]$a,
+		[Parameter(Mandatory=$true)][object[]]$b
+	)
+	
+	return $b | Where-Object{($a -notcontains $_)}
+}
+function Get-Intersection {
+	param (
+		[Parameter(Mandatory=$true)][object[]]$a,
+		[Parameter(Mandatory=$true)][object[]]$b
+	)
+	return Compare-Object $a $b -PassThru -IncludeEqual -ExcludeDifferent # intersection
+}
+function Get-Union {
+	param (
+		[Parameter(Mandatory=$true)][object[]]$a,
+		[Parameter(Mandatory=$true)][object[]]$b
+	)
+	return Compare-Object $a $b -PassThru -IncludeEqual                   # union
+}
 <#-----------------------------------[Modules]-----------------------------------#>
 
 $DeciModules = @{

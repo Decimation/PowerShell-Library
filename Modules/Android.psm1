@@ -46,31 +46,53 @@ function Send-All {
 		}
 	}
 }
+
+
+
 function Get-Missing {
 	param (
 		[Parameter(Mandatory=$true)][string]$remote,
-		[Parameter(Mandatory=$false)][string]$local
+		[Parameter(Mandatory=$false)][string]$local,
+		[Parameter(Mandatory=$true)]
+        [ValidateSet('Remote', 'Local')]
+        $Direction
 	)
 
-	#$a1 | ?{($a2 -notcontains $_)}
+
+	#$remoteItems | ?{($localItems -notcontains $_)}
 
 
 	#| sed "s/ /' '/g"
 	#https://stackoverflow.com/questions/45041320/adb-shell-input-text-with-space
 
-	$a2 = Get-ChildItem -Name
+	$localItems = Get-ChildItem -Name
 
-	$a1 = Get-RemoteItems $remote
-
-	$m = $a2 | Where-Object{($a1 -notcontains $_)}
-
+	$remoteItems = Get-RemoteItems $remote
+	
 	$remote = Get-ExchangeEscape $remote
 
 	wh $remote
 
-	foreach ($x in $m) {
-		adb push $x $remote
+
+	if ($Direction -eq "Remote") {
+		$m = Get-Difference $remoteItems $localItems
+
+		foreach ($x in $m) {
+			adb push $x $remote
+		}
 	}
+	elseif ($Direction -eq "Local") {
+		$m = Get-Difference $localItems $remoteItems
+
+		foreach ($x in $m) {
+			adb pull "$remote/$x"
+		}
+	}
+	
+
+	
+
+	
 
 	return $m
 }
