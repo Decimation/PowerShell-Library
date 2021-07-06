@@ -10,7 +10,9 @@ My PowerShell library.
   - Get translations
 - Editing
   - Convert image/video formats 
-- Constant variables
 - Android utilities
-  - *ADB* wrappers
+  - `ADB` wrappers
+- Development utilities
+  - `Win32` wrappers
+- Constant variables
 - And more
