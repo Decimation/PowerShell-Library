@@ -1,3 +1,9 @@
+<#
+# Profile
+#>
+
+<#----------------------------------------------------------------------------#>
+
 function Get-Translation {
 	param (
 		[Parameter(Mandatory=$true)][string]$x,
@@ -20,6 +26,7 @@ function Get-Translation {
 	Write-Host "[#1] $out1"
 	Write-Host "[#2] $out2"
 }
+
 
 
 function Prompt {
@@ -67,15 +74,17 @@ function Set-Constant {
 	Set-Variable -n $name -val $mean -opt Constant -s $surround
 }
 
+Set-Alias const Set-Constant
 
 
 
 <#----------------------------------------------------------------------------#>
 
 $DeciModules = @{
-	Index	=	"$Home\Documents\PowerShell\Modules\Index.psm1";
-	Android	=	"$Home\Documents\PowerShell\Modules\Android.psm1";
-	Win32	=	"$Home\Documents\PowerShell\Modules\Win32.psm1";
+	Index		=	"$Home\Documents\PowerShell\Modules\Index.psm1";
+	Android		=	"$Home\Documents\PowerShell\Modules\Android.psm1";
+	Win32		=	"$Home\Documents\PowerShell\Modules\Win32.psm1";
+	Formatting	=	"$Home\Documents\PowerShell\Modules\Formatting.psm1";
 }
 
 
@@ -103,7 +112,18 @@ function Remove-Deci {
 }
 
 
+
+<#
+.Description
+Reloads Deci modules
+#>
+function Update-Deci {
+	Remove-Deci
+	Import-Deci
+	
+}
+
+
 <#----------------------------------------------------------------------------#>
 
-Set-Alias const Set-Constant
 Import-Deci
