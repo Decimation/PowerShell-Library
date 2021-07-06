@@ -130,10 +130,10 @@ function Prompt {
 }
 
 
-
-
-
-
+<#
+.Description
+Assigns a specified value to a ref input variable if the ref input variable is null or does not exist 
+#>
 function AutoAssign([ref]$name, $val) {
 	
 	if (!($name) -or !($name.HasValue) -or ($name -eq $null)) {
@@ -141,7 +141,10 @@ function AutoAssign([ref]$name, $val) {
 	}
 }
 
-
+<#
+.Description
+Pushes a file to the specified GitHub repository
+#>
 function Send-GitHubFile {
 	
 	[CmdletBinding()]
@@ -150,14 +153,19 @@ function Send-GitHubFile {
 		[Parameter(Mandatory=$true)]	[string]	$fileName,
 		[Parameter(Mandatory=$true)]	[string]	$localFile,
 		[Parameter(Mandatory=$false)]	[string]	$name,
-		[Parameter(Mandatory=$false)]	[string]	$token
+		[Parameter(Mandatory=$false)]	[string]	$token,
+		[Parameter(Mandatory=$false)]	[string]	$commitMsg
 	)
 
+	
 	$nameEnv = [System.Environment]::GetEnvironmentVariable("GH_NAME")
 	AutoAssign([ref]$name) -val $nameEnv
 
 	$tokenEnv = [System.Environment]::GetEnvironmentVariable("GH_TOKEN")
 	AutoAssign([ref]$token) -val $tokenEnv
+
+	$commitMsgDef = "Update"
+	AutoAssign([ref]$commitMsg) -val $commitMsgDef
 	
 	Write-Host "Name: $name"
 	Write-Host "Token: $token"
@@ -175,7 +183,7 @@ function Send-GitHubFile {
 
 	$body = @{
 		"sha" = "$sha"
-		"message" = "msg"
+		"message" = "$commitMsg"
 		"content" = "$base64string"
 	} | ConvertTo-Json
 
@@ -184,6 +192,7 @@ function Send-GitHubFile {
 	$res = Invoke-RestMethod -Uri $url -Method PUT -Body $body -Headers $headers -Authentication OAuth -Token $stoken
 
 	
+	Write-Host "Completed"
 	
 	#wh $res | Format-Table
 
