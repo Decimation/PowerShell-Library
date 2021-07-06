@@ -48,11 +48,15 @@ function Send-All {
 }
 
 
+<#
+.Description
 
-function Get-Missing {
+#>
+function Sync-Items {
 	param (
 		[Parameter(Mandatory=$true)][string]$remote,
 		[Parameter(Mandatory=$false)][string]$local,
+		
 		[Parameter(Mandatory=$true)]
         [ValidateSet('Remote', 'Local')]
         $Direction
@@ -61,18 +65,14 @@ function Get-Missing {
 
 	#$remoteItems | ?{($localItems -notcontains $_)}
 
-
 	#| sed "s/ /' '/g"
 	#https://stackoverflow.com/questions/45041320/adb-shell-input-text-with-space
 
 	$localItems = Get-ChildItem -Name
-
 	$remoteItems = Get-RemoteItems $remote
-	
 	$remote = Get-ExchangeEscape $remote
 
-	wh $remote
-
+	#wh $remote
 
 	if ($Direction -eq "Remote") {
 		$m = Get-Difference $remoteItems $localItems
@@ -89,11 +89,6 @@ function Get-Missing {
 		}
 	}
 	
-
-	
-
-	
-
 	return $m
 }
 
@@ -153,6 +148,7 @@ function Get-RemoteFileSize {
 	param (
 		[Parameter(Mandatory=$true)][string]$src
 	)
+	
 	return (adb shell wc -c $src) -Split " " | Select-Object -Index 0
 }
 
@@ -171,34 +167,8 @@ function Get-RemoteItems {
 	return ($x) -Split "`n"
 }
 
-function Get-ShellEscape {
-	param (
-		[Parameter(Mandatory=$true)][string]$v
-	)
-	$v2 = $v.Replace(" ", "`\ ")
-	return $v2
-}
+<#----------------------------------------------------------------------------#>
 
-function Get-ExchangeEscape {
-	param (
-		[Parameter(Mandatory=$true)][string]$v
-	)
-
-	$v2 = $v.Split("/")
-	$v3 = New-Object -TypeName System.Collections.Generic.List[string]
-
-	foreach ($b in $v2) { 
-		if ($b.Contains(" ")) {
-			$b2 = "`"$b/`""
-		} else {
-			$b2 = $b
-		}
-		$v3.Add($b2)
-	}
-
-	return [string]::Join("/", $v3).TrimEnd("/")
-	
-}
 
 <#
 .Description
@@ -210,6 +180,39 @@ function Send-Tap {
 		[Parameter(Mandatory=$true)][long]$y
 	)
 	adb shell input tap $x $y
+}
+
+<#----------------------------------------------------------------------------#>
+
+function Get-ShellEscape {
+	param (
+		[Parameter(Mandatory=$true)][string]$x
+	)
+	$x2 = $x.Replace(" ", "`\ ")
+	return $x2
+}
+
+
+
+function Get-ExchangeEscape {
+	param (
+		[Parameter(Mandatory=$true)][string]$x
+	)
+
+	$x2 = $x.Split("/")
+	$x3 = New-Object -TypeName System.Collections.Generic.List[string]
+
+	foreach ($b in $x2) { 
+		if ($b.Contains(" ")) {
+			$b2 = "`"$b/`""
+		} else {
+			$b2 = $b
+		}
+		$x3.Add($b2)
+	}
+
+	return [string]::Join("/", $x3).TrimEnd("/")
+	
 }
 
 <#----------------------------------------------------------------------------#>

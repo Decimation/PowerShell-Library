@@ -94,7 +94,6 @@ $DeciModules = @{
 	Utilities		=	"$Home\Documents\PowerShell\Modules\Utilities.psm1";
 	Android		=	"$Home\Documents\PowerShell\Modules\Android.psm1";
 	Development		=	"$Home\Documents\PowerShell\Modules\Development.psm1";
-	Formatting	=	"$Home\Documents\PowerShell\Modules\Formatting.psm1";
 }
 
 
