@@ -40,8 +40,22 @@ function Set-Constant {
 	  [Parameter(Mandatory=$false)]
 	  [string]$Surround = "script"
 	)
+
+	$errbuf = $ErrorActionPreference
   
-	Set-Variable -n $name -val $mean -opt Constant -s $surround
+	$ErrorActionPreference = "SilentlyContinue"
+
+	try {
+		$thunk = Set-Variable -n $name -val $mean -opt Constant -s $surround
+		& $thunk
+	}
+	catch {
+		write-debug "Constant value $name not written"
+	}
+	finally {
+		$ErrorActionPreference = $errbuf
+	}
+	
 }
 
 Set-Alias const Set-Constant
