@@ -62,7 +62,7 @@ function Set-Constant {
 
 Set-Alias const Set-Constant
 
-<#----------------------------------------------------------------------------#>
+<#-----------------------------------[Modules]-----------------------------------#>
 
 $DeciModules = @{
 	Utilities		=	"$Home\Documents\PowerShell\Modules\Utilities.psm1";
@@ -131,7 +131,7 @@ function AutoAssign([ref]$name, $val) {
 	}
 }
 
-<#----------------------------------------------------------------------------#>
+<#-----------------------------------[Aliases]-----------------------------------#>
 
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
@@ -139,5 +139,9 @@ Set-Alias -Name wd -Value Write-Debug
 Set-Alias -Name so -Value Select-Object
 Set-Alias -Name ss -Value Select-String
 
+
+Set-Alias -Name gdl -Value gallery-dl
 Set-Alias -Name ytdl -Value youtube-dl
 Set-Alias -Name fg -Value ffmpeg
+Set-Alias -Name fp -Value ffprobe
+Set-Alias -Name mg -Value magick
