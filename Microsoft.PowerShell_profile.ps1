@@ -4,36 +4,6 @@
 
 <#----------------------------------------------------------------------------#>
 
-function Get-Translation {
-	param (
-		[Parameter(Mandatory=$true)][string]$x,
-		[Parameter(Mandatory=$true)][string]$y
-	)
-
-	$cmd = "from googletrans import * `n" +`
-	"tmp = Translator().translate('$x', dest='$y')`n" +`
-	"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))`n"
-	
-
-	$out1 = (python -c $cmd)
-
-	$cmd2 = "from translatepy import * `n" +`
-	"tmp2 = Translator().translate('$x', '$y')`n" +`
-	"print(tmp2)"
-
-	$out2 = (python -c $cmd2)
-
-	Write-Host "[#1] $out1"
-	Write-Host "[#2] $out2"
-}
-
-
-
-function Prompt {
-	Write-Host ("PS " + "[$(Get-Date -Format "HH:mm:ss")] " + $(Get-Location) +">") -NoNewLine
-	return " "
-}
-
 function Set-Constant {
 	<#
 	  .SYNOPSIS
@@ -75,8 +45,6 @@ function Set-Constant {
 }
 
 Set-Alias const Set-Constant
-
-
 
 <#----------------------------------------------------------------------------#>
 
@@ -123,7 +91,65 @@ function Update-Deci {
 	
 }
 
-function GH-Push {
+
+
+<#----------------------------------------------------------------------------#>
+
+Import-Deci
+
+<#----------------------------------------------------------------------------#>
+
+function Get-Translation {
+	param (
+		[Parameter(Mandatory=$true)][string]$x,
+		[Parameter(Mandatory=$true)][string]$y
+	)
+
+	$cmd = "from googletrans import * `n" +`
+	"tmp = Translator().translate('$x', dest='$y')`n" +`
+	"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))`n"
+	
+
+	$out1 = (python -c $cmd)
+
+	$cmd2 = "from translatepy import * `n" +`
+	"tmp2 = Translator().translate('$x', '$y')`n" +`
+	"print(tmp2)"
+
+	$out2 = (python -c $cmd2)
+
+	Write-Host "[#1] $out1"
+	Write-Host "[#2] $out2"
+}
+
+
+
+function Prompt {
+	Write-Host ("PS " + "[$(Get-Date -Format "HH:mm:ss")] " + $(Get-Location) +">") -NoNewLine
+	return " "
+}
+
+
+
+
+
+
+function AutoAssign([ref]$name, $val) {
+	
+	#Write-Host $name.ToString() -NoNewline
+
+	if (!($name.HasValue) -or ($name -eq $null)) {
+		#wd "assigning"
+		$name.Value = $val
+	}
+	
+	#wd "-> $name"
+}
+
+$GH_TOKEN = "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"
+
+
+function Send-GitHubFile {
 	<#
 	PUT https://api.github.com/repos/Decimation/PowerShell-Library/contents/Microsoft.PowerShell_profile.ps1
 	Authorization: token 
@@ -136,22 +162,27 @@ function GH-Push {
 	}
 	#>
 
-	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory=$true)][string]$name,
-		[Parameter(Mandatory=$true)][string]$repoName,
-		[Parameter(Mandatory=$true)][string]$fileName,
-		[Parameter(Mandatory=$true)][string]$localFile,
-		[Parameter(Mandatory=$true)][string]$token
-	)
-	$url = "https://api.github.com/repos/$name/$repoName/contents/$fileName"
 
-	wh $url
+	#[CmdletBinding()]
+	param (
+		[Parameter(Mandatory=$true)]	[string]	$repoName,
+		[Parameter(Mandatory=$true)]	[string]	$fileName,
+		[Parameter(Mandatory=$true)]	[string]	$localFile,
+		[Parameter(Mandatory=$false)]	[string]	$name,
+		[Parameter(Mandatory=$false)]	[string]	$token
+	)
+
+
+	AutoAssign([ref]$token, [System.Environment]::GetEnvironmentVariable("GH_TOKEN"))
+	AutoAssign([ref]$name, [System.Environment]::GetEnvironmentVariable("GH_NAME"))
+
+	Write-Host "Name: $name `n"
+
+
+	$url = "https://api.github.com/repos/$name/$repoName/contents/$fileName"
 
 	$buf = Invoke-WebRequest $url -Method GET | ConvertFrom-Json -AsHashtable
 	$sha = $buf["sha"].ToString()
-
-	wh $sha
 
 	$base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($localFile))
 
@@ -165,15 +196,9 @@ function GH-Push {
 		"content" = "$base64string"
 	} | ConvertTo-Json
 
-	wh $headers
-	wh $body
-
 	$stoken = ConvertTo-SecureString -AsPlainText $token
 	
 	$res = Invoke-RestMethod -Uri $url -Method PUT -Body $body -Headers $headers -Authentication OAuth -Token $stoken
 
 	wh $res
 }
-<#----------------------------------------------------------------------------#>
-
-Import-Deci
