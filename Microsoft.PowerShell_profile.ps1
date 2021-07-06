@@ -183,6 +183,9 @@ function Send-GitHubFile {
 	
 	$res = Invoke-RestMethod -Uri $url -Method PUT -Body $body -Headers $headers -Authentication OAuth -Token $stoken
 
-	wh $res.GetType()
-	wh $res | Format-Table
+	foreach ($obj in $res) {
+		wh $obj
+	}
+	
+	#wh $res | Format-Table
 }
