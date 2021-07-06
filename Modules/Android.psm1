@@ -149,6 +149,35 @@ function Get-RemoteItems {
 	return ($x) -Split "`n"
 }
 
+function Get-ShellEscape {
+	param (
+		[Parameter(Mandatory=$true)][string]$v
+	)
+	$v5 = $v.Replace(" ", "`\ ")
+	return $v5
+}
+
+function Get-ExchangeEscape {
+	param (
+		[Parameter(Mandatory=$true)][string]$v
+	)
+
+	$v3 = $v.Split("/")
+	$v4 = New-Object -TypeName System.Collections.Generic.List[string]
+
+	foreach ($b in $v3) { 
+		if ($b.Contains(" ")) {
+			$vx = "`"$b/`""
+		} else {
+			$vx = $b
+		}
+		$v4.Add($vx)
+	}
+
+	return [string]::Join("/", $v4).TrimEnd("/")
+	
+}
+
 <#
 .Description
 Sends input tap
