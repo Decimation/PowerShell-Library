@@ -100,7 +100,7 @@ Set-Alias readonly Set-Readonly
 
 function Flatten($a)
 {
-    ,@($a | % {$_})
+    ,@($a | ForEach-Object {$_})
 }
 
 function Get-Difference {
@@ -111,26 +111,28 @@ function Get-Difference {
 	
 	return $b | Where-Object{($a -notcontains $_)}
 }
+
 function Get-Intersection {
 	param (
 		[Parameter(Mandatory=$true)][object[]]$a,
 		[Parameter(Mandatory=$true)][object[]]$b
 	)
-	return Compare-Object $a $b -PassThru -IncludeEqual -ExcludeDifferent # intersection
+	return Compare-Object $a $b -PassThru -IncludeEqual -ExcludeDifferent
 }
 function Get-Union {
 	param (
 		[Parameter(Mandatory=$true)][object[]]$a,
 		[Parameter(Mandatory=$true)][object[]]$b
 	)
-	return Compare-Object $a $b -PassThru -IncludeEqual                   # union
+	return Compare-Object $a $b -PassThru -IncludeEqual
 }
+
 <#-----------------------------------[Modules]-----------------------------------#>
 
 $DeciModules = @{
-	Utilities		=	"$Home\Documents\PowerShell\Modules\Utilities.psm1";
+	Utilities	=	"$Home\Documents\PowerShell\Modules\Utilities.psm1";
 	Android		=	"$Home\Documents\PowerShell\Modules\Android.psm1";
-	Development		=	"$Home\Documents\PowerShell\Modules\Development.psm1";
+	Development	=	"$Home\Documents\PowerShell\Modules\Development.psm1";
 }
 
 
@@ -204,8 +206,10 @@ Set-Alias -Name ss -Value Select-String
 
 Set-Alias -Name ud -Value Update-Deci
 
-Set-Alias -Name gdl -Value gallery-dl
 Set-Alias -Name ytdl -Value youtube-dl
+Set-Alias -Name gdl -Value gallery-dl
+Set-Alias -Name yg -Value you-get
+
 Set-Alias -Name fg -Value ffmpeg
 Set-Alias -Name fp -Value ffprobe
 Set-Alias -Name mg -Value magick

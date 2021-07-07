@@ -167,6 +167,12 @@ function Get-RemoteItems {
 	return ($x) -Split "`n"
 }
 
+
+function Get-RemotePackages {
+	
+	return ((adb shell pm list packages -f) -split '`n')
+}
+
 <#----------------------------------------------------------------------------#>
 
 
