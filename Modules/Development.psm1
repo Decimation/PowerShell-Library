@@ -96,38 +96,63 @@ function Invoke-Batch {
 	return (cmd /c $s)
 }
 
-readonly Q_DEST = "H:\Archives & Backups\(Unsorted)"
+function Get-FileType {
+	param (
+		[Parameter(Mandatory=$true)][string]$f
+	)
 
+	$s = ".$($f.Split('.')[-1])"
+
+	$r= Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
+
+	$p = $r | so -ExpandProperty "(Default)"
+
+	
+	#$r | Format-Table -Wrap
+	#$p | Format-Table -Wrap	
+
+	$r2= Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
+
+	#$r2 | Format-Table -Wrap
+
+	#wh ($r2 | Select-Object -ExpandProperty "(Default)")
+
+	wh $r.'(default)'
+	wh $r.'Content Type'
+	wh $r.'PerceivedType'
+	wh $r2.'(default)'
+
+	return $r
+}
+
+
+<#
 Set-Variable -Scope Global -Name SIG -Value @"
 [DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-		public static extern int FindMimeFromData(IntPtr pBC,
-												[MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
-												[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1, SizeParamIndex = 3)]
-												byte[] pBuffer,
-												int cbSize,
-												[MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
-												int dwMimeFlags,
-												out IntPtr mout,
-												int dwReserved);
+public static extern int FindMimeFromData(IntPtr pBC,
+[MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
+[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1, SizeParamIndex = 3)]
+byte[] pBuffer,
+int cbSize,
+[MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
+int dwMimeFlags,
+out IntPtr mout,
+int dwReserved);
 
 "@
+#>
 
-function Id-File {
+
+function Get-FileBytes {
 	param (
 		[Parameter(Mandatory=$true)][string]$s
 	)
 	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
-	$b=[System.IO.File]::ReadAllBytes($s)
-	$r = [System.IntPtr]::Zero
-	#$r = [System.Text.StringBuilder]::new()
-	#$r = [System.Runtime.InteropServices.Marshal]::AllocHGlobal(1024)
-	$p=[PInvoke.Win32]::FindMimeFromData([System.IntPtr]::Zero,[System.IntPtr]::Zero,$b,$b.Length,$null,0,[ref]$r,0)
-
-	Write-Host $p
-	Write-Host $r
-	$r2=[System.Runtime.InteropServices.Marshal]::PtrToStringUni($r)
-Write-Host $r2
+	$b = [System.IO.File]::ReadAllBytes($s)
+	return $b
 }
+
+readonly Q_DEST = "H:\Archives & Backups\(Unsorted)"
 
 function QMove {
 	param (

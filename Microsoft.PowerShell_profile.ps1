@@ -244,4 +244,8 @@ Set-Alias -Name mg -Value magick
 
 <#----------------------------------------------------------------------------#>
 
-Write-Information Loaded
+$InformationPreference = "Continue"
+
+const NAME = "Deci"
+
+Write-Information "[$NAME] Loaded"
