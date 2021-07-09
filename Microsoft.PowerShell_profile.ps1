@@ -17,7 +17,7 @@ $DeciModules = @{
 Loads Deci modules
 #>
 function Import-Deci {
-	
+    
 	foreach ($x in $DeciModules.Values) {
 		Import-Module $x
 	}
@@ -71,8 +71,6 @@ New-Module {
 
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
-
-Set-Alias -Name ie -Value Invoke-Expression
 
 Set-Alias -Name so -Value Select-Object
 Set-Alias -Name ss -Value Select-String

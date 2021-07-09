@@ -3,6 +3,12 @@
 #>
 
 
+function IsAdmin
+{
+	$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+	$principal = New-Object Security.Principal.WindowsPrincipal $identity
+	$principal.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+}
 
 #region [Formatting]
 
@@ -19,6 +25,7 @@ function Get-Underline {
 	
 	return "$($ANSI_UNDERLINE)$s$($ANSI_END)"
 }
+
 #endregion
 
 #region [Variables]
