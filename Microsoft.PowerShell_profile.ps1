@@ -57,9 +57,9 @@ function Set-Constant {
 	  [Parameter(Mandatory=$true, Position=2)]
 	  [object][ValidateNotNullOrEmpty()]$value,
   
-	  [Parameter(Mandatory=$false, Position=3)]
-	  [ValidateSet("r")]
-	  [object][ValidateNotNullOrEmpty()]$arg,
+	  #[Parameter(Mandatory=$false, Position=3)]
+	  #[ValidateSet("r")]
+	  #[object][ValidateNotNullOrEmpty()]$arg,
 
 	  [Parameter(Mandatory=$false)]
 	  [string]$surround = "script"
@@ -84,21 +84,12 @@ function Set-Constant {
 	}
 	
 }
-function qset($name, $value,$c) {
-	
-	$fn=Set-Variable -n $name -val $value -opt ReadOnly -s "script"
-	& $fn
-}
 
 Set-Alias const Set-Constant
 
-
 const NAME = "Deci"
 
-
-
 const qr = ".`$PROFILE; ud"
-
 
 function Set-Readonly {
 	
@@ -113,9 +104,9 @@ function Set-Readonly {
 	  [Parameter(Mandatory=$true, Position=2)]
 	  [object][ValidateNotNullOrEmpty()]$value,
   
-	  [Parameter(Mandatory=$false, Position=3)]
-	  [ValidateSet("r")]
-	  [object][ValidateNotNullOrEmpty()]$arg,
+	  #[Parameter(Mandatory=$false, Position=3)]
+	  #[ValidateSet("r")]
+	  #[object][ValidateNotNullOrEmpty()]$arg,
 
 	  [Parameter(Mandatory=$false)]
 	  [string]$surround = "script"
@@ -144,6 +135,48 @@ function Set-Readonly {
 Set-Alias readonly Set-Readonly
 
 
+function Set-Qv {
+	
+	[CmdletBinding()]
+	param(
+	  [Parameter(Mandatory=$true, Position=0)]
+	  [string][ValidateNotNullOrEmpty()]$name,
+  
+	  [Parameter(Mandatory=$true, Position=1)]
+	  [char][ValidateSet("=")]$link,
+  
+	  [Parameter(Mandatory=$true, Position=2)]
+	  [object][ValidateNotNullOrEmpty()]$value,
+  
+	  [Parameter(Mandatory=$false, Position=3)]
+	  #[ValidateSet()]
+	  [object][ValidateNotNullOrEmpty()]$arg,
+
+	  [Parameter(Mandatory=$false)]
+	  [string]$surround = "script"
+	)
+
+	$errPref = $ErrorActionPreference
+  
+	$ErrorActionPreference = "SilentlyContinue"
+
+	try {
+		$fn = Set-Variable -n $name -val $value -s $surround
+		& $fn
+		
+	}
+	catch {
+		#Write-Debug "Constant value $name not written"
+		
+	}
+	finally {
+		$ErrorActionPreference = $errPref
+		Write-Verbose "(qv) $name $u_Arrow $value"
+	}
+	
+}
+
+Set-Alias qv Set-Qv
 
 <#-----------------------------------[Collections]-----------------------------------#>
 
