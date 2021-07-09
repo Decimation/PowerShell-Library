@@ -166,5 +166,5 @@ function QMove {
 
 	Move-Item "$s" "$d"
 
-	Write-Information "Moved $s to $d"
+	Write-Information "$s $u_Arrow $d"
 }

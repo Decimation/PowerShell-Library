@@ -2,6 +2,11 @@
 # Profile
 #>
 
+$InformationPreference = "Continue"
+$DebugPreference = "Continue"
+
+
+
 <#----------------------------------------------------------------------------#>
 
 function VarExists([string] $name) {
@@ -17,29 +22,30 @@ function VarExists([string] $name) {
 	return $b
 }
 
-<#
-.SYNOPSIS
-	Creates constants.
-.DESCRIPTION
-	This function can help you to create constants so easy as it possible.
-	It works as keyword 'const' as such as in C#.
-.EXAMPLE
-	PS C:\> Set-Constant a = 10
-	PS C:\> $a += 13
+Set-Variable -Name u_Arrow -Value $([char]0x2192)
 
-	There is a integer constant declaration, so the second line return
-	error.
-.EXAMPLE
-	PS C:\> const str = "this is a constant string"
-
-	You also can use word 'const' for constant declaration. There is a
-	string constant named '$str' in this example.
-.LINK
-	Set-Variable
-	About_Functions_Advanced_Parameters
-#>
 function Set-Constant {
-	
+	<#
+	.SYNOPSIS
+		Creates constants.
+	.DESCRIPTION
+		This function can help you to create constants so easy as it possible.
+		It works as keyword 'const' as such as in C#.
+	.EXAMPLE
+		PS C:\> Set-Constant a = 10
+		PS C:\> $a += 13
+
+		There is a integer constant declaration, so the second line return
+		error.
+	.EXAMPLE
+		PS C:\> const str = "this is a constant string"
+
+		You also can use word 'const' for constant declaration. There is a
+		string constant named '$str' in this example.
+	.LINK
+		Set-Variable
+		About_Functions_Advanced_Parameters
+	#>
 	[CmdletBinding()]
 	param(
 	  [Parameter(Mandatory=$true, Position=0)]
@@ -74,14 +80,25 @@ function Set-Constant {
 	}
 	finally {
 		$ErrorActionPreference = $errPref
-		Write-Debug "(const) $name $ARROW $value"
+		Write-Verbose "(const) $name $u_Arrow $value"
 	}
 	
+}
+function qset($name, $value,$c) {
+	
+	$fn=Set-Variable -n $name -val $value -opt ReadOnly -s "script"
+	& $fn
 }
 
 Set-Alias const Set-Constant
 
-Set-Variable -Name u_Arrow -Value $([char]0x2192)
+
+const NAME = "Deci"
+
+
+
+const qr = ".`$PROFILE; ud"
+
 
 function Set-Readonly {
 	
@@ -107,28 +124,32 @@ function Set-Readonly {
 	$errPref = $ErrorActionPreference
   
 	$ErrorActionPreference = "SilentlyContinue"
-	
+
 	try {
 		$fn = Set-Variable -n $name -val $value -opt ReadOnly -s $surround
 		& $fn
-
-		#Write-Debug "(readonly) $name $ARROW $value"
+		
 	}
 	catch {
-		#Write-Debug "Readonly value $name not written"
+		#Write-Debug "Constant value $name not written"
+		
 	}
 	finally {
 		$ErrorActionPreference = $errPref
-		Write-Debug "(readonly) $name $ARROW $value"
+		Write-Verbose "(readonly) $name $u_Arrow $value"
 	}
 	
 }
 
 Set-Alias readonly Set-Readonly
 
+
+
+<#-----------------------------------[Collections]-----------------------------------#>
+
 function Flatten($a)
 {
-    ,@($a | ForEach-Object {$_})
+	,@($a | ForEach-Object {$_})
 }
 
 function Get-Difference {
@@ -176,7 +197,6 @@ function Import-Deci {
 }
 
 
-
 <#
 .Description
 Unloads Deci modules
@@ -188,7 +208,6 @@ function Remove-Deci {
 }
 
 
-
 <#
 .Description
 Reloads Deci modules
@@ -196,7 +215,7 @@ Reloads Deci modules
 function Update-Deci {
 	Remove-Deci
 	Import-Deci
-	
+	Write-Debug "[$NAME] Updated"
 }
 
 Import-Deci
@@ -229,6 +248,8 @@ function AutoAssign([ref]$name, $val) {
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
 
+Set-Alias -Name ie -Value Invoke-Expression
+
 Set-Alias -Name so -Value Select-Object
 Set-Alias -Name ss -Value Select-String
 
@@ -244,8 +265,6 @@ Set-Alias -Name mg -Value magick
 
 <#----------------------------------------------------------------------------#>
 
-$InformationPreference = "Continue"
+Set-Variable -Name DeciLoadTime -value (Get-Date -Format "HH:mm:ss")
 
-const NAME = "Deci"
-
-Write-Information "[$NAME] Loaded"
+Write-Debug "[$NAME] Loaded ($DeciLoadTime)"
