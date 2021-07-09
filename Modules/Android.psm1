@@ -3,13 +3,14 @@
 # Android utilities
 #>
 
-<#----------------------------------------------------------------------------#>
+#region [IO]
+
 
 <#
 .Description
 Sends file to device destination folder
 #>
-function Send-File {
+function Send-LocalFile {
 	param (
 		[Parameter(Mandatory=$true)][string]$src,
 		[Parameter(Mandatory=$false)][string]$dest
@@ -26,7 +27,7 @@ function Send-File {
 .Description
 Sends all files within current directory to device destination folder
 #>
-function Send-All {
+function Send-LocalFiles {
 	param(
         [Parameter(Mandatory=$false)][string]$dest
     )
@@ -69,7 +70,7 @@ function Sync-Items {
 	#https://stackoverflow.com/questions/45041320/adb-shell-input-text-with-space
 
 	$localItems = Get-ChildItem -Name
-	$remoteItems = Get-RemoteItems $remote
+	$remoteItems = Get-RemoteItemsList $remote
 	$remote = Get-ExchangeEscape $remote
 
 	#wh $remote
@@ -96,7 +97,7 @@ function Sync-Items {
 .Description
 Pulls file to destination folder (if specified)
 #>
-function Get-File {
+function Get-RemoteFile {
 	param (
 		[Parameter(Mandatory=$true)][string]$src,
 		[Parameter(Mandatory=$false)][string]$dest
@@ -113,7 +114,7 @@ function Get-File {
 .Description
 Pulls files from device folder that match filter (if specified)
 #>
-function Get-Files {
+function Get-RemoteFiles {
 	param (
 		[Parameter(Mandatory=$true, Position=0)][string]$src,
 		[Parameter(Mandatory=$false, ParameterSetName="Filter")][string]$filter
@@ -123,7 +124,7 @@ function Get-Files {
 		$filter = "."
 	}
 
-	foreach ($x in ((Get-RemoteItems $src) | Select-String -Pattern $filter)) {
+	foreach ($x in ((Get-RemoteItemsList $src) | Select-String -Pattern $filter)) {
 		adb pull "$src/$x"
 	}
 }
@@ -156,7 +157,7 @@ function Get-RemoteFileSize {
 .Description
 Lists directory content
 #>
-function Get-RemoteItems {
+function Get-RemoteItemsList {
 	param (
 		[Parameter(Mandatory=$true)][string]$src
 	)
@@ -167,6 +168,7 @@ function Get-RemoteItems {
 	return ($x) -Split "`n"
 }
 
+#endregion
 
 function Get-RemotePackages {
 	
@@ -181,8 +183,6 @@ function Enable-Package {
 	adb shell pm enable $x
 }
 
-<#----------------------------------------------------------------------------#>
-
 
 <#
 .Description
@@ -196,7 +196,6 @@ function Send-Tap {
 	adb shell input tap $x $y
 }
 
-<#----------------------------------------------------------------------------#>
 
 function Get-ShellEscape {
 	param (
@@ -228,16 +227,15 @@ function Get-ExchangeEscape {
 	return [string]::Join("/", $x3).TrimEnd("/")
 	
 }
+#region [Aliases]
 
-<#----------------------------------------------------------------------------#>
 
-Set-Alias -Name sf -Value Send-File
-Set-Alias -Name gf -Value Get-File
+Set-Alias -Name sf -Value Send-LocalFile
+Set-Alias -Name gf -Value Get-RemoteFile
 
-<#----------------------------------------------------------------------------#>
 
-readonly RD_SD = "sdcard/"
-readonly RD_PIC = "$($R_SD)Pictures/"
-readonly RD_DL = "$($R_SD)Download/"
+$global:RD_SD = "sdcard/"
+$global:RD_PIC = "$($R_SD)Pictures/"
+$global:RD_DL = "$($R_SD)Download/"
 
-<#----------------------------------------------------------------------------#>
+#endregion

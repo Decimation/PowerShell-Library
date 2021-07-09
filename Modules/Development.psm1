@@ -117,10 +117,10 @@ function Get-FileType {
 
 	#wh ($r2 | Select-Object -ExpandProperty "(Default)")
 
-	wh $r.'(default)'
-	wh $r.'Content Type'
-	wh $r.'PerceivedType'
-	wh $r2.'(default)'
+	Write-Host $r.'(default)'
+	Write-Host $r.'Content Type'
+	Write-Host $r.'PerceivedType'
+	Write-Host $r2.'(default)'
 
 	return $r
 }
@@ -152,7 +152,7 @@ function Get-FileBytes {
 	return $b
 }
 
-readonly Q_DEST = "H:\Archives & Backups\(Unsorted)"
+$global:Q_DEST = "H:\Archives & Backups\(Unsorted)"
 
 function QMove {
 	param (
@@ -166,5 +166,5 @@ function QMove {
 
 	Move-Item "$s" "$d"
 
-	Write-Information "$s $u_Arrow $d"
+	Write-Information "$s -> $d"
 }
