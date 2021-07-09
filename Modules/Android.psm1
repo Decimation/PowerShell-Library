@@ -173,6 +173,14 @@ function Get-RemotePackages {
 	return ((adb shell pm list packages -f) -split '`n')
 }
 
+function Enable-Package {
+	param (
+		[Parameter(Mandatory=$true)][long]$x
+	)
+	
+	adb shell pm enable $x
+}
+
 <#----------------------------------------------------------------------------#>
 
 

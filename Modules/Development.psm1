@@ -70,8 +70,8 @@ function Send-GitHubFile {
 
 function Get-Symbols {
 	param (
-		[Parameter(Mandatory=$true)]	[string]	$s,
-		[Parameter(Mandatory=$false)]	[string]	$dest
+		[Parameter(Mandatory=$true)][string]$s,
+		[Parameter(Mandatory=$false)][string]$dest
 	)
 
 	if (!($dest)) {
@@ -83,9 +83,63 @@ function Get-Symbols {
 
 function Stop-Task {
 	param (
-		[Parameter(Mandatory=$true)]	[string]	$name
+		[Parameter(Mandatory=$true)][string]$name
 	)
 
 	taskkill /f /im $name
+}
+
+function Invoke-Batch {
+	param (
+		[Parameter(Mandatory=$true)][string]$s
+	)
+	return (cmd /c $s)
+}
+
+readonly Q_DEST = "H:\Archives & Backups\(Unsorted)"
+
+Set-Variable -Scope Global -Name SIG -Value @"
+[DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
+		public static extern int FindMimeFromData(IntPtr pBC,
+												[MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
+												[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1, SizeParamIndex = 3)]
+												byte[] pBuffer,
+												int cbSize,
+												[MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
+												int dwMimeFlags,
+												out IntPtr mout,
+												int dwReserved);
+
+"@
+
+function Id-File {
+	param (
+		[Parameter(Mandatory=$true)][string]$s
+	)
+	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
+	$b=[System.IO.File]::ReadAllBytes($s)
+	$r = [System.IntPtr]::Zero
+	#$r = [System.Text.StringBuilder]::new()
+	#$r = [System.Runtime.InteropServices.Marshal]::AllocHGlobal(1024)
+	$p=[PInvoke.Win32]::FindMimeFromData([System.IntPtr]::Zero,[System.IntPtr]::Zero,$b,$b.Length,$null,0,[ref]$r,0)
+
+	Write-Host $p
+	Write-Host $r
+	$r2=[System.Runtime.InteropServices.Marshal]::PtrToStringUni($r)
+Write-Host $r2
+}
+
+function QMove {
+	param (
+		[Parameter(Mandatory=$true)][string]$s,
+		[Parameter(Mandatory=$false)][string]$d
+	)
 	
+	if (!($d)) {
+		$d = $Q_DEST
+	}
+
+	Move-Item "$s" "$d"
+
+	Write-Information "Moved $s to $d"
 }

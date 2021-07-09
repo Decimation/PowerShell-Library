@@ -4,6 +4,18 @@
 
 <#----------------------------------------------------------------------------#>
 
+function VarExists([string] $name) {
+
+	$errPref = $ErrorActionPreference
+  
+	$ErrorActionPreference = "SilentlyContinue"
+
+	$b = !($null -eq (Get-Variable -Name $name));
+
+	$ErrorActionPreference = $errPref
+
+	return $b
+}
 
 <#
 .SYNOPSIS
@@ -31,16 +43,20 @@ function Set-Constant {
 	[CmdletBinding()]
 	param(
 	  [Parameter(Mandatory=$true, Position=0)]
-	  [string][ValidateNotNullOrEmpty()]$Name,
+	  [string][ValidateNotNullOrEmpty()]$name,
   
 	  [Parameter(Mandatory=$true, Position=1)]
-	  [char][ValidateSet("=")]$Link,
+	  [char][ValidateSet("=")]$link,
   
 	  [Parameter(Mandatory=$true, Position=2)]
-	  [object][ValidateNotNullOrEmpty()]$Mean,
+	  [object][ValidateNotNullOrEmpty()]$value,
   
+	  [Parameter(Mandatory=$false, Position=3)]
+	  [ValidateSet("r")]
+	  [object][ValidateNotNullOrEmpty()]$arg,
+
 	  [Parameter(Mandatory=$false)]
-	  [string]$Surround = "script"
+	  [string]$surround = "script"
 	)
 
 	$errPref = $ErrorActionPreference
@@ -48,50 +64,62 @@ function Set-Constant {
 	$ErrorActionPreference = "SilentlyContinue"
 
 	try {
-		$fn = Set-Variable -n $name -val $mean -opt Constant -s $surround
+		$fn = Set-Variable -n $name -val $value -opt Constant -s $surround
 		& $fn
+		
 	}
 	catch {
-		Write-Debug "Constant value $name not written"
+		#Write-Debug "Constant value $name not written"
+		
 	}
 	finally {
 		$ErrorActionPreference = $errPref
+		Write-Debug "(const) $name $ARROW $value"
 	}
 	
 }
 
 Set-Alias const Set-Constant
 
+Set-Variable -Name u_Arrow -Value $([char]0x2192)
+
 function Set-Readonly {
 	
 	[CmdletBinding()]
 	param(
 	  [Parameter(Mandatory=$true, Position=0)]
-	  [string][ValidateNotNullOrEmpty()]$Name,
+	  [string][ValidateNotNullOrEmpty()]$name,
   
 	  [Parameter(Mandatory=$true, Position=1)]
-	  [char][ValidateSet("=")]$Link,
+	  [char][ValidateSet("=")]$link,
   
 	  [Parameter(Mandatory=$true, Position=2)]
-	  [object][ValidateNotNullOrEmpty()]$Mean,
+	  [object][ValidateNotNullOrEmpty()]$value,
   
+	  [Parameter(Mandatory=$false, Position=3)]
+	  [ValidateSet("r")]
+	  [object][ValidateNotNullOrEmpty()]$arg,
+
 	  [Parameter(Mandatory=$false)]
-	  [string]$Surround = "script"
+	  [string]$surround = "script"
 	)
 
 	$errPref = $ErrorActionPreference
   
 	$ErrorActionPreference = "SilentlyContinue"
-
+	
 	try {
-		$fn = Set-Variable -n $name -val $mean -opt ReadOnly -s $surround
+		$fn = Set-Variable -n $name -val $value -opt ReadOnly -s $surround
 		& $fn
+
+		#Write-Debug "(readonly) $name $ARROW $value"
 	}
 	catch {
-		Write-Debug "Readonly value $name not written"
+		#Write-Debug "Readonly value $name not written"
 	}
 	finally {
 		$ErrorActionPreference = $errPref
+		Write-Debug "(readonly) $name $ARROW $value"
 	}
 	
 }
