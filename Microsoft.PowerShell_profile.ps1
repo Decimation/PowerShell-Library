@@ -135,47 +135,67 @@ function Set-Readonly {
 Set-Alias readonly Set-Readonly
 
 
-function Set-Qv {
-	
+function Set-qv {
+	<#
+	  .SYNOPSIS
+		  Creates constants.
+	  .DESCRIPTION
+		  This function can help you to create constants so easy as it possible.
+		  It works as keyword 'const' as such as in C#.
+	  .EXAMPLE
+		  PS C:\> Set-Constant a = 10
+		  PS C:\> $a += 13
+  
+		  There is a integer constant declaration, so the second line return
+		  error.
+	  .EXAMPLE
+		  PS C:\> const str = "this is a constant string"
+  
+		  You also can use word 'const' for constant declaration. There is a
+		  string constant named '$str' in this example.
+	  .LINK
+		  Set-Variable
+		  About_Functions_Advanced_Parameters
+	#>
 	[CmdletBinding()]
 	param(
-	  [Parameter(Mandatory=$true, Position=0)]
-	  [string][ValidateNotNullOrEmpty()]$name,
+		[Parameter(Mandatory = $true, Position = 0)]
+		[string][ValidateNotNullOrEmpty()]$Name,
   
-	  [Parameter(Mandatory=$true, Position=1)]
-	  [char][ValidateSet("=")]$link,
+		[Parameter(Mandatory = $true, Position = 1)]
+		[char][ValidateSet("=")]$Link,
   
-	  [Parameter(Mandatory=$true, Position=2)]
-	  [object][ValidateNotNullOrEmpty()]$value,
+		[Parameter(Mandatory = $true, Position = 2)]
+		[object][ValidateNotNullOrEmpty()]$Mean,
   
-	  [Parameter(Mandatory=$false, Position=3)]
-	  #[ValidateSet()]
-	  [object][ValidateNotNullOrEmpty()]$arg,
+		[Parameter(Mandatory = $false, Position = 3)]
+		[object][ValidateSet("r", "c", "n")]$arg,
 
-	  [Parameter(Mandatory=$false)]
-	  [string]$surround = "script"
+		[Parameter(Mandatory = $false)]
+		[string]$Surround = "global"
 	)
-
-	$errPref = $ErrorActionPreference
   
-	$ErrorActionPreference = "SilentlyContinue"
+	if ($arg) {
+		
+		switch ($arg) {
+			"r" {
+				$arg2 = "ReadOnly"
+			}
+			"c" {
+				$arg2 = "Constant"
+			}
+			"n" {
+				$arg2 = "None"
+			}
+			Default {
+				$arg2 = "None"
+			}
+		}
+	}
+	else { $arg2 = "None" }
 
-	try {
-		$fn = Set-Variable -n $name -val $value -s $surround
-		& $fn
-		
-	}
-	catch {
-		#Write-Debug "Constant value $name not written"
-		
-	}
-	finally {
-		$ErrorActionPreference = $errPref
-		Write-Verbose "(qv) $name $u_Arrow $value"
-	}
-	
+	Set-Variable -n $name -val $mean -s $surround -Option $arg2
 }
-
 Set-Alias qv Set-Qv
 
 <#-----------------------------------[Collections]-----------------------------------#>
