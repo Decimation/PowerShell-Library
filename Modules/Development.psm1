@@ -126,21 +126,6 @@ function Get-FileType {
 }
 
 
-<#
-Set-Variable -Scope Global -Name SIG -Value @"
-[DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-public static extern int FindMimeFromData(IntPtr pBC,
-[MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
-[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1, SizeParamIndex = 3)]
-byte[] pBuffer,
-int cbSize,
-[MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
-int dwMimeFlags,
-out IntPtr mout,
-int dwReserved);
-
-"@
-#>
 
 $global:Q_DEST = "H:\Archives & Backups\(Unsorted)"
 
