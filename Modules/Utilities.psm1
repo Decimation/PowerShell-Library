@@ -3,16 +3,16 @@
 #>
 
 
-function IsAdmin
-{
+function IsAdmin {
 	$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 	$principal = New-Object Security.Principal.WindowsPrincipal $identity
 	$principal.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
 }
 
+
 #region [Formatting]
 
-$script:uni_arrow = $([char]0x2192)
+$script:UNI_ARROW = $([char]0x2192)
 
 $private:ANSI_UNDERLINE = "$([char]0x1b)[4m"
 $private:ANSI_END = "$([char]0x001b)[0m"
@@ -200,11 +200,76 @@ function Get-Union {
 	)
 	return Compare-Object $a $b -PassThru -IncludeEqual
 }
+function New-List {
+	param (
+		[Parameter(Mandatory = $true)][string]$x
+	)
+	return New-Object "System.Collections.Generic.List[$x]"
+}
 
 #endregion
 
-#region [Other]
+#region [Time]
+function Get-TimeAdd {
+	param (
+		[Parameter(Mandatory = $true)][string]$a,
+		[Parameter(Mandatory = $true)][string]$b
+	)
 
+	return [timespan]::Parse($a) + [timespan]::Parse($b)
+}
+
+function Get-TimeSub {
+	param (
+		[Parameter(Mandatory = $true)][timespan]$a,
+		[Parameter(Mandatory = $true)][timespan]$b
+	)
+	
+	return ([timespan]::Parse($a) - [timespan]::Parse($b))
+}
+
+function Get-TimeAbs {
+	param (
+		[Parameter(Mandatory = $true)][timespan]$c
+	)
+	return [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
+}
+
+
+
+function Get-TimeDuration {
+	param (
+		[Parameter(Mandatory = $true)][string]$a,
+		[Parameter(Mandatory = $true)][string]$b
+	)
+	
+	$a = [timespan]::Parse($a)
+	$b = [timespan]::Parse($b)
+	
+	$c = Get-TimeSub $a $b
+
+	<#if ([timespan]::op_LessThan($c, [timespan]::Zero)) {
+		
+	}#>
+	
+	$c = [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
+
+	return $c;
+}
+
+function Get-TimeDurationString {
+	param (
+		[Parameter(Mandatory = $true)][string]$a,
+		[Parameter(Mandatory = $true)][string]$b
+	)
+	return (Get-TimeDuration $a $b).ToString('hh\:mm\:ss')
+}
+
+
+
+#endregion
+
+#region [Editing]
 
 function ConvertTo-Gif {
 	param (
@@ -218,6 +283,55 @@ function ConvertTo-Gif {
 
 }
 
+function Get-ItemInfo {
+	param (
+		[Parameter(Mandatory = $true)][string]$x
+	)
+
+	#$x2 = (ffprobe $x) 2>&1
+
+	#$rg = New-Object 'System.Collections.Generic.List[String]'
+	
+	<# foreach ($y in ($x2 | Select-String -Pattern "Input" -NoEmphasis)) {
+		$rg.Add(($y -split '`n')[0].Trim())
+	} #>
+
+	#return $rg
+
+	#return (($x2 | Select-String -Pattern "Stream" -NoEmphasis | Select-Object -Index 0) -split '`n')[0].Trim()
+
+	return (ffprobe -hide_banner -show_streams -select_streams a $x)
+}
+
+
+function Get-Clip {
+	param (
+		[Parameter(Mandatory = $true)][string]$f,
+		[Parameter(Mandatory = $true)][string]$a,
+		[Parameter(Mandatory = $true)][string]$b,
+		[Parameter(Mandatory = $false)][string]$o
+
+	)
+
+	$d = Get-TimeDurationString $a $b
+
+	$f2 = [System.IO.Path]::GetFileNameWithoutExtension($f)
+	
+	if (!($o)) {
+		#$o = [System.IO.Path]::Combine($dir,"$f2 @ $d.mp4")
+		#$o = [System.IO.Path]::Combine("$f2 @ $d.mp4")
+		$o = "$f2-edit.mp4"
+	}
+
+	Write-Debug $o
+	
+	return (ffmpeg -ss $a -i $f -t $d $o)
+}
+
+
+#endregion
+
+#region [Other]
 
 function Get-Translation {
 	param (
@@ -242,3 +356,6 @@ function Get-Translation {
 	Write-Host "[#2] $out2"
 }
 #endregion
+
+
+

@@ -12,12 +12,12 @@ Sends file to device destination folder
 #>
 function Send-LocalFile {
 	param (
-		[Parameter(Mandatory=$true)][string]$src,
-		[Parameter(Mandatory=$false)][string]$dest
+		[Parameter(Mandatory = $true)][string]$src,
+		[Parameter(Mandatory = $false)][string]$dest
 	)
 
 	if (!($dest)) {
-		$dest = "sdcard/"
+		$dest = 'sdcard/'
 	}
 
 	adb push $src $dest
@@ -29,13 +29,13 @@ Sends all files within current directory to device destination folder
 #>
 function Send-LocalFiles {
 	param(
-        [Parameter(Mandatory=$false)][string]$dest
-    )
+		[Parameter(Mandatory = $false)][string]$dest
+	)
 	
 	$cd = Get-Location
 
 	if (!($dest)) {
-		$dest = "sdcard/"
+		$dest = 'sdcard/'
 	}
 
 
@@ -55,12 +55,12 @@ function Send-LocalFiles {
 #>
 function Sync-Items {
 	param (
-		[Parameter(Mandatory=$true)][string]$remote,
-		[Parameter(Mandatory=$false)][string]$local,
+		[Parameter(Mandatory = $true)][string]$remote,
+		[Parameter(Mandatory = $false)][string]$local,
 		
-		[Parameter(Mandatory=$true)]
-        [ValidateSet('Remote', 'Local')]
-        $Direction
+		[Parameter(Mandatory = $true)]
+		[ValidateSet('Remote', 'Local')]
+		$Direction
 	)
 
 
@@ -75,14 +75,14 @@ function Sync-Items {
 
 	#wh $remote
 
-	if ($Direction -eq "Remote") {
+	if ($Direction -eq 'Remote') {
 		$m = Get-Difference $remoteItems $localItems
 
 		foreach ($x in $m) {
 			adb push $x $remote
 		}
 	}
-	elseif ($Direction -eq "Local") {
+	elseif ($Direction -eq 'Local') {
 		$m = Get-Difference $localItems $remoteItems
 
 		foreach ($x in $m) {
@@ -99,8 +99,8 @@ Pulls file to destination folder (if specified)
 #>
 function Get-RemoteFile {
 	param (
-		[Parameter(Mandatory=$true)][string]$src,
-		[Parameter(Mandatory=$false)][string]$dest
+		[Parameter(Mandatory = $true)][string]$src,
+		[Parameter(Mandatory = $false)][string]$dest
 	)
 
 	if (!($dest)) {
@@ -116,12 +116,12 @@ Pulls files from device folder that match filter (if specified)
 #>
 function Get-RemoteFiles {
 	param (
-		[Parameter(Mandatory=$true, Position=0)][string]$src,
-		[Parameter(Mandatory=$false, ParameterSetName="Filter")][string]$filter
+		[Parameter(Mandatory = $true, Position = 0)][string]$src,
+		[Parameter(Mandatory = $false, ParameterSetName = 'Filter')][string]$filter
 	)
 
 	if (!($filter)) {
-		$filter = "."
+		$filter = '.'
 	}
 
 	foreach ($x in ((Get-RemoteItemsList $src) | Select-String -Pattern $filter)) {
@@ -135,7 +135,7 @@ Deletes file
 #>
 function Remove-RemoteFile {
 	param (
-		[Parameter(Mandatory=$true)][string]$src
+		[Parameter(Mandatory = $true)][string]$src
 	)
 
 	adb shell rm $src
@@ -147,10 +147,10 @@ Gets size of file
 #>
 function Get-RemoteFileSize {
 	param (
-		[Parameter(Mandatory=$true)][string]$src
+		[Parameter(Mandatory = $true)][string]$src
 	)
 	
-	return (adb shell wc -c $src) -Split " " | Select-Object -Index 0
+	return (adb shell wc -c $src) -Split ' ' | Select-Object -Index 0
 }
 
 <#
@@ -159,7 +159,7 @@ Lists directory content
 #>
 function Get-RemoteItemsList {
 	param (
-		[Parameter(Mandatory=$true)][string]$src
+		[Parameter(Mandatory = $true)][string]$src
 	)
 
 	$src = Get-ShellEscape $src
@@ -177,7 +177,7 @@ function Get-RemotePackages {
 
 function Enable-Package {
 	param (
-		[Parameter(Mandatory=$true)][long]$x
+		[Parameter(Mandatory = $true)][long]$x
 	)
 	
 	adb shell pm enable $x
@@ -190,8 +190,8 @@ Sends input tap
 #>
 function Send-Tap {
 	param (
-		[Parameter(Mandatory=$true)][long]$x,
-		[Parameter(Mandatory=$true)][long]$y
+		[Parameter(Mandatory = $true)][long]$x,
+		[Parameter(Mandatory = $true)][long]$y
 	)
 	adb shell input tap $x $y
 }
@@ -199,9 +199,9 @@ function Send-Tap {
 
 function Get-ShellEscape {
 	param (
-		[Parameter(Mandatory=$true)][string]$x
+		[Parameter(Mandatory = $true)][string]$x
 	)
-	$x2 = $x.Replace(" ", "`\ ")
+	$x2 = $x.Replace(' ', "`\ ")
 	return $x2
 }
 
@@ -209,22 +209,23 @@ function Get-ShellEscape {
 
 function Get-ExchangeEscape {
 	param (
-		[Parameter(Mandatory=$true)][string]$x
+		[Parameter(Mandatory = $true)][string]$x
 	)
 
-	$x2 = $x.Split("/")
+	$x2 = $x.Split('/')
 	$x3 = New-Object -TypeName System.Collections.Generic.List[string]
 
 	foreach ($b in $x2) { 
-		if ($b.Contains(" ")) {
+		if ($b.Contains(' ')) {
 			$b2 = "`"$b/`""
-		} else {
+		}
+		else {
 			$b2 = $b
 		}
 		$x3.Add($b2)
 	}
 
-	return [string]::Join("/", $x3).TrimEnd("/")
+	return [string]::Join('/', $x3).TrimEnd('/')
 	
 }
 #region [Aliases]
@@ -233,9 +234,31 @@ function Get-ExchangeEscape {
 Set-Alias -Name sf -Value Send-LocalFile
 Set-Alias -Name gf -Value Get-RemoteFile
 
-
-$global:RD_SD = "sdcard/"
-$global:RD_PIC = "$($R_SD)Pictures/"
-$global:RD_DL = "$($R_SD)Download/"
-
 #endregion
+
+#region [Variables]
+
+$global:RD_SD = 'sdcard/'
+$global:RD_PIC = $RD_SD + 'Pictures/'
+$global:RD_VID = $RD_SD + 'Videos/'
+$global:RD_DL = $RD_SD + 'Download/'
+$global:RD_DOC = $RD_SD + 'Documents/'
+
+$RD_DIRS = @(
+	$RD_SD, $RD_PIC, $RD_DL, $RD_VID, $RD_DOC
+)
+	
+#endregion
+
+$scriptBlock = {
+	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+	
+	($RD_DIRS) | Where-Object {
+		$_ -like "$x*" -or $_.StartsWith($x)
+	} | ForEach-Object {
+		"'$_'"
+	}
+}
+
+Register-ArgumentCompleter -CommandName Get-RemoteFile -ParameterName src -ScriptBlock $scriptBlock
