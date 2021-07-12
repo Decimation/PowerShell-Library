@@ -100,3 +100,10 @@ $script:qr = ".`$PROFILE; ud"
 $script:DeciLoadTime = (Get-Date -Format 'HH:mm:ss')
 
 Write-Debug "[$DeciName] Loaded profile ($DeciLoadTime)"
+
+$PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
+#$PSDefaultParameterValues['Out-File:Encoding'] = [System.Text.Encoding]::GetEncoding(437)
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+#$OutputEncoding = [System.Text.Encoding]::GetEncoding(437)
+#$OutputEncoding = 'utf8'
+$OutputEncoding=[System.Text.Encoding]::UTF8

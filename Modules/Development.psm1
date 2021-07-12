@@ -142,16 +142,6 @@ int dwReserved);
 "@
 #>
 
-
-function Get-FileBytes {
-	param (
-		[Parameter(Mandatory=$true)][string]$s
-	)
-	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
-	$b = [System.IO.File]::ReadAllBytes($s)
-	return $b
-}
-
 $global:Q_DEST = "H:\Archives & Backups\(Unsorted)"
 
 function QMove {

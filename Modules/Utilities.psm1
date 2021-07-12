@@ -200,11 +200,25 @@ function Get-Union {
 	)
 	return Compare-Object $a $b -PassThru -IncludeEqual
 }
+
 function New-List {
 	param (
 		[Parameter(Mandatory = $true)][string]$x
 	)
 	return New-Object "System.Collections.Generic.List[$x]"
+}
+
+function New-RandomArray {
+	param (
+		[Parameter(Mandatory = $true)][int]$c
+	)
+	$rg = [byte[]]::new($c)
+	$rand = [System.Random]::new()
+	<# for ($i = 0; $i -lt $rg.Count; $i++) {
+		$rg[$i] = [byte] $rand.Next()
+	} #>
+	$rand.NextBytes($rg)
+	return $rg
 }
 
 #endregion
@@ -333,28 +347,66 @@ function Get-Clip {
 
 #region [Other]
 
+function Get-TempFile {
+	return [System.IO.Path]::GetTempFileName()
+	
+}
+
+function Get-RandFile {
+	param (
+		[Parameter(Mandatory = $true)][int]$x,
+		[Parameter(Mandatory = $false)][string]$f
+	)
+	
+	if (!($f)) {
+		$f = $(Get-TempFile)
+	}
+	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
+	return $f
+}
+
+function Get-FileBytes {
+	param (
+		[Parameter(Mandatory = $true)][string]$s
+	)
+	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
+	$b = [System.IO.File]::ReadAllBytes($s)
+	return $b
+}
+
 function Get-Translation {
 	param (
 		[Parameter(Mandatory = $true)][string]$x,
 		[Parameter(Mandatory = $true)][string]$y
 	)
 
-	$cmd = "from googletrans import * `n" + `
-		"tmp = Translator().translate('$x', dest='$y')`n" + `
-		"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))`n"
-	
+	$cmd = @(
+		'from googletrans import *',
+		"tmp = Translator().translate('$x', dest='$y')",
+		"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))"
+		<# "ed = tmp.extra_data['all-translations']"
+		"for i in range(len(ed)):"
+		"	for j in range(len(ed[i])):"
+		"		print(','.join(ed[i][j]))" #>
+	)
 
-	$out1 = (python -c $cmd)
+	#Translator().translate('energy', dest='ja').extra_data['all-translations']
 
-	$cmd2 = "from translatepy import * `n" + `
-		"tmp2 = Translator().translate('$x', '$y')`n" + `
+	$f1 = $(Get-TempFile)
+	$cmd | Out-File $f1
+	python $f1
+
+	$cmd2 = @(
+		'from translatepy import *',
+		"tmp2 = Translator().translate('$x', '$y')",
 		'print(tmp2)'
+	)
 
-	$out2 = (python -c $cmd2)
-
-	Write-Host "[#1] $out1"
-	Write-Host "[#2] $out2"
+	$f2 = $(Get-TempFile)
+	$cmd2 | Out-File $f2
+	python $f2
 }
+
 #endregion
 
 
