@@ -14,22 +14,22 @@ function Send-GitHubFile {
 
 	[CmdletBinding()]
 	param (
-		[Parameter(Mandatory=$true)]	[string]	$repoName,
-		[Parameter(Mandatory=$true)]	[string]	$fileName,
-		[Parameter(Mandatory=$true)]	[string]	$localFile,
-		[Parameter(Mandatory=$false)]	[string]	$name,
-		[Parameter(Mandatory=$false)]	[string]	$token,
-		[Parameter(Mandatory=$false)]	[string]	$commitMsg
+		[Parameter(Mandatory = $true)]	[string]	$repoName,
+		[Parameter(Mandatory = $true)]	[string]	$fileName,
+		[Parameter(Mandatory = $true)]	[string]	$localFile,
+		[Parameter(Mandatory = $false)]	[string]	$name,
+		[Parameter(Mandatory = $false)]	[string]	$token,
+		[Parameter(Mandatory = $false)]	[string]	$commitMsg
 	)
 
 	
-	$nameEnv = [System.Environment]::GetEnvironmentVariable("GH_NAME")
+	$nameEnv = [System.Environment]::GetEnvironmentVariable('GH_NAME')
 	AutoAssign([ref]$name) -val $nameEnv
 
-	$tokenEnv = [System.Environment]::GetEnvironmentVariable("GH_TOKEN")
+	$tokenEnv = [System.Environment]::GetEnvironmentVariable('GH_TOKEN')
 	AutoAssign([ref]$token) -val $tokenEnv
 
-	$commitMsgDef = "Update"
+	$commitMsgDef = 'Update'
 	AutoAssign([ref]$commitMsg) -val $commitMsgDef
 	
 	Write-Host "Name: $name"
@@ -38,18 +38,18 @@ function Send-GitHubFile {
 	$url = "https://api.github.com/repos/$name/$repoName/contents/$fileName"
 
 	$buf = Invoke-WebRequest $url -Method GET | ConvertFrom-Json -AsHashtable
-	$sha = $buf["sha"].ToString()
+	$sha = $buf['sha'].ToString()
 
 	$base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($localFile))
 
 	$headers = @{
-		Accept = "application/vnd.github.v3+json"
+		Accept = 'application/vnd.github.v3+json'
 	}
 
 	$body = @{
-		"sha" = "$sha"
-		"message" = "$commitMsg"
-		"content" = "$base64string"
+		'sha'     = "$sha"
+		'message' = "$commitMsg"
+		'content' = "$base64string"
 	} | ConvertTo-Json
 
 	$stoken = ConvertTo-SecureString -AsPlainText $token
@@ -57,7 +57,7 @@ function Send-GitHubFile {
 	$res = Invoke-RestMethod -Uri $url -Method PUT -Body $body -Headers $headers -Authentication OAuth -Token $stoken
 
 	
-	Write-Host "Completed"
+	Write-Host 'Completed'
 	
 	#wh $res | Format-Table
 
@@ -70,8 +70,8 @@ function Send-GitHubFile {
 
 function Get-Symbols {
 	param (
-		[Parameter(Mandatory=$true)][string]$s,
-		[Parameter(Mandatory=$false)][string]$dest
+		[Parameter(Mandatory = $true)][string]$s,
+		[Parameter(Mandatory = $false)][string]$dest
 	)
 
 	if (!($dest)) {
@@ -79,11 +79,19 @@ function Get-Symbols {
 	}
 	
 	symchk "$s" /s SRV*$dest*http://msdl.microsoft.com/download/symbols
+
+	
+	
+	$p = [System.IO.Path]::GetFileNameWithoutExtension($s)
+	Rename-Item "$p.pdb" "$p-1"
+	Move-Item $(Get-ChildItem $(Get-ChildItem "$p-1")) .
+	Remove-Item pingme.txt
+	Remove-Item "$p-1" -Recurse
 }
 
 function Stop-Task {
 	param (
-		[Parameter(Mandatory=$true)][string]$name
+		[Parameter(Mandatory = $true)][string]$name
 	)
 
 	taskkill /f /im $name
@@ -91,27 +99,27 @@ function Stop-Task {
 
 function Invoke-Batch {
 	param (
-		[Parameter(Mandatory=$true)][string]$s
+		[Parameter(Mandatory = $true)][string]$s
 	)
 	return (cmd /c $s)
 }
 
 function Get-FileType {
 	param (
-		[Parameter(Mandatory=$true)][string]$f
+		[Parameter(Mandatory = $true)][string]$f
 	)
 
 	$s = ".$($f.Split('.')[-1])"
 
-	$r= Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
+	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
 
-	$p = $r | so -ExpandProperty "(Default)"
+	$p = $r | so -ExpandProperty '(Default)'
 
 	
 	#$r | Format-Table -Wrap
 	#$p | Format-Table -Wrap	
 
-	$r2= Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
+	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
 
 	#$r2 | Format-Table -Wrap
 
@@ -127,12 +135,12 @@ function Get-FileType {
 
 
 
-$global:Q_DEST = "H:\Archives & Backups\(Unsorted)"
+$global:Q_DEST = 'H:\Archives & Backups\(Unsorted)'
 
 function QMove {
 	param (
-		[Parameter(Mandatory=$true)][string]$s,
-		[Parameter(Mandatory=$false)][string]$d
+		[Parameter(Mandatory = $true)][string]$s,
+		[Parameter(Mandatory = $false)][string]$d
 	)
 	
 	if (!($d)) {
@@ -149,7 +157,7 @@ function QMove {
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	param($commandName, $wordToComplete, $cursorPosition)
-		dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
-		   [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
-		}
+	dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
+		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+	}
 }
