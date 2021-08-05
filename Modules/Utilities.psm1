@@ -2,6 +2,13 @@
 # General utilities
 #>
 
+function WhereItem {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $true)][string]$s
+	)
+	return (Get-Command $s).Path
+}
 
 function IsAdmin {
 	$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -319,9 +326,7 @@ function ConvertTo-Gif {
 }
 
 function Get-ItemInfo {
-	param (
-		[Parameter(Mandatory = $true)][string]$x
-	)
+	
 
 	#$x2 = (ffprobe $x) 2>&1
 
@@ -335,8 +340,16 @@ function Get-ItemInfo {
 
 	#return (($x2 | Select-String -Pattern "Stream" -NoEmphasis | Select-Object -Index 0) -split '`n')[0].Trim()
 
-	return (ffprobe -hide_banner -show_streams -select_streams a $x)
+	(ffprobe -hide_banner -show_streams -select_streams a $args)
 }
+
+
+function ffprobeq { ffprobe -hide_banner $args }
+
+function ffmpegq { ffmpeg -hide_banner $args }
+
+Set-Alias -Name ffm -Value ffmpegq
+Set-Alias -Name ffp -Value ffprobeq
 
 
 function Get-Clip {
