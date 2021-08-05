@@ -346,7 +346,7 @@ function ConvertTo-Gif {
 
 function Get-ItemInfo {
 	param (
-		[switch] $t
+		[switch] $m
 	)
 
 	Write-Host (Get-CenteredString 'ffprobe') -ForegroundColor Yellow
@@ -354,8 +354,11 @@ function Get-ItemInfo {
 	
 	Write-Host $script:SEPARATOR
 
-	Write-Host (Get-CenteredString 'magick') -ForegroundColor Yellow
-	magick identify $args
+	if ($m) {
+		
+		Write-Host (Get-CenteredString 'magick') -ForegroundColor Yellow
+		magick identify $args
+	}
 }
 
 Set-Alias -Name gii -Value Get-ItemInfo
@@ -366,15 +369,38 @@ Set-Alias -Name ffp -Value ffprobeq
 function ffmpegq { ffmpeg -hide_banner $args }
 Set-Alias -Name ffm -Value ffmpegq
 
-
-function Get-ItemBitrate {
+function Get-MediaInfo {
 	param (
 		[Parameter(Mandatory = $true, Position = 0)]$f
-	)
 
-	#ffprobe -v 0 -select_streams a:0 -show_entries stream=bit_rate -of compact=p=0:nk=1 "$f"
-	return $(ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 "$f")
+	)
+	
+	$m = (Get-MediaInfoJson $f)
+
+	$r = @{
+		'Height'  = $m.streams[0].height;
+		'Width'   = $m.streams[0].width;
+		'Codec'   = $m.streams[0].codec_name;
+		'Bitrate' = $m.streams[0].bit_rate
+		'Duration' = ([timespan]::FromSeconds($m.streams[0].duration))
+
+	}
+	
+
+	return $r
 }
+
+
+function Get-MediaInfoJson {
+	param (
+		[Parameter(Mandatory = $true, Position = 0)]$f
+
+	)
+	$x = (ffprobe -hide_banner -loglevel fatal -show_error -show_format -show_streams -show_programs -show_chapters -show_private_data -print_format json $f) 2>&1
+
+	return (ConvertFrom-Json ($x -join ''))
+}
+
 
 function Get-Clip {
 	param (
