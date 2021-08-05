@@ -17,16 +17,29 @@ function IsAdmin {
 }
 
 function Get-IP {
-	return [System.Net.WebClient]::new().DownloadString("https://icanhazip.com/").Trim()
+
+	$wc = [System.Net.WebClient]::new()
+
+	$ip = $wc.DownloadString('https://icanhazip.com/').Trim()
+
+	#$ipstr = $wc.DownloadString('https://icanhazip.com/').Trim()
+	#$ip = [ipaddress]::Parse($ipstr)
+	
+	$wc.Dispose()
+	
+	return $ip
 }
 
 
 #region [Formatting]
 
 $script:UNI_ARROW = $([char]0x2192)
+$script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 
 $private:ANSI_UNDERLINE = "$([char]0x1b)[4m"
 $private:ANSI_END = "$([char]0x001b)[0m"
+
+
 
 function Get-Underline {
 	param (
@@ -35,6 +48,11 @@ function Get-Underline {
 	)
 	
 	return "$($ANSI_UNDERLINE)$s$($ANSI_END)"
+}
+
+function Get-CenteredString { 
+	param ($Message)
+	return ('{0}{1}' -f (' ' * (([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($Message.Length / 2)))), $Message)
 }
 
 #endregion
@@ -325,32 +343,38 @@ function ConvertTo-Gif {
 
 }
 
+
 function Get-ItemInfo {
+	param (
+		[switch] $t
+	)
+
+	Write-Host (Get-CenteredString 'ffprobe') -ForegroundColor Yellow
+	ffprobe -hide_banner -show_streams -select_streams a $args
 	
+	Write-Host $script:SEPARATOR
 
-	#$x2 = (ffprobe $x) 2>&1
-
-	#$rg = New-Object 'System.Collections.Generic.List[String]'
-	
-	<# foreach ($y in ($x2 | Select-String -Pattern "Input" -NoEmphasis)) {
-		$rg.Add(($y -split '`n')[0].Trim())
-	} #>
-
-	#return $rg
-
-	#return (($x2 | Select-String -Pattern "Stream" -NoEmphasis | Select-Object -Index 0) -split '`n')[0].Trim()
-
-	(ffprobe -hide_banner -show_streams -select_streams a $args)
+	Write-Host (Get-CenteredString 'magick') -ForegroundColor Yellow
+	magick identify $args
 }
 
+Set-Alias -Name gii -Value Get-ItemInfo
 
 function ffprobeq { ffprobe -hide_banner $args }
-
-function ffmpegq { ffmpeg -hide_banner $args }
-
-Set-Alias -Name ffm -Value ffmpegq
 Set-Alias -Name ffp -Value ffprobeq
 
+function ffmpegq { ffmpeg -hide_banner $args }
+Set-Alias -Name ffm -Value ffmpegq
+
+
+function Get-ItemBitrate {
+	param (
+		[Parameter(Mandatory = $true, Position = 0)]$f
+	)
+
+	#ffprobe -v 0 -select_streams a:0 -show_entries stream=bit_rate -of compact=p=0:nk=1 "$f"
+	return $(ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 "$f")
+}
 
 function Get-Clip {
 	param (
@@ -380,6 +404,12 @@ function Get-Clip {
 #endregion
 
 #region [Other]
+
+
+function OpenHere {
+	Start-Process $(Get-Location)
+	
+}
 
 function Get-TempFile {
 	return [System.IO.Path]::GetTempFileName()
@@ -477,4 +507,5 @@ function SendMessage {
 	$SendMessageFunc::SendMessage($p, 0x0100, $k, 0x002C0001)
 	$SendMessageFunc::SendMessage($p, 0x0101, $k, 0x002C0001)
 }
+
 

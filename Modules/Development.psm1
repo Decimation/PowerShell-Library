@@ -89,13 +89,16 @@ function Get-Symbols {
 	Remove-Item "$p-1" -Recurse
 }
 
-function Stop-Task {
+
+function ForceKill {
 	param (
 		[Parameter(Mandatory = $true)][string]$name
 	)
 
-	taskkill /f /im $name
+	Stop-Process (Get-Process $name).Id
+	#taskkill /f /im $name
 }
+Set-Alias -Name fk -Value ForceKill
 
 function Invoke-Batch {
 	param (

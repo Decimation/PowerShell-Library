@@ -107,3 +107,4 @@ $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 #$OutputEncoding = [System.Text.Encoding]::GetEncoding(437)
 #$OutputEncoding = 'utf8'
 $OutputEncoding = [System.Text.Encoding]::UTF8
+
