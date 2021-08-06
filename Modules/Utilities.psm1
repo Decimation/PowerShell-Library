@@ -2,13 +2,55 @@
 # General utilities
 #>
 
-function WhereItem {
+function WhereItem2 {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)][string]$s
 	)
 	return (Get-Command $s).Path
 }
+
+
+function Invoke-Cmd {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $true)][string]$s
+	)
+
+	$pinfo = New-Object System.Diagnostics.ProcessStartInfo
+	$pinfo.FileName = 'cmd.exe'
+
+	$pinfo.RedirectStandardError = $true
+	$pinfo.RedirectStandardOutput = $true
+	$pinfo.UseShellExecute = $false
+
+	$pinfo.Arguments = "/c $s"
+
+	$p = New-Object System.Diagnostics.Process
+	$p.StartInfo = $pinfo
+	
+	return $p
+}
+
+
+function WhereItem {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $true)][string]$s
+	)
+
+	$p = Invoke-Cmd $s
+
+	$p.Start() | Out-Null
+	$p.WaitForExit()
+
+	$stdout = $p.StandardOutput.ReadToEnd()
+	#$stderr = $p.StandardError.ReadToEnd()
+
+	$stdout = $stdout.Trim()
+	return $stdout
+}
+
 
 function IsAdmin {
 	$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -361,12 +403,21 @@ function Get-ItemInfo {
 	}
 }
 
+function ffprobeq { ffprobe -hide_banner $args }
+function ffmpegq { ffmpeg -hide_banner $args }
+
+
+Set-Alias -Name ytdl -Value youtube-dl.exe
+Set-Alias -Name gdl -Value gallery-dl.exe
+Set-Alias -Name yg -Value you-get.exe
+
+Set-Alias -Name fg -Value ffmpeg.exe
+Set-Alias -Name fp -Value ffprobe.exe
+Set-Alias -Name mg -Value magick.exe
+
 Set-Alias -Name gii -Value Get-ItemInfo
 
-function ffprobeq { ffprobe -hide_banner $args }
 Set-Alias -Name ffp -Value ffprobeq
-
-function ffmpegq { ffmpeg -hide_banner $args }
 Set-Alias -Name ffm -Value ffmpegq
 
 function Get-MediaInfo {
@@ -378,10 +429,10 @@ function Get-MediaInfo {
 	$m = (Get-MediaInfoJson $f)
 
 	$r = @{
-		'Height'  = $m.streams[0].height;
-		'Width'   = $m.streams[0].width;
-		'Codec'   = $m.streams[0].codec_name;
-		'Bitrate' = $m.streams[0].bit_rate
+		'Height'   = $m.streams[0].height;
+		'Width'    = $m.streams[0].width;
+		'Codec'    = $m.streams[0].codec_name;
+		'Bitrate'  = $m.streams[0].bit_rate
 		'Duration' = ([timespan]::FromSeconds($m.streams[0].duration))
 
 	}
@@ -535,3 +586,50 @@ function SendMessage {
 }
 
 
+
+function ForceKill {
+	param (
+		[Parameter(Mandatory = $true)][string]$name
+	)
+
+	Stop-Process (Get-Process $name).Id
+	#taskkill /f /im $name
+}
+
+Set-Alias -Name fk -Value ForceKill
+
+function Invoke-Batch {
+	param (
+		[Parameter(Mandatory = $true)][string]$s
+	)
+	return (cmd /c $s)
+}
+
+function Get-FileType {
+	param (
+		[Parameter(Mandatory = $true)][string]$f
+	)
+
+	$s = ".$($f.Split('.')[-1])"
+
+	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
+
+	$p = $r | so -ExpandProperty '(Default)'
+
+	
+	#$r | Format-Table -Wrap
+	#$p | Format-Table -Wrap	
+
+	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
+
+	#$r2 | Format-Table -Wrap
+
+	#wh ($r2 | Select-Object -ExpandProperty "(Default)")
+
+	Write-Host $r.'(default)'
+	Write-Host $r.'Content Type'
+	Write-Host $r.'PerceivedType'
+	Write-Host $r2.'(default)'
+
+	return $r
+}

@@ -77,14 +77,6 @@ Set-Alias -Name ss -Value Select-String
 
 Set-Alias -Name ud -Value Update-Deci
 
-Set-Alias -Name ytdl -Value youtube-dl.exe
-Set-Alias -Name gdl -Value gallery-dl.exe
-Set-Alias -Name yg -Value you-get.exe
-
-Set-Alias -Name fg -Value ffmpeg.exe
-Set-Alias -Name fp -Value ffprobe.exe
-Set-Alias -Name mg -Value magick.exe
-
 #endregion
 
 function Prompt {
@@ -92,15 +84,16 @@ function Prompt {
 	return ' '
 }
 
-$InformationPreference = 'Continue'
-$DebugPreference = 'Continue'
 
 $script:qr = ".`$PROFILE; ud"
-
 $script:DeciLoadTime = (Get-Date -Format 'HH:mm:ss')
-
 Write-Debug "[$DeciName] Loaded profile ($DeciLoadTime)"
 
+
+# region Configuration
+
+$InformationPreference = 'Continue'
+$DebugPreference = 'Continue'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
 #$PSDefaultParameterValues['Out-File:Encoding'] = [System.Text.Encoding]::GetEncoding(437)
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
@@ -108,3 +101,4 @@ $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 #$OutputEncoding = 'utf8'
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
+# endregion
