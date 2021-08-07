@@ -2,49 +2,34 @@
 # Profile
 #>
 
-
 #region [Modules]
 
-$DeciModules = @{
-	Utilities   =	"$Home\Documents\PowerShell\Modules\Utilities.psm1";
-	Android     =	"$Home\Documents\PowerShell\Modules\Android.psm1";
-}
+$LocalModules = (Get-ChildItem "$Home\Documents\PowerShell\Modules\") | ForEach-Object { $_.ToString() }
 
-
-<#
-.Description
-Loads Deci modules
-#>
-function Import-Deci {
+function Import-LocalModules {
     
-	foreach ($x in $DeciModules.Values) {
+	foreach ($x in $LocalModules) {
 		Import-Module $x
 	}
 }
 
+function Remove-LocalModules {
+	foreach ($x in $LocalModules) {
+		Remove-Module $([System.IO.Path]::GetFileNameWithoutExtension($x))
 
-<#
-.Description
-Unloads Deci modules
-#>
-function Remove-Deci {
-	foreach ($x in $DeciModules.Keys) {
-		Remove-Module $x
 	}
 }
 
-Import-Deci
-
-const DeciName = 'Deci'
+Import-LocalModules
 
 <#
 .Description
 Reloads Deci modules
 #>
-function Update-Deci {
-	Remove-Deci
-	Import-Deci
-	Write-Debug "[$DeciName] Updated modules"
+function Update-LocalModules {
+	Remove-LocalModules
+	Import-LocalModules
+	Write-Debug "[$env:USERNAME] Updated modules"
 }
 
 
@@ -75,9 +60,9 @@ function Prompt {
 
 $script:qr = ".`$PROFILE; ud"
 
-$script:DeciLoadTime = (Get-Date -Format 'HH:mm:ss')
+$script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
-Write-Debug "[$DeciName] Loaded profile ($DeciLoadTime)"
+Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
@@ -106,6 +91,6 @@ Set-Alias -Name wd -Value Write-Debug
 Set-Alias -Name so -Value Select-Object
 Set-Alias -Name ss -Value Select-String
 
-Set-Alias -Name ud -Value Update-Deci
+Set-Alias -Name ud -Value Update-LocalModules
 
 #endregion
