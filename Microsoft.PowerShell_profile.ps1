@@ -66,18 +66,7 @@ New-Module {
 } | Import-Module
 
 
-#region [Aliases]
 
-
-Set-Alias -Name wh -Value Write-Host
-Set-Alias -Name wd -Value Write-Debug
-
-Set-Alias -Name so -Value Select-Object
-Set-Alias -Name ss -Value Select-String
-
-Set-Alias -Name ud -Value Update-Deci
-
-#endregion
 
 function Prompt {
 	Write-Host ('PS ' + "[$(Get-Date -Format 'HH:mm:ss')] " + $(Get-Location) + '>') -NoNewline
@@ -108,3 +97,16 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 #Set-Location $env:USERPROFILE\Downloads\
 
 # endregion
+
+#region [Aliases]
+
+
+Set-Alias -Name wh -Value Write-Host
+Set-Alias -Name wd -Value Write-Debug
+
+Set-Alias -Name so -Value Select-Object
+Set-Alias -Name ss -Value Select-String
+
+Set-Alias -Name ud -Value Update-Deci
+
+#endregion
