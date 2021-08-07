@@ -1,6 +1,37 @@
 <#
 # General utilities
 #>
+function OpenHere {
+	Start-Process $(Get-Location)
+	
+}
+
+function Get-TempFile {
+	return [System.IO.Path]::GetTempFileName()
+	
+}
+
+function Get-RandFile {
+	param (
+		[Parameter(Mandatory = $true)][int]$x,
+		[Parameter(Mandatory = $false)][string]$f
+	)
+	
+	if (!($f)) {
+		$f = $(Get-TempFile)
+	}
+	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
+	return $f
+}
+
+function Get-FileBytes {
+	param (
+		[Parameter(Mandatory = $true)][string]$s
+	)
+	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
+	$b = [System.IO.File]::ReadAllBytes($s)
+	return $b
+}
 
 function WhereItem2 {
 	[CmdletBinding()]
@@ -483,37 +514,6 @@ function Get-Clip {
 #region [Other]
 
 
-function OpenHere {
-	Start-Process $(Get-Location)
-	
-}
-
-function Get-TempFile {
-	return [System.IO.Path]::GetTempFileName()
-	
-}
-
-function Get-RandFile {
-	param (
-		[Parameter(Mandatory = $true)][int]$x,
-		[Parameter(Mandatory = $false)][string]$f
-	)
-	
-	if (!($f)) {
-		$f = $(Get-TempFile)
-	}
-	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
-	return $f
-}
-
-function Get-FileBytes {
-	param (
-		[Parameter(Mandatory = $true)][string]$s
-	)
-	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
-	$b = [System.IO.File]::ReadAllBytes($s)
-	return $b
-}
 
 function Get-Translation {
 	param (

@@ -86,19 +86,25 @@ function Prompt {
 
 
 $script:qr = ".`$PROFILE; ud"
+
 $script:DeciLoadTime = (Get-Date -Format 'HH:mm:ss')
+
 Write-Debug "[$DeciName] Loaded profile ($DeciLoadTime)"
+
+$global:Downloads = "$env:USERPROFILE\Downloads\"
 
 
 # region Configuration
 
 $InformationPreference = 'Continue'
 $DebugPreference = 'Continue'
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
 #$PSDefaultParameterValues['Out-File:Encoding'] = [System.Text.Encoding]::GetEncoding(437)
-$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 #$OutputEncoding = [System.Text.Encoding]::GetEncoding(437)
 #$OutputEncoding = 'utf8'
 $OutputEncoding = [System.Text.Encoding]::UTF8
+
+#Set-Location $env:USERPROFILE\Downloads\
 
 # endregion
