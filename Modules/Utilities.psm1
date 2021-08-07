@@ -1,14 +1,11 @@
 <#
 # General utilities
 #>
-function OpenHere {
-	Start-Process $(Get-Location)
-	
-}
+
+function OpenHere { Start-Process $(Get-Location) }
 
 function Get-TempFile {
 	return [System.IO.Path]::GetTempFileName()
-	
 }
 
 function Get-RandFile {
@@ -103,6 +100,85 @@ function Get-IP {
 	return $ip
 }
 
+function DumpBytes {
+	param (
+		[Parameter(Mandatory = $true)]$x
+	)
+
+	Write-Host "[$($x.GetType())] : $x"
+
+	([System.BitConverter]::GetBytes($x)) | ForEach-Object { 
+		Write-Host "$($_.ToString('X')) " -NoNewline 
+	}
+}
+
+$Signature = @'
+[DllImport("user32.dll")]
+public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
+'@
+
+#Add the SendMessage function as a static method of a class
+$SendMessageFunc = Add-Type -MemberDefinition $Signature -Name 'Win32SendMessage' -Namespace Win32Functions -PassThru
+
+function SendMessage {
+	param (
+		[Parameter(Mandatory = $true)]$name,
+		[Parameter(Mandatory = $true)]$k
+	)
+
+	$p = (Get-Process $name).MainWindowHandle
+
+	$SendMessageFunc::SendMessage($p, 0x0100, $k, 0x002C0001)
+	$SendMessageFunc::SendMessage($p, 0x0101, $k, 0x002C0001)
+}
+
+
+
+function ForceKill {
+	param (
+		[Parameter(Mandatory = $true)][string]$name
+	)
+
+	Stop-Process (Get-Process $name).Id
+	#taskkill /f /im $name
+}
+
+function Invoke-Batch {
+	param (
+		[Parameter(Mandatory = $true)][string]$s
+	)
+	return (cmd /c $s)
+}
+
+function Get-FileType {
+	param (
+		[Parameter(Mandatory = $true)][string]$f
+	)
+			
+	$s = ".$($f.Split('.')[-1])"
+			
+	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
+			
+	$p = $r | so -ExpandProperty '(Default)'
+			
+			
+	#$r | Format-Table -Wrap
+	#$p | Format-Table -Wrap	
+			
+	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
+			
+	#$r2 | Format-Table -Wrap
+			
+	#wh ($r2 | Select-Object -ExpandProperty "(Default)")
+			
+	Write-Host $r.'(default)'
+	Write-Host $r.'Content Type'
+	Write-Host $r.'PerceivedType'
+	Write-Host $r2.'(default)'
+			
+	return $r
+}
+
 
 #region [Formatting]
 
@@ -111,8 +187,6 @@ $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 
 $private:ANSI_UNDERLINE = "$([char]0x1b)[4m"
 $private:ANSI_END = "$([char]0x001b)[0m"
-
-
 
 function Get-Underline {
 	param (
@@ -438,18 +512,7 @@ function ffprobeq { ffprobe -hide_banner $args }
 function ffmpegq { ffmpeg -hide_banner $args }
 
 
-Set-Alias -Name ytdl -Value youtube-dl.exe
-Set-Alias -Name gdl -Value gallery-dl.exe
-Set-Alias -Name yg -Value you-get.exe
 
-Set-Alias -Name fg -Value ffmpeg.exe
-Set-Alias -Name fp -Value ffprobe.exe
-Set-Alias -Name mg -Value magick.exe
-
-Set-Alias -Name gii -Value Get-ItemInfo
-
-Set-Alias -Name ffp -Value ffprobeq
-Set-Alias -Name ffm -Value ffmpegq
 
 function Get-MediaInfo {
 	param (
@@ -513,8 +576,6 @@ function Get-Clip {
 
 #region [Other]
 
-
-
 function Get-Translation {
 	param (
 		[Parameter(Mandatory = $true)][string]$x,
@@ -551,85 +612,25 @@ function Get-Translation {
 #endregion
 
 
-
-
-function DumpBytes {
-	param (
-		[Parameter(Mandatory = $true)]$x
-	)
-
-	Write-Host "[$($x.GetType())] : $x"
-
-	([System.BitConverter]::GetBytes($x)) | ForEach-Object { 
-		Write-Host "$($_.ToString('X')) " -NoNewline 
-	}
-}
-
-$Signature = @'
-[DllImport("user32.dll")]
-public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
-'@
-
-#Add the SendMessage function as a static method of a class
-$SendMessageFunc = Add-Type -MemberDefinition $Signature -Name 'Win32SendMessage' -Namespace Win32Functions -PassThru
-
-function SendMessage {
-	param (
-		[Parameter(Mandatory = $true)]$name,
-		[Parameter(Mandatory = $true)]$k
-	)
-
-	$p = (Get-Process $name).MainWindowHandle
-
-	$SendMessageFunc::SendMessage($p, 0x0100, $k, 0x002C0001)
-	$SendMessageFunc::SendMessage($p, 0x0101, $k, 0x002C0001)
-}
-
-
-
-function ForceKill {
-	param (
-		[Parameter(Mandatory = $true)][string]$name
-	)
-
-	Stop-Process (Get-Process $name).Id
-	#taskkill /f /im $name
-}
-
 Set-Alias -Name fk -Value ForceKill
 
-function Invoke-Batch {
-	param (
-		[Parameter(Mandatory = $true)][string]$s
-	)
-	return (cmd /c $s)
-}
+Set-Alias -Name ytdl -Value youtube-dl.exe
+Set-Alias -Name gdl -Value gallery-dl.exe
+Set-Alias -Name yg -Value you-get.exe
+Set-Alias -Name fg -Value ffmpeg.exe
+Set-Alias -Name fp -Value ffprobe.exe
+Set-Alias -Name mg -Value magick.exe
 
-function Get-FileType {
-	param (
-		[Parameter(Mandatory = $true)][string]$f
-	)
+Set-Alias -Name gii -Value Get-ItemInfo
 
-	$s = ".$($f.Split('.')[-1])"
+Set-Alias -Name ffp -Value ffprobeq
+Set-Alias -Name ffm -Value ffmpegq
 
-	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
 
-	$p = $r | so -ExpandProperty '(Default)'
-
-	
-	#$r | Format-Table -Wrap
-	#$p | Format-Table -Wrap	
-
-	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
-
-	#$r2 | Format-Table -Wrap
-
-	#wh ($r2 | Select-Object -ExpandProperty "(Default)")
-
-	Write-Host $r.'(default)'
-	Write-Host $r.'Content Type'
-	Write-Host $r.'PerceivedType'
-	Write-Host $r2.'(default)'
-
-	return $r
+# PowerShell parameter completion shim for the dotnet CLI
+Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
+	param($commandName, $wordToComplete, $cursorPosition)
+	dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
+		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+	}
 }
