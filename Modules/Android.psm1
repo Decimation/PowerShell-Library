@@ -244,21 +244,13 @@ $global:RD_VID = $RD_SD + 'Videos/'
 $global:RD_DL = $RD_SD + 'Download/'
 $global:RD_DOC = $RD_SD + 'Documents/'
 
-$RD_DIRS = @(
-	$RD_SD, $RD_PIC, $RD_DL, $RD_VID, $RD_DOC
-)
-	
 #endregion
 
-$scriptBlock = {
+# PowerShell parameter completion shim for ADB
+Register-ArgumentCompleter -CommandName adb -ScriptBlock {
 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
-	
-	($RD_DIRS) | Where-Object {
-		$_ -like "$x*" -or $_.StartsWith($x)
-	} | ForEach-Object {
-		"'$_'"
+	@('push', 'pull') | ForEach-Object {
+		"$_"
 	}
 }
-
-Register-ArgumentCompleter -CommandName Get-RemoteFile -ParameterName src -ScriptBlock $scriptBlock

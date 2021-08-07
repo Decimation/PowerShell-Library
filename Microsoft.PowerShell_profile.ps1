@@ -22,10 +22,6 @@ function Remove-LocalModules {
 
 Import-LocalModules
 
-<#
-.Description
-Reloads Deci modules
-#>
 function Update-LocalModules {
 	Remove-LocalModules
 	Import-LocalModules
@@ -58,6 +54,20 @@ function Prompt {
 }
 
 
+#region [Aliases]
+
+
+Set-Alias -Name wh -Value Write-Host
+Set-Alias -Name wd -Value Write-Debug
+
+Set-Alias -Name so -Value Select-Object
+Set-Alias -Name ss -Value Select-String
+
+Set-Alias -Name ud -Value Update-LocalModules
+
+#endregion
+
+
 $script:qr = ".`$PROFILE; ud"
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
@@ -82,15 +92,3 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # endregion
 
-#region [Aliases]
-
-
-Set-Alias -Name wh -Value Write-Host
-Set-Alias -Name wd -Value Write-Debug
-
-Set-Alias -Name so -Value Select-Object
-Set-Alias -Name ss -Value Select-String
-
-Set-Alias -Name ud -Value Update-LocalModules
-
-#endregion
