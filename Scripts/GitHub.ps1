@@ -1,11 +1,11 @@
-param (
-	[Parameter(Mandatory = $true)]	[string]	$repoName,
-	[Parameter(Mandatory = $true)]	[string]	$fileName,
-	[Parameter(Mandatory = $true)]	[string]	$localFile,
-	[Parameter(Mandatory = $false)]	[string]	$name,
-	[Parameter(Mandatory = $false)]	[string]	$token,
-	[Parameter(Mandatory = $false)]	[string]	$commitMsg
-)
+#param (
+#	[Parameter(Mandatory = $true)]	[string]	$repoName,
+#	[Parameter(Mandatory = $true)]	[string]	$fileName,
+#	[Parameter(Mandatory = $true)]	[string]	$localFile,
+#	[Parameter(Mandatory = $false)]	[string]	$name,
+#	[Parameter(Mandatory = $false)]	[string]	$token,
+#	[Parameter(Mandatory = $false)]	[string]	$commitMsg
+#)
 
 Import-Module "$Home\Documents\PowerShell\Modules\Utilities.psm1"
 
@@ -43,6 +43,8 @@ function Send-GitHubFile {
 
 	$url = "https://api.github.com/repos/$name/$repoName/contents/$fileName"
 
+
+
 	$buf = Invoke-WebRequest $url -Method GET | ConvertFrom-Json -AsHashtable
 	$sha = $buf['sha'].ToString()
 
@@ -74,4 +76,4 @@ function Send-GitHubFile {
 }
 
 
-Send-GitHubFile $repoName $fileName $localFile $name $token $commitMsg
+#Send-GitHubFile $repoName $fileName $localFile $name $token $commitMsg
