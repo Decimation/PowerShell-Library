@@ -20,7 +20,7 @@ function Send-LocalFile {
 		$dest = 'sdcard/'
 	}
 
-	adb push $src $dest
+	(adb push $src $dest)
 }
 
 <#
@@ -43,7 +43,7 @@ function Send-LocalFiles {
 
 	Get-ChildItem | ForEach-Object {
 		if ([System.IO.File]::Exists($_)) {
-			adb push $_ $dest
+			(adb push $_ $dest)
 		}
 	}
 }
@@ -79,14 +79,14 @@ function Sync-Items {
 		$m = Get-Difference $remoteItems $localItems
 
 		foreach ($x in $m) {
-			adb push $x $remote
+			(adb push $x $remote)
 		}
 	}
 	elseif ($Direction -eq 'Local') {
 		$m = Get-Difference $localItems $remoteItems
 
 		foreach ($x in $m) {
-			adb pull "$remote/$x"
+			(adb pull "$remote/$x")
 		}
 	}
 	
@@ -125,7 +125,7 @@ function Get-RemoteFiles {
 	}
 
 	foreach ($x in ((Get-RemoteItemsList $src) | Select-String -Pattern $filter)) {
-		adb pull "$src/$x"
+		(adb pull "$src/$x")
 	}
 }
 
@@ -138,7 +138,7 @@ function Remove-RemoteFile {
 		[Parameter(Mandatory = $true)][string]$src
 	)
 
-	adb shell rm $src
+	(adb shell rm $src)
 }
 
 <#
@@ -163,7 +163,7 @@ function Get-RemoteItemsList {
 	)
 
 	$src = Get-ShellEscape $src
-	$x = adb shell ls $src
+	$x = (adb shell ls $src)
 
 	return ($x) -Split "`n"
 }
@@ -180,7 +180,7 @@ function Enable-Package {
 		[Parameter(Mandatory = $true)][long]$x
 	)
 	
-	adb shell pm enable $x
+	(adb shell pm enable $x)
 }
 
 
@@ -193,7 +193,7 @@ function Send-Tap {
 		[Parameter(Mandatory = $true)][long]$x,
 		[Parameter(Mandatory = $true)][long]$y
 	)
-	adb shell input tap $x $y
+	(adb shell input tap $x $y)
 }
 
 
@@ -204,7 +204,6 @@ function Get-ShellEscape {
 	$x2 = $x.Replace(' ', "`\ ")
 	return $x2
 }
-
 
 
 function Get-ExchangeEscape {
@@ -246,26 +245,15 @@ $global:RD_VID = $RD_SD + 'Videos/'
 $global:RD_DL = $RD_SD + 'Download/'
 $global:RD_DOC = $RD_SD + 'Documents/'
 
+$script:AdbCommands = @('push', 'pull', 'connect', 'disconnect', 'tcpip', 
+	'start-server', 'kill-server', 'shell', 'usb', 'devices')
+
 #endregion
-
-
-
-# PowerShell parameter completion shim for ADB
-# Register-ArgumentCompleter -CommandName adb -ScriptBlock {
-# 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-# 	@('push', 'pull', 'connect') | Where-Object {
-#         $_ -like "$wordToComplete*"
-#     } | ForEach-Object {
-#           "'$_'"
-#     }
-# }
-
 
 Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 	param($wordToComplete, $commandAst, $fakeBoundParameters)
 
-	@('push', 'pull', 'connect', 'disconnect', 'tcpip', 'start-server', 'kill-server') | Where-Object {
+	$script:AdbCommands | Where-Object {
 		$_ -like "$wordToComplete*"
 	} | ForEach-Object {
 		"$_"

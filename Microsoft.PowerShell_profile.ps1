@@ -4,10 +4,13 @@
 
 #region [Modules]
 
-$LocalModules = (Get-ChildItem "$Home\Documents\PowerShell\Modules\") | ForEach-Object { $_.ToString() }
+
+#"$Home\Documents\PowerShell\Modules\"
+$ModulePathRoot = $env:PSModulePath.Split(';')[0]
+
+$LocalModules = (Get-ChildItem $ModulePathRoot) | ForEach-Object { $_.ToString() }
 
 function Import-LocalModules {
-    
 	foreach ($x in $LocalModules) {
 		Import-Module $x
 	}
@@ -16,7 +19,6 @@ function Import-LocalModules {
 function Remove-LocalModules {
 	foreach ($x in $LocalModules) {
 		Remove-Module $([System.IO.Path]::GetFileNameWithoutExtension($x))
-
 	}
 }
 
@@ -44,8 +46,6 @@ New-Module {
 		process { $PSCmdlet.SessionState.PSVariable.Set($Name, $Value) }
 	}
 } | Import-Module
-
-
 
 
 function Prompt {
@@ -83,9 +83,6 @@ $InformationPreference = 'Continue'
 $DebugPreference = 'Continue'
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
-#$PSDefaultParameterValues['Out-File:Encoding'] = [System.Text.Encoding]::GetEncoding(437)
-#$OutputEncoding = [System.Text.Encoding]::GetEncoding(437)
-#$OutputEncoding = 'utf8'
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 #Set-Location $env:USERPROFILE\Downloads\

@@ -509,15 +509,13 @@ function Get-ItemInfo {
 }
 
 function ffprobeq { ffprobe -hide_banner $args }
+
 function ffmpegq { ffmpeg -hide_banner $args }
-
-
 
 
 function Get-MediaInfo {
 	param (
 		[Parameter(Mandatory = $true, Position = 0)]$f
-
 	)
 	
 	$m = (Get-MediaInfoJson $f)
@@ -528,9 +526,7 @@ function Get-MediaInfo {
 		'Codec'    = $m.streams[0].codec_name;
 		'Bitrate'  = $m.streams[0].bit_rate
 		'Duration' = ([timespan]::FromSeconds($m.streams[0].duration))
-
 	}
-	
 
 	return $r
 }
@@ -539,8 +535,8 @@ function Get-MediaInfo {
 function Get-MediaInfoJson {
 	param (
 		[Parameter(Mandatory = $true, Position = 0)]$f
-
 	)
+
 	$x = (ffprobe -hide_banner -loglevel fatal -show_error -show_format -show_streams -show_programs -show_chapters -show_private_data -print_format json $f) 2>&1
 
 	return (ConvertFrom-Json ($x -join ''))
@@ -626,6 +622,7 @@ Set-Alias -Name gii -Value Get-ItemInfo
 Set-Alias -Name ffp -Value ffprobeq
 Set-Alias -Name ffm -Value ffmpegq
 
+# TODO
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
