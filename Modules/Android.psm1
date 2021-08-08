@@ -228,6 +228,8 @@ function Get-ExchangeEscape {
 	return [string]::Join('/', $x3).TrimEnd('/')
 	
 }
+
+
 #region [Aliases]
 
 
@@ -246,11 +248,26 @@ $global:RD_DOC = $RD_SD + 'Documents/'
 
 #endregion
 
-# PowerShell parameter completion shim for ADB
-Register-ArgumentCompleter -CommandName adb -ScriptBlock {
-	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
-	@('push', 'pull') | ForEach-Object {
+
+# PowerShell parameter completion shim for ADB
+# Register-ArgumentCompleter -CommandName adb -ScriptBlock {
+# 	param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+# 	@('push', 'pull', 'connect') | Where-Object {
+#         $_ -like "$wordToComplete*"
+#     } | ForEach-Object {
+#           "'$_'"
+#     }
+# }
+
+
+Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
+	param($wordToComplete, $commandAst, $fakeBoundParameters)
+
+	@('push', 'pull', 'connect', 'disconnect', 'tcpip', 'start-server', 'kill-server') | Where-Object {
+		$_ -like "$wordToComplete*"
+	} | ForEach-Object {
 		"$_"
 	}
 }

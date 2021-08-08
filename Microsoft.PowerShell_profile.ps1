@@ -92,3 +92,5 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # endregion
 
+. "$Home\Documents\PowerShell\Scripts\GitHub.ps1"
+. "$Home\Documents\PowerShell\Scripts\Get-Symbols.ps1"
