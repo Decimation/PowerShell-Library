@@ -53,7 +53,6 @@ function Prompt {
 	return ' '
 }
 
-
 #region [Aliases]
 
 
@@ -91,3 +90,5 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 . "$Home\Documents\PowerShell\Scripts\GitHub.ps1"
 . "$Home\Documents\PowerShell\Scripts\Get-Symbols.ps1"
+. "$Home\Documents\PowerShell\Scripts\VariableUtility.ps1"
+
