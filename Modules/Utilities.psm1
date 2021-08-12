@@ -315,7 +315,7 @@ function Get-TimeDuration {
 	$a = [timespan]::Parse($a)
 	$b = [timespan]::Parse($b)
 	
-	$c = TimeSub $a $b
+	$c = (TimeSub $a $b)
 
 	<#if ([timespan]::op_LessThan($c, [timespan]::Zero)) {
 		
@@ -483,7 +483,7 @@ Set-Alias -Name ffp -Value ffprobeq
 Set-Alias -Name ffm -Value ffmpegq
 
 Set-Alias -Name fk -Value ForceKill
-# TODO
+
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
