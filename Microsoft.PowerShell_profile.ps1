@@ -88,7 +88,10 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # endregion
 
-. "$Home\Documents\PowerShell\Scripts\GitHub.ps1"
-. "$Home\Documents\PowerShell\Scripts\Get-Symbols.ps1"
-. "$Home\Documents\PowerShell\Scripts\VariableUtility.ps1"
+function LoadScripts {
+	. "$Home\Documents\PowerShell\Scripts\GitHub.ps1"
+	. "$Home\Documents\PowerShell\Scripts\Get-Symbols.ps1"
+	. "$Home\Documents\PowerShell\Scripts\VariableUtility.ps1"
+}
+
 

@@ -6,10 +6,7 @@
 #region [IO]
 
 
-<#
-.Description
-Sends file to device destination folder
-#>
+
 function Send-LocalFile {
 	param (
 		[Parameter(Mandatory = $true)][string]$src,
@@ -23,10 +20,7 @@ function Send-LocalFile {
 	(adb push $src $dest)
 }
 
-<#
-.Description
-Sends all files within current directory to device destination folder
-#>
+
 function Send-LocalFiles {
 	param(
 		[Parameter(Mandatory = $false)][string]$dest
@@ -38,9 +32,8 @@ function Send-LocalFiles {
 		$dest = 'sdcard/'
 	}
 
-
 	Write-Host $cd files to $dest
-
+	
 	Get-ChildItem | ForEach-Object {
 		if ([System.IO.File]::Exists($_)) {
 			(adb push $_ $dest)
