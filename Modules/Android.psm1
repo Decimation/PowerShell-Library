@@ -7,7 +7,7 @@
 
 
 
-function Send-LocalFile {
+function AdbSend {
 	param (
 		[Parameter(Mandatory = $true)][string]$src,
 		[Parameter(Mandatory = $false)][string]$dest
@@ -21,7 +21,7 @@ function Send-LocalFile {
 }
 
 
-function Send-LocalFiles {
+function AdbSendAll {
 	param(
 		[Parameter(Mandatory = $false)][string]$dest
 	)
@@ -46,7 +46,7 @@ function Send-LocalFiles {
 .Description
 
 #>
-function Sync-Items {
+function AdbSyncItems {
 	param (
 		[Parameter(Mandatory = $true)][string]$remote,
 		[Parameter(Mandatory = $false)][string]$local,
@@ -63,8 +63,8 @@ function Sync-Items {
 	#https://stackoverflow.com/questions/45041320/adb-shell-input-text-with-space
 
 	$localItems = Get-ChildItem -Name
-	$remoteItems = Get-RemoteItemsList $remote
-	$remote = Get-ExchangeEscape $remote
+	$remoteItems = AdbItemsList $remote
+	$remote = AdbEscape $remote [EscapeType]::Exchange
 
 	#wh $remote
 
@@ -90,7 +90,7 @@ function Sync-Items {
 .Description
 Pulls file to destination folder (if specified)
 #>
-function Get-RemoteFile {
+function AdbPull {
 	param (
 		[Parameter(Mandatory = $true)][string]$src,
 		[Parameter(Mandatory = $false)][string]$dest
@@ -107,7 +107,7 @@ function Get-RemoteFile {
 .Description
 Pulls files from device folder that match filter (if specified)
 #>
-function Get-RemoteFiles {
+function AdbPullAll {
 	param (
 		[Parameter(Mandatory = $true, Position = 0)][string]$src,
 		[Parameter(Mandatory = $false, ParameterSetName = 'Filter')][string]$filter
@@ -117,7 +117,7 @@ function Get-RemoteFiles {
 		$filter = '.'
 	}
 
-	foreach ($x in ((Get-RemoteItemsList $src) | Select-String -Pattern $filter)) {
+	foreach ($x in ((AdbItemsList $src) | Select-String -Pattern $filter)) {
 		(adb pull "$src/$x")
 	}
 }
@@ -126,7 +126,7 @@ function Get-RemoteFiles {
 .Description
 Deletes file
 #>
-function Remove-RemoteFile {
+function AdbRemove {
 	param (
 		[Parameter(Mandatory = $true)][string]$src
 	)
@@ -138,7 +138,7 @@ function Remove-RemoteFile {
 .Description
 Gets size of file
 #>
-function Get-RemoteFileSize {
+function AdbFileSize {
 	param (
 		[Parameter(Mandatory = $true)][string]$src
 	)
@@ -150,12 +150,12 @@ function Get-RemoteFileSize {
 .Description
 Lists directory content
 #>
-function Get-RemoteItemsList {
+function AdbItemsList {
 	param (
 		[Parameter(Mandatory = $true)][string]$src
 	)
 
-	$src = Get-ShellEscape $src
+	$src = AdbEscape $src [EscapeType]::Shell
 	$x = (adb shell ls $src)
 
 	return ($x) -Split "`n"
@@ -163,12 +163,12 @@ function Get-RemoteItemsList {
 
 #endregion
 
-function Get-RemotePackages {
+function AdbListPackages {
 	
 	return ((adb shell pm list packages -f) -split '`n')
 }
 
-function Enable-Package {
+function AdbEnablePackage {
 	param (
 		[Parameter(Mandatory = $true)][long]$x
 	)
@@ -181,7 +181,7 @@ function Enable-Package {
 .Description
 Sends input tap
 #>
-function Send-Tap {
+function AdbSendTap {
 	param (
 		[Parameter(Mandatory = $true)][long]$x,
 		[Parameter(Mandatory = $true)][long]$y
@@ -189,46 +189,44 @@ function Send-Tap {
 	(adb shell input tap $x $y)
 }
 
-
-function Get-ShellEscape {
-	param (
-		[Parameter(Mandatory = $true)][string]$x
-	)
-	$x2 = $x.Replace(' ', "`\ ")
-	return $x2
+enum EscapeType {
+	Shell
+	Exchange
 }
 
-
-function Get-ExchangeEscape {
+function AdbEscape {
 	param (
-		[Parameter(Mandatory = $true)][string]$x
+		[Parameter(Mandatory = $true)][string]$x,
+		[Parameter(Mandatory = $true)][EscapeType]$e
+
 	)
 
-	$x2 = $x.Split('/')
-	$x3 = New-Object -TypeName System.Collections.Generic.List[string]
-
-	foreach ($b in $x2) { 
-		if ($b.Contains(' ')) {
-			$b2 = "`"$b/`""
+	switch ($e) {
+		Shell {
+			$x2 = $x.Replace(' ', "`\ ")
+			return $x2
 		}
-		else {
-			$b2 = $b
+		Exchange {
+			$x2 = $x.Split('/')
+			$x3 = New-Object -TypeName System.Collections.Generic.List[string]
+		
+			foreach ($b in $x2) { 
+				if ($b.Contains(' ')) {
+					$b2 = "`"$b/`""
+				}
+				else {
+					$b2 = $b
+				}
+				$x3.Add($b2)
+			}
+		
+			return [string]::Join('/', $x3).TrimEnd('/')
 		}
-		$x3.Add($b2)
+		Default {}
 	}
 
-	return [string]::Join('/', $x3).TrimEnd('/')
 	
 }
-
-
-#region [Aliases]
-
-
-Set-Alias -Name sf -Value Send-LocalFile
-Set-Alias -Name gf -Value Get-RemoteFile
-
-#endregion
 
 #region [Variables]
 
@@ -243,7 +241,7 @@ $script:AdbCommands = @('push', 'pull', 'connect', 'disconnect', 'tcpip',
 
 #endregion
 
-Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
+Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock  {
 	param($wordToComplete, $commandAst, $fakeBoundParameters)
 
 	$script:AdbCommands | Where-Object {
