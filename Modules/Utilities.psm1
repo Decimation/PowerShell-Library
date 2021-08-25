@@ -120,27 +120,6 @@ function DumpBytes {
 	}
 }
 
-$Signature = @'
-[DllImport("user32.dll")]
-public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
-'@
-
-#Add the SendMessage function as a static method of a class
-$SendMessageFunc = Add-Type -MemberDefinition $Signature -Name 'Win32SendMessage' -Namespace Win32Functions -PassThru
-
-function SendMessage {
-	param (
-		[Parameter(Mandatory = $true)]$name,
-		[Parameter(Mandatory = $true)]$k
-	)
-
-	$p = (Get-Process $name).MainWindowHandle
-
-	$SendMessageFunc::SendMessage($p, 0x0100, $k, 0x002C0001)
-	$SendMessageFunc::SendMessage($p, 0x0101, $k, 0x002C0001)
-}
-
-
 
 function ForceKill {
 	param (
@@ -150,7 +129,6 @@ function ForceKill {
 	# Stop-Process (Get-Process $name).Id
 	return (taskkill /f /im $name)
 }
-
 
 
 function Get-FileType {
@@ -182,30 +160,6 @@ function Get-FileType {
 	return $r
 }
 
-
-#region [Formatting]
-
-$script:UNI_ARROW = $([char]0x2192)
-$script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
-
-$private:ANSI_UNDERLINE = "$([char]0x1b)[4m"
-$private:ANSI_END = "$([char]0x001b)[0m"
-
-function Get-Underline {
-	param (
-		[Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
-		[string]$s
-	)
-	
-	return "$($ANSI_UNDERLINE)$s$($ANSI_END)"
-}
-
-function Get-CenteredString { 
-	param ($Message)
-	return ('{0}{1}' -f (' ' * (([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($Message.Length / 2)))), $Message)
-}
-
-#endregion
 
 
 
@@ -338,35 +292,6 @@ function Get-TimeDurationString {
 
 #endregion
 
-#region [Editing]
-
-function ConvertTo-Gif {
-	param (
-		[Parameter(Mandatory = $true)][string]$x,
-		[Parameter(Mandatory = $true)][string]$y
-	)
-	
-	#ffmpeg -i <input> -vf “fps=25,scale=1920:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse” <output gif>
-
-	ffmpeg -i $x -vf 'fps=25,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse' $y
-}
-
-function Get-ItemInfo {
-	param (
-		[switch] $m
-	)
-
-	Write-Host (Get-CenteredString 'ffprobe') -ForegroundColor Yellow
-	ffprobe -hide_banner -show_streams -select_streams a $args
-	
-	Write-Host $script:SEPARATOR
-
-	if ($m) {
-		
-		Write-Host (Get-CenteredString 'magick') -ForegroundColor Yellow
-		magick identify $args
-	}
-}
 
 function ffprobeq { ffprobe -hide_banner $args }
 
@@ -374,63 +299,6 @@ function ffmpegq { ffmpeg -hide_banner $args }
 
 function ytmdl { py (WhereItem ytmdl) $args }
 
-
-function Get-MediaInfo {
-	param (
-		[Parameter(Mandatory = $true, Position = 0)]$f
-	)
-	
-	$m = (Get-MediaInfoJson $f)
-
-	$r = @{
-		'Height'   = $m.streams[0].height;
-		'Width'    = $m.streams[0].width;
-		'Codec'    = $m.streams[0].codec_name;
-		'Bitrate'  = $m.streams[0].bit_rate
-		'Duration' = ([timespan]::FromSeconds($m.streams[0].duration))
-	}
-
-	return $r
-}
-
-
-function Get-MediaInfoJson {
-	param (
-		[Parameter(Mandatory = $true, Position = 0)]$f
-	)
-
-	$x = (ffprobe -hide_banner -loglevel fatal -show_error -show_format -show_streams -show_programs -show_chapters -show_private_data -print_format json $f) 2>&1
-
-	return (ConvertFrom-Json ($x -join ''))
-}
-
-
-function Get-Clip {
-	param (
-		[Parameter(Mandatory = $true)][string]$f,
-		[Parameter(Mandatory = $true)][string]$a,
-		[Parameter(Mandatory = $true)][string]$b,
-		[Parameter(Mandatory = $false)][string]$o
-
-	)
-
-	$d = Get-TimeDurationString $a $b
-
-	$f2 = [System.IO.Path]::GetFileNameWithoutExtension($f)
-	
-	if (!($o)) {
-		#$o = [System.IO.Path]::Combine($dir,"$f2 @ $d.mp4")
-		#$o = [System.IO.Path]::Combine("$f2 @ $d.mp4")
-		$o = "$f2-edit.mp4"
-	}
-
-	Write-Debug $o
-	
-	return (ffmpeg -ss $a -i $f -t $d $o)
-}
-
-
-#endregion
 
 #region [Other]
 
@@ -477,12 +345,8 @@ Set-Alias -Name fg -Value ffmpeg.exe
 Set-Alias -Name fp -Value ffprobe.exe
 Set-Alias -Name mg -Value magick.exe
 
-Set-Alias -Name gii -Value Get-ItemInfo
-
 Set-Alias -Name ffp -Value ffprobeq
 Set-Alias -Name ffm -Value ffmpegq
-
-Set-Alias -Name fk -Value ForceKill
 
 
 # PowerShell parameter completion shim for the dotnet CLI

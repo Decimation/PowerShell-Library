@@ -4,11 +4,18 @@
 
 #region [Modules]
 
-
-#"$Home\Documents\PowerShell\Modules\"
 $ModulePathRoot = $env:PSModulePath.Split(';')[0]
-
 $LocalModules = (Get-ChildItem $ModulePathRoot) | ForEach-Object { $_.ToString() }
+
+$ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
+$LocalScripts = (Get-ChildItem $ScriptPathRoot) | Where-Object { [System.IO.File]::Exists($_) } | ForEach-Object { $_.ToString() }
+
+
+function Import-LocalScripts {
+	foreach ($x in $LocalScripts) {
+		. "$x"
+	}
+}
 
 function Import-LocalModules {
 	foreach ($x in $LocalModules) {
@@ -67,6 +74,8 @@ Set-Alias -Name ud -Value Update-LocalModules
 #endregion
 
 
+# region Configuration
+
 $script:qr = ".`$PROFILE; ud"
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
@@ -75,8 +84,6 @@ Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
-
-# region Configuration
 
 $InformationPreference = 'Continue'
 $DebugPreference = 'Continue'
@@ -88,10 +95,5 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # endregion
 
-function LoadScripts {
-	. "$Home\Documents\PowerShell\Scripts\GitHub.ps1"
-	. "$Home\Documents\PowerShell\Scripts\Get-Symbols.ps1"
-	. "$Home\Documents\PowerShell\Scripts\VariableUtility.ps1"
-}
 
 

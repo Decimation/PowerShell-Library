@@ -6,8 +6,18 @@
 #region [IO]
 
 
+function AdbShell {
+	return (adb shell $args)
+}
 
-function AdbSend {
+function AdbInputText {
+	param($s)
+	$s2 = $(AdbEscape -e shell $s)
+
+	return (adb shell input text $s2)
+}
+
+function AdbPush {
 	param (
 		[Parameter(Mandatory = $true)][string]$src,
 		[Parameter(Mandatory = $false)][string]$dest
@@ -21,7 +31,7 @@ function AdbSend {
 }
 
 
-function AdbSendAll {
+function AdbPushAll {
 	param(
 		[Parameter(Mandatory = $false)][string]$dest
 	)
@@ -181,7 +191,7 @@ function AdbEnablePackage {
 .Description
 Sends input tap
 #>
-function AdbSendTap {
+function AdbInputTap {
 	param (
 		[Parameter(Mandatory = $true)][long]$x,
 		[Parameter(Mandatory = $true)][long]$y
@@ -241,7 +251,7 @@ $script:AdbCommands = @('push', 'pull', 'connect', 'disconnect', 'tcpip',
 
 #endregion
 
-Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock  {
+Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 	param($wordToComplete, $commandAst, $fakeBoundParameters)
 
 	$script:AdbCommands | Where-Object {
