@@ -38,7 +38,7 @@ function Get-Clip {
 
 	)
 
-	$d = Get-TimeDurationString $a $b
+	#$d = Get-TimeDurationString $a $b
 
 	$f2 = [System.IO.Path]::GetFileNameWithoutExtension($f)
 	
@@ -50,7 +50,8 @@ function Get-Clip {
 
 	Write-Debug $o
 	
-	return (ffmpeg -ss $a -i $f -t $d $o)
+	#return (ffmpeg -ss $a -i $f -t $d $o)
+	return (ffmpeg -ss $a -to $b -i $f $o)
 }
 
 Set-Alias -Name gii -Value Get-ItemInfo

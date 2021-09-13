@@ -2,6 +2,8 @@
 # General utilities
 #>
 
+function ElevateTerminal { Start-Process -Verb RunAs wt.exe }
+
 function OpenHere { Start-Process $(Get-Location) }
 
 function Get-TempFile {
@@ -13,7 +15,7 @@ function Get-RandFile {
 		[Parameter(Mandatory = $true)][int]$x,
 		[Parameter(Mandatory = $false)][string]$f
 	)
-	
+
 	if (!($f)) {
 		$f = $(Get-TempFile)
 	}
@@ -47,7 +49,7 @@ function Get-CmdProcess {
 
 	$p = New-Object System.Diagnostics.Process
 	$p.StartInfo = $pinfo
-	
+
 	return $p
 }
 
@@ -102,9 +104,9 @@ function Get-IP {
 
 	#$ipstr = $wc.DownloadString('https://icanhazip.com/').Trim()
 	#$ip = [ipaddress]::Parse($ipstr)
-	
+
 	$wc.Dispose()
-	
+
 	return $ip
 }
 
@@ -115,8 +117,8 @@ function DumpBytes {
 
 	Write-Host "[$($x.GetType())] : $x"
 
-	([System.BitConverter]::GetBytes($x)) | ForEach-Object { 
-		Write-Host "$($_.ToString('X')) " -NoNewline 
+	([System.BitConverter]::GetBytes($x)) | ForEach-Object {
+		Write-Host "$($_.ToString('X')) " -NoNewline
 	}
 }
 
@@ -135,33 +137,22 @@ function Get-FileType {
 	param (
 		[Parameter(Mandatory = $true)][string]$f
 	)
-			
+
 	$s = ".$($f.Split('.')[-1])"
-			
+
 	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
-			
+
 	$p = $r | so -ExpandProperty '(Default)'
-			
-			
-	#$r | Format-Table -Wrap
-	#$p | Format-Table -Wrap	
-			
+
 	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
-			
-	#$r2 | Format-Table -Wrap
-			
-	#wh ($r2 | Select-Object -ExpandProperty "(Default)")
-			
+
 	Write-Host $r.'(default)'
 	Write-Host $r.'Content Type'
 	Write-Host $r.'PerceivedType'
 	Write-Host $r2.'(default)'
-			
+
 	return $r
 }
-
-
-
 
 #region [Collections]
 
@@ -174,7 +165,7 @@ function Get-Difference {
 		[Parameter(Mandatory = $true)][object[]]$a,
 		[Parameter(Mandatory = $true)][object[]]$b
 	)
-	
+
 	return $b | Where-Object { ($a -notcontains $_) }
 }
 
@@ -198,6 +189,7 @@ function New-List {
 	param (
 		[Parameter(Mandatory = $true)][string]$x
 	)
+	#return New-Object -TypeName System.Collections.Generic.List[string]
 	return New-Object "System.Collections.Generic.List[$x]"
 }
 
@@ -247,7 +239,7 @@ function TimeSub {
 		[Parameter(Mandatory = $true)][timespan]$a,
 		[Parameter(Mandatory = $true)][timespan]$b
 	)
-	
+
 	return $a - $b
 }
 
@@ -265,23 +257,24 @@ function Get-TimeDuration {
 		[Parameter(Mandatory = $true)][timespan]$a,
 		[Parameter(Mandatory = $true)][timespan]$b
 	)
-	
+
 	$a = [timespan]::Parse($a)
 	$b = [timespan]::Parse($b)
-	
+
 	$c = (TimeSub $a $b)
 
 	<#if ([timespan]::op_LessThan($c, [timespan]::Zero)) {
-		
+
 	}#>
-	
+
 	$c = [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
 
 	return $c;
 }
 
 function Get-TimeDurationString {
-	param (
+	param 
+	(
 		[Parameter(Mandatory = $true)][timespan]$a,
 		[Parameter(Mandatory = $true)][timespan]$b
 	)
@@ -291,7 +284,6 @@ function Get-TimeDurationString {
 
 
 #endregion
-
 
 function ffprobeq { ffprobe -hide_banner $args }
 
@@ -335,8 +327,33 @@ function Get-Translation {
 	python $f2
 }
 
+
+function U {
+	#https://mnaoumov.wordpress.com/2014/06/14/unicode-literals-in-powershell/
+	
+	param(
+		[int] $Code
+	)
+ 
+	if ((0 -le $Code) -and ($Code -le 0xFFFF)) {
+		return [char] $Code
+	}
+ 
+	if ((0x10000 -le $Code) -and ($Code -le 0x10FFFF)) {
+		return [char]::ConvertFromUtf32($Code)
+	}
+ 
+	throw "Invalid character code $Code"
+}
+
+
 #endregion
 
+function PathJoin($x,$d) {
+	return [string]::Join($d, $x).TrimEnd($d)
+}
+
+# region [Aliases]
 Set-Alias -Name ytdlp -Value yt-dlp.exe
 Set-Alias -Name ytdl -Value youtube-dl.exe
 Set-Alias -Name gdl -Value gallery-dl.exe
@@ -347,6 +364,9 @@ Set-Alias -Name mg -Value magick.exe
 
 Set-Alias -Name ffp -Value ffprobeq
 Set-Alias -Name ffm -Value ffmpegq
+Set-Alias -Name a2c -Value aria2c
+# endregion
+
 
 
 # PowerShell parameter completion shim for the dotnet CLI

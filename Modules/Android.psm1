@@ -3,6 +3,12 @@
 # Android utilities
 #>
 
+$global:RD_SD = 'sdcard/'
+$global:RD_PIC = $RD_SD + 'Pictures/'
+$global:RD_VID = $RD_SD + 'Videos/'
+$global:RD_DL = $RD_SD + 'Download/'
+$global:RD_DOC = $RD_SD + 'Documents/'
+
 #region [IO]
 
 
@@ -24,7 +30,7 @@ function AdbPush {
 	)
 
 	if (!($dest)) {
-		$dest = 'sdcard/'
+		$dest = $global:RD_SD
 	}
 
 	(adb push $src $dest)
@@ -39,7 +45,7 @@ function AdbPushAll {
 	$cd = Get-Location
 
 	if (!($dest)) {
-		$dest = 'sdcard/'
+		$dest = $global:RD_SD
 	}
 
 	Write-Host $cd files to $dest
@@ -52,20 +58,17 @@ function AdbPushAll {
 }
 
 
-<#
-.Description
+enum Direction {
+	Remote
+	Local
+}
 
-#>
 function AdbSyncItems {
 	param (
 		[Parameter(Mandatory = $true)][string]$remote,
 		[Parameter(Mandatory = $false)][string]$local,
-		
-		[Parameter(Mandatory = $true)]
-		[ValidateSet('Remote', 'Local')]
-		$Direction
+		[Parameter(Mandatory = $true)][Direction]$d
 	)
-
 
 	#$remoteItems | ?{($localItems -notcontains $_)}
 
@@ -73,26 +76,27 @@ function AdbSyncItems {
 	#https://stackoverflow.com/questions/45041320/adb-shell-input-text-with-space
 
 	$localItems = Get-ChildItem -Name
-	$remoteItems = AdbItemsList $remote
-	$remote = AdbEscape $remote [EscapeType]::Exchange
+	$remoteItems = AdbListItems $remote
+	$remote = AdbEscape $remote Exchange
 
 	#wh $remote
+	switch ($d) {
+		Remote {
+			$m = Get-Difference $remoteItems $localItems
 
-	if ($Direction -eq 'Remote') {
-		$m = Get-Difference $remoteItems $localItems
-
-		foreach ($x in $m) {
+			foreach ($x in $m) {
 			(adb push $x $remote)
+			}
 		}
-	}
-	elseif ($Direction -eq 'Local') {
-		$m = Get-Difference $localItems $remoteItems
+		Local {
+			$m = Get-Difference $localItems $remoteItems
 
-		foreach ($x in $m) {
+			foreach ($x in $m) {
 			(adb pull "$remote/$x")
+			}
 		}
+		Default {}
 	}
-	
 	return $m
 }
 
@@ -127,8 +131,8 @@ function AdbPullAll {
 		$filter = '.'
 	}
 
-	foreach ($x in ((AdbItemsList $src) | Select-String -Pattern $filter)) {
-		(adb pull "$src/$x")
+	foreach ($x in ((AdbListItems $src) | Select-String -Pattern $filter)) {
+		(adb pull "$x")
 	}
 }
 
@@ -141,7 +145,7 @@ function AdbRemove {
 		[Parameter(Mandatory = $true)][string]$src
 	)
 
-	(adb shell rm $src)
+	(adb shell rm "$src")
 }
 
 <#
@@ -153,22 +157,32 @@ function AdbFileSize {
 		[Parameter(Mandatory = $true)][string]$src
 	)
 	
-	return (adb shell wc -c $src) -Split ' ' | Select-Object -Index 0
+	return (adb shell wc -c "$src") -Split ' ' | Select-Object -Index 0
 }
 
 <#
 .Description
 Lists directory content
 #>
-function AdbItemsList {
+function AdbListItems {
 	param (
-		[Parameter(Mandatory = $true)][string]$src
+		[Parameter(Mandatory = $true)][string]$src,
+		[Parameter(Mandatory = $false)][bool]$relative
+
 	)
 
-	$src = AdbEscape $src [EscapeType]::Shell
+	$src = AdbEscape $src Shell
 	$x = (adb shell ls $src)
 
-	return ($x) -Split "`n"
+	$files = ($x) -Split "`n"
+
+	if (!$relative) {
+		for ($i = 0; $i -lt $files.Count; $i++) {
+			$files[$i] = [System.IO.Path]::Combine($src, $files[$i]).Replace('\', '/')
+		}
+	}
+	
+	return $files
 }
 
 #endregion
@@ -218,7 +232,7 @@ function AdbEscape {
 		}
 		Exchange {
 			$x2 = $x.Split('/')
-			$x3 = New-Object -TypeName System.Collections.Generic.List[string]
+			$x3 = New-List 'string'
 		
 			foreach ($b in $x2) { 
 				if ($b.Contains(' ')) {
@@ -230,7 +244,7 @@ function AdbEscape {
 				$x3.Add($b2)
 			}
 		
-			return [string]::Join('/', $x3).TrimEnd('/')
+			return PathJoin($x3, '/')
 		}
 		Default {}
 	}
@@ -238,18 +252,9 @@ function AdbEscape {
 	
 }
 
-#region [Variables]
-
-$global:RD_SD = 'sdcard/'
-$global:RD_PIC = $RD_SD + 'Pictures/'
-$global:RD_VID = $RD_SD + 'Videos/'
-$global:RD_DL = $RD_SD + 'Download/'
-$global:RD_DOC = $RD_SD + 'Documents/'
 
 $script:AdbCommands = @('push', 'pull', 'connect', 'disconnect', 'tcpip', 
-	'start-server', 'kill-server', 'shell', 'usb', 'devices')
-
-#endregion
+	'start-server', 'kill-server', 'shell', 'usb', 'devices', 'install', 'uninstall')
 
 Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 	param($wordToComplete, $commandAst, $fakeBoundParameters)
