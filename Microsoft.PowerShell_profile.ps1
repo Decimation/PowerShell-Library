@@ -4,17 +4,27 @@
 
 #region [Modules]
 
-$ModulePathRoot = $env:PSModulePath.Split(';')[0]
-$LocalModules = (Get-ChildItem $ModulePathRoot) | ForEach-Object { $_.ToString() }
+$global:ModulePathRoot = $env:PSModulePath.Split(';')[0]
+$LocalModules = (Get-ChildItem $global:ModulePathRoot) | ForEach-Object { $_.ToString() }
 
-$ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
-$LocalScripts = (Get-ChildItem $ScriptPathRoot) | Where-Object { [System.IO.File]::Exists($_) } | ForEach-Object { $_.ToString() }
+$global:ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
+$LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object { [System.IO.File]::Exists($_) } | ForEach-Object { $_.ToString() }
+
+
+function Import-LocalScript {
+	param($x)
+	. "$global:ScriptPathRoot\$x"
+}
 
 
 function Import-LocalScripts {
 	foreach ($x in $LocalScripts) {
 		. "$x"
 	}
+}
+function Import-LocalModule {
+	param($x)
+	Import-Module "$global:ModulePathRoot\$x" -DisableNameChecking
 }
 
 function Import-LocalModules {

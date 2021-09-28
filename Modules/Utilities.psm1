@@ -6,9 +6,6 @@ function ElevateTerminal { Start-Process -Verb RunAs wt.exe }
 
 function OpenHere { Start-Process $(Get-Location) }
 
-
-
-
 function Get-CommandProcess {
 	[CmdletBinding()]
 	param (
@@ -118,69 +115,12 @@ function ForceKill {
 }
 
 
-
-#region [Collections]
-
-function Flatten($a) {
-	, @($a | ForEach-Object { $_ })
-}
-
-function Get-Difference {
-	param (
-		[Parameter(Mandatory = $true)][object[]]$a,
-		[Parameter(Mandatory = $true)][object[]]$b
-	)
-
-	return $b | Where-Object { ($a -notcontains $_) }
-}
-
-function Get-Intersection {
-	param (
-		[Parameter(Mandatory = $true)][object[]]$a,
-		[Parameter(Mandatory = $true)][object[]]$b
-	)
-	return Compare-Object $a $b -PassThru -IncludeEqual -ExcludeDifferent
-}
-
-function Get-Union {
-	param (
-		[Parameter(Mandatory = $true)][object[]]$a,
-		[Parameter(Mandatory = $true)][object[]]$b
-	)
-	return Compare-Object $a $b -PassThru -IncludeEqual
-}
-
-function New-List {
-	param (
-		[Parameter(Mandatory = $true)][string]$x
-	)
-	#return New-Object -TypeName System.Collections.Generic.List[string]
-	return New-Object "System.Collections.Generic.List[$x]"
-}
-
-function New-RandomArray {
-	param (
-		[Parameter(Mandatory = $true)][int]$c
-	)
-	$rg = [byte[]]::new($c)
-	$rand = [System.Random]::new()
-	<# for ($i = 0; $i -lt $rg.Count; $i++) {
-		$rg[$i] = [byte] $rand.Next()
-	} #>
-	$rand.NextBytes($rg)
-	return $rg
-}
-
-#endregion
-
 function ffprobeq { ffprobe -hide_banner $args }
 
 function ffmpegq { ffmpeg -hide_banner $args }
 
 function ytmdl { py (WhereItem ytmdl) $args }
 
-
-#region [Other]
 
 function Get-Translation {
 	param (
@@ -235,13 +175,132 @@ function U {
 }
 
 
-#endregion
-
 function PathJoin($x, $d) {
 	return [string]::Join($d, $x).TrimEnd($d)
 }
 
-#region [File]
+function Flatten($a) {
+	, @($a | ForEach-Object { $_ })
+}
+
+function Get-Difference {
+	param (
+		[Parameter(Mandatory = $true)][object[]]$a,
+		[Parameter(Mandatory = $true)][object[]]$b
+	)
+
+	return $b | Where-Object { ($a -notcontains $_) }
+}
+
+function Get-Intersection {
+	param (
+		[Parameter(Mandatory = $true)][object[]]$a,
+		[Parameter(Mandatory = $true)][object[]]$b
+	)
+	return Compare-Object $a $b -PassThru -IncludeEqual -ExcludeDifferent
+}
+
+function Get-Union {
+	param (
+		[Parameter(Mandatory = $true)][object[]]$a,
+		[Parameter(Mandatory = $true)][object[]]$b
+	)
+	return Compare-Object $a $b -PassThru -IncludeEqual
+}
+
+function New-List {
+	param (
+		[Parameter(Mandatory = $true)][string]$x
+	)
+	#return New-Object -TypeName System.Collections.Generic.List[string]
+	return New-Object "System.Collections.Generic.List[$x]"
+}
+
+function New-RandomArray {
+	param (
+		[Parameter(Mandatory = $true)][int]$c
+	)
+	$rg = [byte[]]::new($c)
+	$rand = [System.Random]::new()
+	<# for ($i = 0; $i -lt $rg.Count; $i++) {
+		$rg[$i] = [byte] $rand.Next()
+	} #>
+	$rand.NextBytes($rg)
+	return $rg
+}
+
+function DateAdd {
+	param (
+		[Parameter(Mandatory = $true)][datetime]$a,
+		[Parameter(Mandatory = $true)][timespan]$b
+	)
+	return $a + $b
+}
+function DateSub {
+	param (
+		[Parameter(Mandatory = $true)][datetime]$a,
+		[Parameter(Mandatory = $true)][timespan]$b
+	)
+	return $a - $b
+}
+
+function TimeAdd {
+	param (
+		[Parameter(Mandatory = $true)][timespan]$a,
+		[Parameter(Mandatory = $true)][timespan]$b
+	)
+
+	return $a + $b
+}
+
+function TimeSub {
+	param (
+		[Parameter(Mandatory = $true)][timespan]$a,
+		[Parameter(Mandatory = $true)][timespan]$b
+	)
+
+	return $a - $b
+}
+
+function TimeAbs {
+	param (
+		[Parameter(Mandatory = $true)][timespan]$c
+	)
+	return [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
+}
+
+
+
+function Get-TimeDuration {
+	param (
+		[Parameter(Mandatory = $true)][timespan]$a,
+		[Parameter(Mandatory = $true)][timespan]$b
+	)
+
+	$a = [timespan]::Parse($a)
+	$b = [timespan]::Parse($b)
+
+	$c = (TimeSub $a $b)
+
+	<#if ([timespan]::op_LessThan($c, [timespan]::Zero)) {
+
+	}#>
+
+	$c = [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
+
+	return $c;
+}
+
+function Get-TimeDurationString {
+	param
+	(
+		[Parameter(Mandatory = $true)][timespan]$a,
+		[Parameter(Mandatory = $true)][timespan]$b
+	)
+	return (Get-TimeDuration $a $b).ToString('hh\:mm\:ss')
+}
+
+
 function Get-TempFile {
 	return [System.IO.Path]::GetTempFileName()
 }
@@ -290,9 +349,9 @@ function Get-FileType {
 	return $r
 }
 
-#endregion
 
 # region [Aliases]
+
 Set-Alias -Name ytdlp -Value yt-dlp.exe
 Set-Alias -Name ytdl -Value youtube-dl.exe
 Set-Alias -Name gdl -Value gallery-dl.exe
@@ -304,9 +363,8 @@ Set-Alias -Name mg -Value magick.exe
 Set-Alias -Name ffp -Value ffprobeq
 Set-Alias -Name ffm -Value ffmpegq
 Set-Alias -Name a2c -Value aria2c
+
 # endregion
-
-
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
