@@ -273,7 +273,7 @@ function Get-TimeDuration {
 }
 
 function Get-TimeDurationString {
-	param 
+	param
 	(
 		[Parameter(Mandatory = $true)][timespan]$a,
 		[Parameter(Mandatory = $true)][timespan]$b
@@ -330,26 +330,26 @@ function Get-Translation {
 
 function U {
 	#https://mnaoumov.wordpress.com/2014/06/14/unicode-literals-in-powershell/
-	
+
 	param(
 		[int] $Code
 	)
- 
+
 	if ((0 -le $Code) -and ($Code -le 0xFFFF)) {
 		return [char] $Code
 	}
- 
+
 	if ((0x10000 -le $Code) -and ($Code -le 0x10FFFF)) {
 		return [char]::ConvertFromUtf32($Code)
 	}
- 
+
 	throw "Invalid character code $Code"
 }
 
 
 #endregion
 
-function PathJoin($x,$d) {
+function PathJoin($x, $d) {
 	return [string]::Join($d, $x).TrimEnd($d)
 }
 

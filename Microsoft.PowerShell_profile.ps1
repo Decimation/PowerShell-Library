@@ -19,7 +19,7 @@ function Import-LocalScripts {
 
 function Import-LocalModules {
 	foreach ($x in $LocalModules) {
-		Import-Module $x
+		Import-Module $x -DisableNameChecking
 	}
 }
 
@@ -71,6 +71,8 @@ Set-Alias -Name ss -Value Select-String
 
 Set-Alias -Name ud -Value Update-LocalModules
 
+Set-Alias -Name ie -Value Invoke-Expression
+
 #endregion
 
 
@@ -94,6 +96,3 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 #Set-Location $env:USERPROFILE\Downloads\
 
 # endregion
-
-
-

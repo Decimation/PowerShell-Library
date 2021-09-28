@@ -9,6 +9,8 @@ $global:RD_VID = $RD_SD + 'Videos/'
 $global:RD_DL = $RD_SD + 'Download/'
 $global:RD_DOC = $RD_SD + 'Documents/'
 
+$global:AdbRemoteOutputDefault = $RD_SD
+
 #region [IO]
 
 
@@ -29,27 +31,44 @@ function AdbPush {
 		[Parameter(Mandatory = $false)][string]$dest
 	)
 
-	if (!($dest)) {
-		$dest = $global:RD_SD
-	}
+	$dest = EnsureRemoteOutput($dest)
 
-	(adb push $src $dest)
+	$o = (adb push $src $dest)
+
+	return $o
 }
 
+
+function script:EnsureRemoteOutput($dest) {
+
+	#to-do: private
+
+	if (!($dest)) {
+		$dest = $global:AdbRemoteOutputDefault
+	}
+
+	$usingDefault = $dest -eq $global:AdbRemoteOutputDefault
+
+	#Write-Debug "Output: $dest | Default: $global:AdbRemoteOutputDefault"
+
+	if ($usingDefault) {
+		Write-Debug "Using default remote output ($global:AdbRemoteOutputDefault)"
+	}
+
+	return $dest
+}
 
 function AdbPushAll {
 	param(
 		[Parameter(Mandatory = $false)][string]$dest
 	)
-	
+
 	$cd = Get-Location
 
-	if (!($dest)) {
-		$dest = $global:RD_SD
-	}
+	$dest = EnsureRemoteOutput($dest)
 
-	Write-Host $cd files to $dest
-	
+	Write-Host "$cd files to $dest"
+
 	Get-ChildItem | ForEach-Object {
 		if ([System.IO.File]::Exists($_)) {
 			(adb push $_ $dest)
@@ -156,7 +175,6 @@ function AdbFileSize {
 	param (
 		[Parameter(Mandatory = $true)][string]$src
 	)
-	
 	return (adb shell wc -c "$src") -Split ' ' | Select-Object -Index 0
 }
 
@@ -181,14 +199,13 @@ function AdbListItems {
 			$files[$i] = [System.IO.Path]::Combine($src, $files[$i]).Replace('\', '/')
 		}
 	}
-	
+
 	return $files
 }
 
 #endregion
 
 function AdbListPackages {
-	
 	return ((adb shell pm list packages -f) -split '`n')
 }
 
@@ -196,7 +213,7 @@ function AdbEnablePackage {
 	param (
 		[Parameter(Mandatory = $true)][long]$x
 	)
-	
+
 	(adb shell pm enable $x)
 }
 
@@ -233,8 +250,8 @@ function AdbEscape {
 		Exchange {
 			$x2 = $x.Split('/')
 			$x3 = New-List 'string'
-		
-			foreach ($b in $x2) { 
+
+			foreach ($b in $x2) {
 				if ($b.Contains(' ')) {
 					$b2 = "`"$b/`""
 				}
@@ -243,17 +260,17 @@ function AdbEscape {
 				}
 				$x3.Add($b2)
 			}
-		
 			return PathJoin($x3, '/')
 		}
 		Default {}
 	}
 
-	
 }
 
 
-$script:AdbCommands = @('push', 'pull', 'connect', 'disconnect', 'tcpip', 
+# region ADB completion
+
+$script:AdbCommands = @('push', 'pull', 'connect', 'disconnect', 'tcpip',
 	'start-server', 'kill-server', 'shell', 'usb', 'devices', 'install', 'uninstall')
 
 Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
@@ -265,3 +282,6 @@ Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 		"$_"
 	}
 }
+# endregion
+
+
