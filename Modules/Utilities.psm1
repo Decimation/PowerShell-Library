@@ -6,33 +6,10 @@ function ElevateTerminal { Start-Process -Verb RunAs wt.exe }
 
 function OpenHere { Start-Process $(Get-Location) }
 
-function Get-TempFile {
-	return [System.IO.Path]::GetTempFileName()
-}
 
-function Get-RandFile {
-	param (
-		[Parameter(Mandatory = $true)][int]$x,
-		[Parameter(Mandatory = $false)][string]$f
-	)
 
-	if (!($f)) {
-		$f = $(Get-TempFile)
-	}
-	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
-	return $f
-}
 
-function Get-FileBytes {
-	param (
-		[Parameter(Mandatory = $true)][string]$s
-	)
-	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
-	$b = [System.IO.File]::ReadAllBytes($s)
-	return $b
-}
-
-function Get-CmdProcess {
+function Get-CommandProcess {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)][string]$s
@@ -53,7 +30,7 @@ function Get-CmdProcess {
 	return $p
 }
 
-function Invoke-Cmd {
+function QCommand {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)][string]$s,
@@ -63,7 +40,7 @@ function Invoke-Cmd {
 	if ($d) {
 		return (cmd /c $s)
 	}
-	$p = Get-CmdProcess $s
+	$p = Get-CommandProcess $s
 
 	$p.Start() | Out-Null
 	$p.WaitForExit()
@@ -73,6 +50,14 @@ function Invoke-Cmd {
 
 	$stdout = $stdout.Trim()
 	return $stdout
+}
+
+
+function QInvoke($x) {
+	# $x = QInvoke("echo hello")
+	# $x == "hello"
+	$buf2 = (Invoke-Expression -OutVariable $buf ("$x 2>&1"))
+	return $buf2
 }
 
 function WhereItem {
@@ -133,26 +118,6 @@ function ForceKill {
 }
 
 
-function Get-FileType {
-	param (
-		[Parameter(Mandatory = $true)][string]$f
-	)
-
-	$s = ".$($f.Split('.')[-1])"
-
-	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
-
-	$p = $r | so -ExpandProperty '(Default)'
-
-	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
-
-	Write-Host $r.'(default)'
-	Write-Host $r.'Content Type'
-	Write-Host $r.'PerceivedType'
-	Write-Host $r2.'(default)'
-
-	return $r
-}
 
 #region [Collections]
 
@@ -205,83 +170,6 @@ function New-RandomArray {
 	$rand.NextBytes($rg)
 	return $rg
 }
-
-#endregion
-
-#region [Time]
-
-function DateAdd {
-	param (
-		[Parameter(Mandatory = $true)][datetime]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-	return $a + $b
-}
-function DateSub {
-	param (
-		[Parameter(Mandatory = $true)][datetime]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-	return $a - $b
-}
-
-function TimeAdd {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-
-	return $a + $b
-}
-
-function TimeSub {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-
-	return $a - $b
-}
-
-function TimeAbs {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$c
-	)
-	return [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
-}
-
-
-
-function Get-TimeDuration {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-
-	$a = [timespan]::Parse($a)
-	$b = [timespan]::Parse($b)
-
-	$c = (TimeSub $a $b)
-
-	<#if ([timespan]::op_LessThan($c, [timespan]::Zero)) {
-
-	}#>
-
-	$c = [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
-
-	return $c;
-}
-
-function Get-TimeDurationString {
-	param
-	(
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-	return (Get-TimeDuration $a $b).ToString('hh\:mm\:ss')
-}
-
-
 
 #endregion
 
@@ -352,6 +240,57 @@ function U {
 function PathJoin($x, $d) {
 	return [string]::Join($d, $x).TrimEnd($d)
 }
+
+#region [File]
+function Get-TempFile {
+	return [System.IO.Path]::GetTempFileName()
+}
+
+function Get-RandFile {
+	param (
+		[Parameter(Mandatory = $true)][int]$x,
+		[Parameter(Mandatory = $false)][string]$f
+	)
+
+	if (!($f)) {
+		$f = $(Get-TempFile)
+	}
+	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
+	return $f
+}
+
+function Get-FileBytes {
+	param (
+		[Parameter(Mandatory = $true)][string]$s
+	)
+	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
+	$b = [System.IO.File]::ReadAllBytes($s)
+	return $b
+}
+
+
+function Get-FileType {
+	param (
+		[Parameter(Mandatory = $true)][string]$f
+	)
+
+	$s = ".$($f.Split('.')[-1])"
+
+	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
+
+	$p = $r | so -ExpandProperty '(Default)'
+
+	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
+
+	Write-Host $r.'(default)'
+	Write-Host $r.'Content Type'
+	Write-Host $r.'PerceivedType'
+	Write-Host $r2.'(default)'
+
+	return $r
+}
+
+#endregion
 
 # region [Aliases]
 Set-Alias -Name ytdlp -Value yt-dlp.exe
