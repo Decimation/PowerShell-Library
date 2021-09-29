@@ -10,18 +10,17 @@ $LocalModules = (Get-ChildItem $global:ModulePathRoot) | ForEach-Object { $_.ToS
 $global:ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
 $LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object { [System.IO.File]::Exists($_) } | ForEach-Object { $_.ToString() }
 
-
 function Import-LocalScript {
 	param($x)
 	. "$global:ScriptPathRoot\$x"
 }
-
 
 function Import-LocalScripts {
 	foreach ($x in $LocalScripts) {
 		. "$x"
 	}
 }
+
 function Import-LocalModule {
 	param($x)
 	Import-Module "$global:ModulePathRoot\$x" -DisableNameChecking

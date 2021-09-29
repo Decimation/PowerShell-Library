@@ -2,6 +2,21 @@
 # General utilities
 #>
 
+function typename {
+	param ($x)
+
+	$y = ($x | Get-Member)[0].TypeName
+
+	return $y
+}
+
+function typeof {
+	param ($x)
+
+	#return [type]::GetType((typename $x))
+	return $x.GetType()
+}
+
 function ElevateTerminal { Start-Process -Verb RunAs wt.exe }
 
 function OpenHere { Start-Process $(Get-Location) }
@@ -33,9 +48,9 @@ function QCommand {
 		[Parameter(Mandatory = $true)][string]$s,
 		[switch]$d
 	)
-	
+
 	if ($d) {
-		return (cmd /c $s)
+		return (cmd.exe /c $s)
 	}
 
 	$p = Get-CommandProcess $s
@@ -111,7 +126,7 @@ function ForceKill {
 	)
 
 	# Stop-Process (Get-Process $name).Id
-	return (taskkill /f /im $name)
+	return (taskkill.exe /f /im $name)
 }
 
 
