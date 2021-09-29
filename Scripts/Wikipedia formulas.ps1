@@ -42,11 +42,9 @@ for ($i = 0; $i -lt $s.Length; $i++) {
 
 	$b1 = Parse($b1)
 
-	#$b1 = $b1.Trim().TrimStart([char]32)
 	$b2 = $b1.Split("`n ")
 
 	if ($b2.Length -eq 2 -and ($b2[0].Trim() -eq $b2[1].Trim())) {
-		#$l[$i] = $b2
 		$b1 = $b2[0]
 	}
 
