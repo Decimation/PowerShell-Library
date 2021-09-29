@@ -13,16 +13,16 @@ $global:AdbRemoteOutputDefault = $RD_SD
 
 #region [IO]
 
-
 function AdbShell {
-	return (adb shell $args)
+	return (adb.exe shell $args)
 }
 
 function AdbInputText {
 	param($s)
+
 	$s2 = $(AdbEscape -e shell $s)
 
-	return (adb shell input text $s2)
+	return (adb.exe shell input text $s2)
 }
 
 function AdbPush {
@@ -33,7 +33,7 @@ function AdbPush {
 
 	$dest = EnsureRemoteOutput($dest)
 
-	$o = (adb push $src $dest)
+	$o = (adb.exe push $src $dest)
 
 	return $o
 }
@@ -71,7 +71,7 @@ function AdbPushAll {
 
 	Get-ChildItem | ForEach-Object {
 		if ([System.IO.File]::Exists($_)) {
-			(adb push $_ $dest)
+			(adb.exe push $_ $dest)
 		}
 	}
 }
@@ -104,14 +104,14 @@ function AdbSyncItems {
 			$m = Get-Difference $remoteItems $localItems
 
 			foreach ($x in $m) {
-			(adb push $x $remote)
+			(adb.exe push $x $remote)
 			}
 		}
 		Local {
 			$m = Get-Difference $localItems $remoteItems
 
 			foreach ($x in $m) {
-			(adb pull "$remote/$x")
+			(adb.exe pull "$remote/$x")
 			}
 		}
 		Default {}
@@ -133,7 +133,7 @@ function AdbPull {
 		$dest = (Get-Location)
 	}
 
-	adb pull $src $dest
+	adb.exe pull $src $dest
 }
 
 <#
@@ -151,7 +151,7 @@ function AdbPullAll {
 	}
 
 	foreach ($x in ((AdbListItems $src) | Select-String -Pattern $filter)) {
-		(adb pull "$x")
+		(adb.exe pull "$x")
 	}
 }
 
@@ -164,7 +164,7 @@ function AdbRemove {
 		[Parameter(Mandatory = $true)][string]$src
 	)
 
-	(adb shell rm "$src")
+	(adb.exe shell rm "$src")
 }
 
 <#
@@ -175,7 +175,7 @@ function AdbFileSize {
 	param (
 		[Parameter(Mandatory = $true)][string]$src
 	)
-	return (adb shell wc -c "$src") -Split ' ' | Select-Object -Index 0
+	return (adb.exe shell wc -c "$src") -Split ' ' | Select-Object -Index 0
 }
 
 <#
@@ -190,7 +190,7 @@ function AdbListItems {
 	)
 
 	$src = AdbEscape $src Shell
-	$x = (adb shell ls $src)
+	$x = (adb.exe shell ls $src)
 
 	$files = ($x) -Split "`n"
 
@@ -214,7 +214,7 @@ function AdbEnablePackage {
 		[Parameter(Mandatory = $true)][long]$x
 	)
 
-	(adb shell pm enable $x)
+	(adb.exe shell pm enable $x)
 }
 
 
@@ -227,7 +227,7 @@ function AdbInputTap {
 		[Parameter(Mandatory = $true)][long]$x,
 		[Parameter(Mandatory = $true)][long]$y
 	)
-	(adb shell input tap $x $y)
+	(adb.exe shell input tap $x $y)
 }
 
 enum EscapeType {
@@ -239,7 +239,6 @@ function AdbEscape {
 	param (
 		[Parameter(Mandatory = $true)][string]$x,
 		[Parameter(Mandatory = $true)][EscapeType]$e
-
 	)
 
 	switch ($e) {

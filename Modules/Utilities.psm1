@@ -32,11 +32,12 @@ function QCommand {
 	param (
 		[Parameter(Mandatory = $true)][string]$s,
 		[switch]$d
-
 	)
+	
 	if ($d) {
 		return (cmd /c $s)
 	}
+
 	$p = Get-CommandProcess $s
 
 	$p.Start() | Out-Null
@@ -62,7 +63,6 @@ function WhereItem {
 	param (
 		[Parameter(Mandatory = $true)][string]$s,
 		[Parameter(Mandatory = $false)][System.Management.Automation.CommandTypes]$c
-
 	)
 
 	if (!($c)) {
@@ -115,12 +115,11 @@ function ForceKill {
 }
 
 
-function ffprobeq { ffprobe -hide_banner $args }
+function ffprobeq { ffprobe.exe -hide_banner $args }
 
-function ffmpegq { ffmpeg -hide_banner $args }
+function ffmpegq { ffmpeg.exe -hide_banner $args }
 
 function ytmdl { py (WhereItem ytmdl) $args }
-
 
 function Get-Translation {
 	param (
@@ -292,11 +291,11 @@ function Get-TimeDuration {
 }
 
 function Get-TimeDurationString {
-	param
-	(
+	param(
 		[Parameter(Mandatory = $true)][timespan]$a,
 		[Parameter(Mandatory = $true)][timespan]$b
 	)
+
 	return (Get-TimeDuration $a $b).ToString('hh\:mm\:ss')
 }
 
@@ -314,7 +313,9 @@ function Get-RandFile {
 	if (!($f)) {
 		$f = $(Get-TempFile)
 	}
+
 	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
+
 	return $f
 }
 
