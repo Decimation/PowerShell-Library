@@ -1,42 +1,43 @@
 
+[CmdletBinding()]
+param (
+	[Parameter()]
+	[string]
+	$arg
+)
+
+
 function Amd-GetHotkeysDisabled {
 
 	$r = (reg query HKCU\SOFTWARE\AMD\DVR\ /v HotkeysDisabled) 2>&1
-
-	#$r = ($r | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-
 	$v = $r[2].Trim().Split('    ')[2]
-
 	$b = [bool][int]$v
 
 	return $b
 }
 
-
 function Amd-SetHotkeysDisabled {
 	param (
-		$a
+		$v
 	)
 
-	#$ai = [int](-not $a)
-
-	$ai = [int]$a
-
+	$ai = [int]$v
 	$r = (reg add HKCU\SOFTWARE\AMD\DVR\ /v HotkeysDisabled /t REG_DWORD /d $ai /f) 2>&1
 	$b = ([string]$r[0]).Contains('success')
 
 	return $b
 }
 
-function Amd-ToggleHK {
-	$a = Amd-GetHotkeysDisabled
-	$nv = (-not $a)
+function Amd-ToggleHotkeys {
+	$v = Amd-GetHotkeysDisabled
+	$nv = (-not $v)
 	$r = Amd-SetHotkeysDisabled $nv
-	
-	if ($r) {
-		return $nv
-	}
-	else {
-		return $false
-	}
+
+	return $r ? $nv : $false
 }
+
+if ($arg -eq 'togglehk') {
+	Amd-ToggleHotkeys
+}
+
+#pwsh -command "& %userprofile%\Documents\PowerShell\Scripts\AMD.ps1 togglehk"
