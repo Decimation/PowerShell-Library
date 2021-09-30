@@ -10,7 +10,7 @@ function Get-Underline {
 		[string]$s
 	)
 	process {
-		$s
+		#$s
 		return "$($ANSI_UNDERLINE)$s$($ANSI_END)"
 	}
 

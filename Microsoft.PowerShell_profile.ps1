@@ -4,9 +4,6 @@
 
 #region [Modules]
 
-$global:ModulePathRoot = $env:PSModulePath.Split(';')[0]
-$LocalModules = (Get-ChildItem $global:ModulePathRoot) | ForEach-Object { $_.ToString() }
-
 $global:ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
 $LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object { [System.IO.File]::Exists($_) } | ForEach-Object { $_.ToString() }
 
@@ -21,30 +18,13 @@ function Import-LocalScripts {
 	}
 }
 
-function Import-LocalModule {
-	param($x)
-	Import-Module "$global:ModulePathRoot\$x" -DisableNameChecking
-}
-
-function Import-LocalModules {
-	foreach ($x in $LocalModules) {
-		Import-Module $x -DisableNameChecking
-	}
-}
-
-function Remove-LocalModules {
-	foreach ($x in $LocalModules) {
-		Remove-Module $([System.IO.Path]::GetFileNameWithoutExtension($x))
-	}
-}
-
-Import-LocalModules
-
 function Update-LocalModules {
-	Remove-LocalModules
-	Import-LocalModules
+	Remove-Module PSKantan
+	Import-Module PSKantan
 	Write-Debug "[$env:USERNAME] Updated modules"
 }
+
+Import-Module PSKantan
 
 
 #endregion
@@ -64,8 +44,21 @@ New-Module {
 } | Import-Module
 
 
+
+
+
 function Prompt {
-	Write-Host ('PS ' + "[$(Get-Date -Format 'HH:mm:ss')] " + $(Get-Location) + '>') -NoNewline
+	#Write-Host ('PS ' + "[$(Get-Date -Format 'HH:mm:ss')] " + $(Get-Location) + '>') -NoNewline
+
+	$C1 = [System.ConsoleColor]::Green
+	$C2 = [System.ConsoleColor]::Blue
+
+	Write-Host 'PS ' -NoNewline -ForegroundColor $C2
+	$d = $(Get-Date -Format 'HH:mm:ss')
+	Write-Host ("[$d] ") -NoNewline -ForegroundColor $C1
+	Write-Host "$(Get-Location)" -NoNewline
+	Write-Host '>' -NoNewline
+
 	return ' '
 }
 

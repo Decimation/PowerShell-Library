@@ -70,4 +70,20 @@ function Get-Clip {
 	return (ffmpeg.exe -ss $a -to $b -i $f $o)
 }
 
+function Get-ConcatVideo {
+	param (
+		$x,
+		$f,
+		$o
+	)
+
+	$x | ForEach-Object {
+		Add-Content -Value "file '$_'" -Path $f
+	}
+
+	ffmpeg.exe -f concat -safe 0 -i $f -c copy $o
+
+	Remove-Item $f
+}
+
 Set-Alias -Name gii -Value Get-ItemInfo
