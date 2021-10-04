@@ -283,4 +283,3 @@ Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 }
 # endregion
 
-
