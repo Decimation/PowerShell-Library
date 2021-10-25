@@ -54,8 +54,8 @@ function Prompt {
 	$C2 = [System.ConsoleColor]::Blue
 
 	Write-Host 'PS ' -NoNewline -ForegroundColor $C2
-	$d = $(Get-Date -Format 'HH:mm:ss')
-	Write-Host ("[$d] ") -NoNewline -ForegroundColor $C1
+	$dll = $(Get-Date -Format 'HH:mm:ss')
+	Write-Host ("[$dll] ") -NoNewline -ForegroundColor $C1
 	Write-Host "$(Get-Location)" -NoNewline
 	Write-Host '>' -NoNewline
 
@@ -98,3 +98,28 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 #Set-Location $env:USERPROFILE\Downloads\
 
 # endregion
+
+
+function New-PInvoke {
+	param (
+		$imports,
+		$className, $dll, $returnType, $funcName, $funcParams
+	)
+
+	Add-Type @"
+	using System;
+    using System.Text;
+    using System.Runtime.InteropServices;
+
+	$imports
+
+	public static class $className
+	{
+		[DllImport("$dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern $returnType $funcName($funcParams);
+	}
+"@
+
+}
+
+. "$ScriptPathRoot\Miscellaneous.ps1"
