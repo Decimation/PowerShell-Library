@@ -412,3 +412,14 @@ function Get-FileMetadata {
 	}
 	Return $rg
 }
+
+
+function Add-ExifTag {
+	param (
+		$file, $tag, $id
+	)
+
+	$buf = (exiftool -overwrite_original -$id="$tag" $file)
+
+	return $buf
+}

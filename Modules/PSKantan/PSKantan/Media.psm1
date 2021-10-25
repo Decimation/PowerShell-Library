@@ -1,13 +1,5 @@
 
-function ConvertTo-Gif {
-	param (
-		[Parameter(Mandatory = $true)][string]$x,
-		[Parameter(Mandatory = $true)][string]$y
-	)
 
-
-	ffmpeg.exe -i $x -vf 'fps=25,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse' $y
-}
 
 function ConvertTo-Extension {
 
@@ -23,28 +15,6 @@ function ConvertTo-Extension {
 	}
 }
 
-function Get-Clip {
-	param (
-		[Parameter(Mandatory = $true)][string]$f,
-		[Parameter(Mandatory = $true)][string]$a,
-		[Parameter(Mandatory = $true)][string]$b,
-		[Parameter(Mandatory = $false)][string]$o
-
-	)
-
-	$f2 = [System.IO.Path]::GetFileNameWithoutExtension($f)
-
-	if (!($o)) {
-		#$o = [System.IO.Path]::Combine($dir,"$f2 @ $d.mp4")
-		#$o = [System.IO.Path]::Combine("$f2 @ $d.mp4")
-		$o = "$f2-edit.mp4"
-	}
-
-	Write-Debug "$o"
-
-	#return (ffmpeg -ss $a -i $f -t $d $o)
-	return (ffmpeg.exe -ss $a -to $b -i $f $o)
-}
 
 function Get-ConcatVideo {
 	param (
