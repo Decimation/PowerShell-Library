@@ -5,18 +5,14 @@ function ConvertTo-Gif {
 		[Parameter(Mandatory = $true)][string]$y
 	)
 
-	#ffmpeg -i <input> -vf “fps=25,scale=1920:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse” <output gif>
 
 	ffmpeg.exe -i $x -vf 'fps=25,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse' $y
 }
 
-function Get-ItemInfo {
+<# function Get-ItemInfo {
 	param (
 		[switch] $m
 	)
-
-	<##Requires -Modules Formatting#>
-
 
 	Write-Host (Get-CenteredString 'ffprobe') -ForegroundColor Yellow
 	ffprobe.exe -hide_banner -show_streams -select_streams a $args
@@ -28,7 +24,7 @@ function Get-ItemInfo {
 		Write-Host (Get-CenteredString 'magick') -ForegroundColor Yellow
 		magick.exe identify $args
 	}
-}
+} #>
 
 
 function ConvertTo-Extension {
@@ -54,7 +50,6 @@ function Get-Clip {
 
 	)
 
-	#$d = Get-TimeDurationString $a $b
 
 	$f2 = [System.IO.Path]::GetFileNameWithoutExtension($f)
 
@@ -86,4 +81,3 @@ function Get-ConcatVideo {
 	Remove-Item $f
 }
 
-Set-Alias -Name gii -Value Get-ItemInfo
