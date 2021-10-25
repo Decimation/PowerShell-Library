@@ -193,9 +193,10 @@ function Get-Union {
 
 function New-List {
 	param (
-		[Parameter(Mandatory = $true)][string]$x
+		[Parameter(ParameterSetName = 'name', Position = 0)][string]$x,
+		[Parameter(ParameterSetName = 'type', Position = 0)][type]$t
 	)
-	#return New-Object -TypeName System.Collections.Generic.List[string]
+
 	return New-Object "System.Collections.Generic.List[$x]"
 }
 
@@ -205,9 +206,6 @@ function New-RandomArray {
 	)
 	$rg = [byte[]]::new($c)
 	$rand = [System.Random]::new()
-	<# for ($i = 0; $i -lt $rg.Count; $i++) {
-		$rg[$i] = [byte] $rand.Next()
-	} #>
 	$rand.NextBytes($rg)
 	return $rg
 }
@@ -219,6 +217,7 @@ function DateAdd {
 	)
 	return $a + $b
 }
+
 function DateSub {
 	param (
 		[Parameter(Mandatory = $true)][datetime]$a,
@@ -253,7 +252,6 @@ function TimeAbs {
 }
 
 
-
 function Get-TimeDuration {
 	param (
 		[Parameter(Mandatory = $true)][timespan]$a,
@@ -262,13 +260,7 @@ function Get-TimeDuration {
 
 	$a = [timespan]::Parse($a)
 	$b = [timespan]::Parse($b)
-
 	$c = (TimeSub $a $b)
-
-	<#if ([timespan]::op_LessThan($c, [timespan]::Zero)) {
-
-	}#>
-
 	$c = [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
 
 	return $c;
@@ -319,11 +311,8 @@ function Get-FileType {
 	)
 
 	$s = ".$($f.Split('.')[-1])"
-
 	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
-
 	$p = $r | so -ExpandProperty '(Default)'
-
 	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
 
 	Write-Host $r.'(default)'
