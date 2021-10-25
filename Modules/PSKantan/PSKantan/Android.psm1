@@ -11,6 +11,36 @@ $global:RD_DOC = $RD_SD + 'Documents/'
 
 $global:AdbRemoteOutputDefault = $RD_SD
 
+<#
+.Description
+ADB enhanced passthru
+#>
+function adb {
+
+	$argC = $args.Count
+	$argList = New-List 'object'
+
+	$argList.AddRange($args)
+
+	if ($argList[0] -eq 'push') {
+		$src = $argList[1]
+
+		if ($argC -lt 3) {
+			$dest = $AdbRemoteOutputDefault
+		}
+
+		$argList.Add($dest)
+
+		Write-Verbose "push $src -> $dest"
+	}
+
+	$argsNew = $argList.ToArray()
+
+	Write-Verbose "New args: $($argsNew -join ',')"
+
+	adb.exe $argsNew
+}
+
 #region [IO]
 
 function AdbShell {
@@ -269,7 +299,7 @@ function AdbEscape {
 
 # region ADB completion
 
-$script:AdbCommands = @('push', 'pull', 'connect', 'disconnect', 'tcpip',
+<# $script:AdbCommands = @('push', 'pull', 'connect', 'disconnect', 'tcpip',
 	'start-server', 'kill-server', 'shell', 'usb', 'devices', 'install', 'uninstall')
 
 Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
@@ -280,6 +310,7 @@ Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 	} | ForEach-Object {
 		"$_"
 	}
-}
+} #>
+
 # endregion
 
