@@ -17,6 +17,7 @@ ADB enhanced passthru
 #>
 function adb {
 
+
 	$argC = $args.Count
 	$argList = $args
 
@@ -68,6 +69,7 @@ Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 		"$_"
 	}
 }
+
 
 # endregion
 

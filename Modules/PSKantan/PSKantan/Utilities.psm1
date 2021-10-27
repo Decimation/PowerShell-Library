@@ -350,7 +350,15 @@ function ConvertTo-Extension {
 		ffmpeg.exe -i $_ ($y + '\' + $x)
 	}
 }
+function Get-SanitizedFilename {
+	param (
+		$origFileName
+	)
+	$invalids = [System.IO.Path]::GetInvalidFileNameChars()
+	$newName = [String]::Join('_', $origFileName.Split($invalids, [System.StringSplitOptions]::RemoveEmptyEntries)).TrimEnd('.')
 
+	return $newName
+}
 # region [Aliases]
 
 Set-Alias -Name ytdlp -Value yt-dlp.exe
