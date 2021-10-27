@@ -26,25 +26,25 @@ function Update-LocalModules {
 
 Import-Module PSKantan
 
-
 #endregion
 
-New-Module {
-	function Get-CallerVariable {
-		param([Parameter(Position = 1)][string]$Name)
-		$PSCmdlet.SessionState.PSVariable.GetValue($Name)
-	}
-	function Set-CallerVariable {
-		param(
-			[Parameter(ValueFromPipeline)][string]$Value,
-			[Parameter(Position = 1)]$Name
-		)
-		process { $PSCmdlet.SessionState.PSVariable.Set($Name, $Value) }
-	}
-} | Import-Module
+$script:CallerVariableModule = {
+	# https://stackoverflow.com/questions/46528262/is-there-any-way-for-a-powershell-module-to-get-at-its-callers-scope
 
-
-
+	New-Module {
+		function Get-CallerVariable {
+			param([Parameter(Position = 1)][string]$Name)
+			$PSCmdlet.SessionState.PSVariable.GetValue($Name)
+		}
+		function Set-CallerVariable {
+			param(
+				[Parameter(ValueFromPipeline)][string]$Value,
+				[Parameter(Position = 1)]$Name
+			)
+			process { $PSCmdlet.SessionState.PSVariable.Set($Name, $Value) }
+		}
+	} | Import-Module
+}
 
 
 function Prompt {
@@ -64,30 +64,28 @@ function Prompt {
 
 #region [Aliases]
 
-
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
 
 Set-Alias -Name so -Value Select-Object
 Set-Alias -Name ss -Value Select-String
 
-Set-Alias -Name ud -Value Update-LocalModules
+Set-Alias -Name ulm -Value Update-LocalModules
 
 Set-Alias -Name ie -Value Invoke-Expression
 
 #endregion
 
-
 # region Configuration
 
-$script:qr = ".`$PROFILE; ud"
+$script:fr = 'ulm'
+$script:qr = ".`$PROFILE; $fr"
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
 Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
-
 
 $InformationPreference = 'Continue'
 $DebugPreference = 'Continue'
@@ -98,7 +96,6 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 #Set-Location $env:USERPROFILE\Downloads\
 
 # endregion
-
 
 function New-PInvoke {
 	param (
@@ -120,6 +117,66 @@ function New-PInvoke {
 	}
 "@
 
+
 }
+
+<#
+.SYNOPSIS
+  Runs the given script block and returns the execution duration.
+  Discovered on StackOverflow. http://stackoverflow.com/questions/3513650/timing-a-commands-execution-in-powershell
+  Adapted by Read Stanton
+
+.EXAMPLE
+  Measure-CommandEx { ping -n 1 google.com }
+#>
+function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch]$Silent, [Switch]$Long) {
+
+	$timings = @()
+	do {
+		$sw = New-Object Diagnostics.Stopwatch
+		if ($Silent) {
+			$sw.Start()
+			$null = & $Expression
+			$sw.Stop()
+			Write-Host '.' -NoNewline
+		}
+		else {
+			$sw.Start()
+			& $Expression
+			$sw.Stop()
+		}
+		$timings += $sw.Elapsed
+
+		$Samples--
+	}
+	while ($Samples -gt 0)
+
+
+	$stats = $timings | Measure-Object -Average -Minimum -Maximum -Property Ticks
+
+	# Print the full timespan if the $Long switch was given.
+
+	$dict = @{}
+
+	if ($Long) {
+		$dict = @{
+			'Avg' = $((New-Object System.TimeSpan $stats.Average).ToString());
+			'Min' = $((New-Object System.TimeSpan $stats.Minimum).ToString());
+			'Max' = $((New-Object System.TimeSpan $stats.Maximum).ToString());
+		}
+	}
+	else {
+		$dict = @{
+			'Avg' = "$((New-Object System.TimeSpan $stats.Average).TotalMilliseconds.ToString()) ms";
+			'Min' = "$((New-Object System.TimeSpan $stats.Minimum).TotalMilliseconds.ToString()) ms";
+			'Max' = "$((New-Object System.TimeSpan $stats.Maximum).TotalMilliseconds.ToString()) ms";
+		}
+	}
+
+	return $dict
+
+}
+
+Set-Alias time Measure-CommandEx
 
 . "$ScriptPathRoot\Miscellaneous.ps1"
