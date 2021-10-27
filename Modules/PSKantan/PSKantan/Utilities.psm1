@@ -1,6 +1,28 @@
+
 <#
-# General utilities
+.Description
+ffmpeg enhanced passthru
 #>
+function ffmpeg {
+	ffmpeg.exe -hide_banner $args
+}
+
+<#
+.Description
+ffprobe enhanced passthru
+#>
+function ffprobe {
+	ffprobe.exe -hide_banner $args
+}
+
+<#
+.Description
+ytmdl enhanced passthru
+#>
+function ytmdl {
+	py.exe (WhereItem ytmdl) $args
+}
+
 
 function typename {
 	param ($x)
@@ -17,11 +39,18 @@ function typeof {
 	return $x.GetType()
 }
 
-function ElevateTerminal { Start-Process -Verb RunAs wt.exe }
+function ElevateTerminal {
+	Start-Process -Verb RunAs wt.exe
+}
 
-function OpenLocation { param($p) Start-Process $p }
+function OpenLocation {
+	param($p)
+	Start-Process $p
+}
 
-function OpenHere { OpenLocation $(Get-Location) }
+function OpenHere {
+	OpenLocation $(Get-Location)
+}
 
 function Get-CommandProcess {
 	[CmdletBinding()]
@@ -85,6 +114,7 @@ function WhereItem {
 	if (!($c)) {
 		$c = [System.Management.Automation.CommandTypes]::Application
 	}
+
 	return (Get-Command $s -CommandType $c).Path
 }
 
@@ -100,9 +130,6 @@ function Get-IP {
 	$wc = [System.Net.WebClient]::new()
 
 	$ip = $wc.DownloadString('https://icanhazip.com/').Trim()
-
-	#$ipstr = $wc.DownloadString('https://icanhazip.com/').Trim()
-	#$ip = [ipaddress]::Parse($ipstr)
 
 	$wc.Dispose()
 
@@ -130,13 +157,6 @@ function ForceKill {
 	# Stop-Process (Get-Process $name).Id
 	return (taskkill.exe /f /im $name)
 }
-
-
-function ffprobeq { ffprobe.exe -hide_banner $args }
-
-function ffmpegq { ffmpeg.exe -hide_banner $args }
-
-function ytmdl { py (WhereItem ytmdl) $args }
 
 
 function U {
@@ -210,71 +230,6 @@ function New-RandomArray {
 	return $rg
 }
 
-function DateAdd {
-	param (
-		[Parameter(Mandatory = $true)][datetime]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-	return $a + $b
-}
-
-function DateSub {
-	param (
-		[Parameter(Mandatory = $true)][datetime]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-	return $a - $b
-}
-
-function TimeAdd {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-
-	return $a + $b
-}
-
-function TimeSub {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-
-	return $a - $b
-}
-
-function TimeAbs {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$c
-	)
-	return [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
-}
-
-
-function Get-TimeDuration {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-
-	$a = [timespan]::Parse($a)
-	$b = [timespan]::Parse($b)
-	$c = (TimeSub $a $b)
-	$c = [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
-
-	return $c;
-}
-
-function Get-TimeDurationString {
-	param(
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-
-	return (Get-TimeDuration $a $b).ToString('hh\:mm\:ss')
-}
-
 
 function New-TempFile {
 	return [System.IO.Path]::GetTempFileName()
@@ -290,7 +245,7 @@ function New-RandomFile {
 		$f = $(New-TempFile)
 	}
 
-	[System.IO.file]::WriteAllBytes($f, $(New-RandomArray $x))
+	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
 
 	return $f
 }
@@ -299,13 +254,12 @@ function Get-FileBytes {
 	param (
 		[Parameter(Mandatory = $true)][string]$s
 	)
-	#Add-Type -MemberDefinition $sig -Name Win32 -Namespace PInvoke -Using PInvoke,System.Text;
 	$b = [System.IO.file]::ReadAllBytes($s)
 	return $b
 }
 
 
-function Get-FileType {
+function Get-RegistryFileType {
 	param (
 		[Parameter(Mandatory = $true)][string]$f
 	)
@@ -332,21 +286,6 @@ function ConvertFrom-Base64 {
 	return $s2
 }
 
-# region [Aliases]
-
-Set-Alias -Name ytdlp -Value yt-dlp.exe
-Set-Alias -Name ytdl -Value youtube-dl.exe
-Set-Alias -Name gdl -Value gallery-dl.exe
-Set-Alias -Name yg -Value you-get.exe
-Set-Alias -Name fg -Value ffmpeg.exe
-Set-Alias -Name fp -Value ffprobe.exe
-Set-Alias -Name mg -Value magick.exe
-
-Set-Alias -Name ffp -Value ffprobeq
-Set-Alias -Name ffm -Value ffmpegq
-Set-Alias -Name a2c -Value aria2c
-
-# endregion
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
@@ -401,5 +340,27 @@ function Get-FileMetadata {
 	}
 	Return $rg
 }
+function ConvertTo-Extension {
+	param($items, $ext)
 
+	$items | ForEach-Object {
+		$x = [System.IO.Path]::GetFileNameWithoutExtension($_) + $ext
+		$y = [System.IO.Path]::GetDirectoryName($_)
 
+		ffmpeg.exe -i $_ ($y + '\' + $x)
+	}
+}
+
+# region [Aliases]
+
+Set-Alias -Name ytdlp -Value yt-dlp.exe
+Set-Alias -Name ytdl -Value youtube-dl.exe
+Set-Alias -Name gdl -Value gallery-dl.exe
+Set-Alias -Name yg -Value you-get.exe
+Set-Alias -Name fg -Value ffmpeg
+Set-Alias -Name fp -Value ffprobe
+Set-Alias -Name mg -Value magick.exe
+
+Set-Alias -Name a2c -Value aria2c
+
+# endregion

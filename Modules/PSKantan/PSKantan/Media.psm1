@@ -1,26 +1,21 @@
 
 
+function Compress-Item {
+	param (
+		[Parameter(Mandatory = $true)]$f,
+		[Parameter(Mandatory = $true)]$f2,
+		[Parameter(Mandatory = $true)]$q
+	)
 
-function ConvertTo-Extension {
-
-	param($items, $ext)
-
-	#Get-ChildItem *.ogg
-
-	$items | ForEach-Object {
-		$x = [System.IO.Path]::GetFileNameWithoutExtension($_) + $ext
-		$y = [System.IO.Path]::GetDirectoryName($_)
-
-		ffmpeg.exe -i $_ ($y + '\' + $x)
-	}
+	magick.exe convert -filter Triangle -define filter:support=2 -unsharp 0.25x0.08+8.3+0.045 -dither None `
+		-posterize 136 -quality $q -define png:compression-filter=5 -define png:compression-level=9 `
+		-define png:compression-strategy=1 -define png:exclude-chunk=all -interlace none -colorspace sRGB `
+		$f $f2
 }
-
 
 function Get-ConcatVideo {
 	param (
-		$x,
-		$f,
-		$o
+		$x, $f, $o
 	)
 
 	$x | ForEach-Object {

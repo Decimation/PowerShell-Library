@@ -5,5 +5,5 @@
 	# Note: if a rule is in both IncludeRules and ExcludeRules, the rule
 	# will be excluded.
 	ExcludeRules = @('PSAvoidUsingAliases', 'PSAvoidUsingWriteHost', 'PSUseApprovedVerbs', 'PSReviewUnusedParameter', 'PSAvoidGlobalVars',
-		'PSUseShouldProcessForStateChangingFunctions', 'PSUseSingularNouns', 'PSAvoidUsingInvokeExpression')
+		'PSUseShouldProcessForStateChangingFunctions', 'PSUseSingularNouns', 'PSAvoidUsingInvokeExpression', 'PSAvoidUsingPositionalParameters')
 }

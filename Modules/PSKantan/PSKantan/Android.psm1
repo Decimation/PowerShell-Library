@@ -18,9 +18,7 @@ ADB enhanced passthru
 function adb {
 
 	$argC = $args.Count
-	$argList = New-List 'object'
-
-	$argList.AddRange($args)
+	$argList = $args
 
 	$cmd = $argList[0]
 
@@ -32,7 +30,7 @@ function adb {
 				$dest = $AdbRemoteOutputDefault
 			}
 
-			$argList.Add($dest)
+			$argList += $dest
 
 			Write-Verbose "push $src -> $dest"
 		}
@@ -43,18 +41,16 @@ function adb {
 
 		}
 
-		# ...
+		# todo ...
 
 		Default {
 
 		}
 	}
 
-	$argsNew = $argList.ToArray()
+	Write-Verbose "New args: $($argList -join ',')"
 
-	Write-Verbose "New args: $($argsNew -join ',')"
-
-	adb.exe $argsNew
+	adb.exe $argList
 }
 
 
@@ -76,7 +72,6 @@ Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 # endregion
 
 #region [IO]
-
 
 function script:EnsureRemoteOutput($dest) {
 
@@ -146,7 +141,7 @@ function AdbSyncItems {
 .Description
 Deletes file
 #>
-function AdbRemove {
+function AdbRemoveItem {
 	param (
 		[Parameter(Mandatory = $true)][string]$src
 	)
