@@ -4,8 +4,15 @@
 
 #region [Modules]
 
+
+$global:ModulePathRoot = "$Home\Documents\PowerShell\Modules\"
+
 $global:ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
 $LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object { [System.IO.File]::Exists($_) } | ForEach-Object { $_.ToString() }
+
+
+#https://github.com/WantStuff/AudioDeviceCmdlets
+Import-Module "$ModulePathRoot\AudioDeviceCmdlets.dll"
 
 function Import-LocalScript {
 	param($x)
@@ -120,63 +127,6 @@ function New-PInvoke {
 
 }
 
-<#
-.SYNOPSIS
-  Runs the given script block and returns the execution duration.
-  Discovered on StackOverflow. http://stackoverflow.com/questions/3513650/timing-a-commands-execution-in-powershell
-  Adapted by Read Stanton
 
-.EXAMPLE
-  Measure-CommandEx { ping -n 1 google.com }
-#>
-function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch]$Silent, [Switch]$Long) {
-
-	$timings = @()
-	do {
-		$sw = New-Object Diagnostics.Stopwatch
-		if ($Silent) {
-			$sw.Start()
-			$null = & $Expression
-			$sw.Stop()
-			Write-Host '.' -NoNewline
-		}
-		else {
-			$sw.Start()
-			& $Expression
-			$sw.Stop()
-		}
-		$timings += $sw.Elapsed
-
-		$Samples--
-	}
-	while ($Samples -gt 0)
-
-
-	$stats = $timings | Measure-Object -Average -Minimum -Maximum -Property Ticks
-
-	# Print the full timespan if the $Long switch was given.
-
-	$dict = @{}
-
-	if ($Long) {
-		$dict = @{
-			'Avg' = $((New-Object System.TimeSpan $stats.Average).ToString());
-			'Min' = $((New-Object System.TimeSpan $stats.Minimum).ToString());
-			'Max' = $((New-Object System.TimeSpan $stats.Maximum).ToString());
-		}
-	}
-	else {
-		$dict = @{
-			'Avg' = "$((New-Object System.TimeSpan $stats.Average).TotalMilliseconds.ToString()) ms";
-			'Min' = "$((New-Object System.TimeSpan $stats.Minimum).TotalMilliseconds.ToString()) ms";
-			'Max' = "$((New-Object System.TimeSpan $stats.Maximum).TotalMilliseconds.ToString()) ms";
-		}
-	}
-
-	return $dict
-
-}
-
-Set-Alias time Measure-CommandEx
 
 . "$ScriptPathRoot\Miscellaneous.ps1"
