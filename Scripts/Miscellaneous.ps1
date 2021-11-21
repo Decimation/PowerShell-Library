@@ -124,10 +124,6 @@ function Get-TimeDurationString {
 
 
 
-$script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
-
-$private:ANSI_UNDERLINE = "$([char]0x1b)[4m"
-$private:ANSI_END = "$([char]0x001b)[0m"
 
 function Get-Underline {
 	param (

@@ -2,6 +2,11 @@
 $global:UNI_ARROW = $([char]0x2192)
 $global:ZERO_WIDTH_SPACE = $([char]"`u{200b}")
 
+$script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
+$global:ANSI_UNDERLINE = "$([char]0x1b)[4m"
+$global:ANSI_END = "$([char]0x001b)[0m"
+
+
 <#
 .Description
 ffmpeg enhanced passthru
@@ -40,6 +45,13 @@ function typeof {
 
 	#return [type]::GetType((typename $x))
 	return $x.GetType()
+}
+
+function typecodeof {
+	param ($x)
+	$t = $x.GetType()
+	$c = [type]::GetTypeCode($t)
+	return $c
 }
 
 function ElevateTerminal {
@@ -487,6 +499,7 @@ function ConvertTo-String {
 		[Parameter(Mandatory = $false)][System.Text.Encoding]$encoding
 
 	)
+
 	if (!($encoding)) {
 		$encoding = [System.Text.Encoding]::Default
 	}
@@ -495,6 +508,57 @@ function ConvertTo-String {
 }
 
 
+function IsReal {
+	param (
+		$x
+	)
+	$c = typecodeof $x
+
+	return IsInRange $c ([System.TypeCode]::Decimal) ([System.TypeCode]::Single)
+}
+
+function IsInteger {
+	param (
+		$x
+	)
+	$c = typecodeof $x
+
+	return IsInRange $c ([System.TypeCode]::UInt64) ([System.TypeCode]::SByte)
+}
+
+function IsInRange {
+	param (
+		$a, $min, $max
+	)
+
+	return $a -le $min -and $c -ge $max
+}
+
+function IsNumeric {
+	param (
+		$x
+	)
+	return (IsInteger $x) -or (IsReal $x)
+}
+
+
+function Format-Binary {
+	param (
+		[Parameter(ValueFromPipeline, Mandatory)]$x
+	)
+
+	process {
+
+		$rg = Get-Bytes $x
+		$s = [string]::Join('', [System.Linq.Enumerable]::Select($rg,
+				[Func[object, object]] { param($a) [Convert]::ToString($a, 2) }))
+
+		return $s
+	}
+}
+
 Set-Alias -Name cts -Value ConvertTo-String
 
 Set-Alias -Name gb -Value Get-Bytes
+
+Set-Alias -Name fhx -Value Format-Hex
