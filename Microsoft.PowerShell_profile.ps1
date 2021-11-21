@@ -88,14 +88,14 @@ Set-Alias -Name ie -Value Invoke-Expression
 $script:fr = 'ulm'
 $script:qr = ".`$PROFILE; $fr"
 
-$script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
-Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
 $InformationPreference = 'Continue'
+
 $DebugPreference = 'Continue'
+
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -128,7 +128,9 @@ function New-PInvoke {
 }
 
 
-Write-Debug 'Imported clipboard'
-. "$ScriptPathRoot\Clipboard.ps1"
 Write-Debug 'Imported miscellaneous'
 . "$ScriptPathRoot\Miscellaneous.ps1"
+
+$script:LoadTime = (Get-Date -Format 'HH:mm:ss')
+
+Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"

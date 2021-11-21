@@ -1,4 +1,4 @@
-. "$ScriptPathRoot\Clipboard.ps1"
+
 
 
 function ConvertClipboardTo-Equation {
