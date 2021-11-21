@@ -136,17 +136,7 @@ function Get-IP {
 	return $ip
 }
 
-function DumpBytes {
-	param (
-		[Parameter(Mandatory = $true)]$x
-	)
 
-	Write-Host "[$($x.GetType())] : $x"
-
-	([System.BitConverter]::GetBytes($x)) | ForEach-Object {
-		Write-Host "$($_.ToString('X')) " -NoNewline
-	}
-}
 
 
 function ForceKill {
@@ -158,6 +148,7 @@ function ForceKill {
 	return (taskkill.exe /f /im $name)
 }
 
+Set-Alias -Name fk -Value ForceKill
 
 function U {
 	#https://mnaoumov.wordpress.com/2014/06/14/unicode-literals-in-powershell/
@@ -214,7 +205,7 @@ function Get-Union {
 function New-List {
 	param (
 		[Parameter(ParameterSetName = 'name', Position = 0)][string]$x,
-		[Parameter(ParameterSetName = 'type', Position = 0)][type]$t
+		[Parameter(ParameterSetName = 'type', Position = 0)][type]$typeX
 	)
 
 	return New-Object "System.Collections.Generic.List[$x]"
@@ -447,3 +438,58 @@ function Search-History {
 		return $c | Where-Object $x
 	}
 }
+
+function Get-Bytes {
+	param (
+		[Parameter(Mandatory = $true)]$x,
+		[Parameter(Mandatory = $false)][System.Text.Encoding]$encoding
+	)
+
+	$isStr = $x -is [string]
+	$typeX = $x.GetType()
+	$info1 = @()
+	$rg = @()
+
+	if ($isStr) {
+		$typeX = [string]
+
+		if (!($encoding)) {
+			$encoding = [System.Text.Encoding]::Default
+		}
+
+		$info1 += $encoding.EncodingName
+		$rg = $encoding.GetBytes($x)
+	}
+	else {
+		$rg = [System.BitConverter]::GetBytes($x)
+	}
+
+	Write-Host "[$($typeX.Name)]" -NoNewline -ForegroundColor Yellow
+
+	if ($info1.Length -ne 0) {
+		Write-Host ' | ' -NoNewline
+		Write-Host "$($info1 -join ' | ')" -NoNewline
+	}
+
+	Write-Host ' | ' -NoNewline
+	Write-Host "$x" -ForegroundColor Cyan
+
+	return $rg
+}
+
+function Convert-ToString {
+	param (
+		[Parameter(Mandatory = $true)][byte[]]$x,
+
+		[Parameter(Mandatory = $false)][System.Text.Encoding]$encoding
+
+	)
+	if (!($encoding)) {
+		$encoding = [System.Text.Encoding]::Default
+	}
+	
+	return $encoding.GetString($x)
+}
+
+
+Set-Alias -Name gb -Value Get-Bytes

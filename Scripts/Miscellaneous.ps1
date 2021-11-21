@@ -18,7 +18,7 @@ function Get-CozyVOD {
 		$outFile = "$date.mp4"
 	}
 
-	ffmpeg.exe -i "https://cozycdn.foxtrotstream.xyz/replays/$name/$date/index.m3u8" -c copy -bsf:a aac_adtstoasc -movflags +faststart $outFile
+	ffmpeg -i "https://cozycdn.foxtrotstream.xyz/replays/$name/$date/index.m3u8" -c copy -bsf:a aac_adtstoasc -movflags +faststart $outFile
 }
 
 
