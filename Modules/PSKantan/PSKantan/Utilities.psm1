@@ -88,14 +88,35 @@ function Get-CommandProcess {
 	return $p
 }
 
+function New-Const {
+	param (
+		[Parameter(Mandatory = $true)][string]$name,
+		[Parameter(Mandatory = $true)]$val,
+		[Parameter(Mandatory = $false)][string]$scope
+	)
+
+	if (!($scope)) {
+		$scope = 'Global'
+	}
+
+	Set-Variable -Name $name -Value $val -Option Constant -Scope $scope -ErrorAction Ignore
+
+}
+
+
+Set-Variable -Name STD_IN -Value 0 -Option Constant -Scope Global -ErrorAction Ignore
+Set-Variable -Name STD_OUT -Value 1 -Option Constant -Scope Global -ErrorAction Ignore
+Set-Variable -Name STD_ERR -Value 2 -Option Constant -Scope Global -ErrorAction Ignore
+
 function QCommand {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)][string]$s,
-		[switch]$d
+		[Parameter(Mandatory = $false)][int]$std,
+		[switch]$useCmd
 	)
 
-	if ($d) {
+	if ($useCmd) {
 		return (cmd.exe /c $s)
 	}
 
@@ -104,11 +125,24 @@ function QCommand {
 	$p.Start() | Out-Null
 	$p.WaitForExit()
 
-	$stdout = $p.StandardOutput.ReadToEnd()
-	#$stderr = $p.StandardError.ReadToEnd()
+	if (!($std)) {
+		$std = $STD_OUT
+	}
 
-	$stdout = $stdout.Trim()
-	return $stdout
+	if ($std -eq $STD_IN) {
+		$outStr = $p.StandardInput.ReadToEnd()
+	}
+	elseif ($std -eq $STD_OUT) {
+		$outStr = $p.StandardOutput.ReadToEnd()
+	}
+	elseif ($std -eq $STD_ERR) {
+		$outStr = $p.StandardError.ReadToEnd()
+	}
+
+
+	$outStr = $outStr.Trim()
+
+	return $outStr
 }
 
 
@@ -185,8 +219,8 @@ function U {
 }
 
 
-function PathJoin($x, $d) {
-	return [string]::Join($d, $x).TrimEnd($d)
+function PathJoin($x, $useCmd) {
+	return [string]::Join($useCmd, $x).TrimEnd($useCmd)
 }
 
 function Flatten($a) {
@@ -366,6 +400,8 @@ function Get-SanitizedFilename {
 
 	return $newName
 }
+
+
 # region [Aliases]
 
 Set-Alias -Name ytdlp -Value yt-dlp.exe
