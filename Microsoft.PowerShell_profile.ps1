@@ -127,6 +127,7 @@ function New-PInvoke {
 
 }
 
+
 Write-Debug 'Imported clipboard'
 . "$ScriptPathRoot\Clipboard.ps1"
 Write-Debug 'Imported miscellaneous'

@@ -1,4 +1,7 @@
 
+$global:UNI_ARROW = $([char]0x2192)
+$global:ZERO_WIDTH_SPACE = $([char]"`u{200b}")
+
 <#
 .Description
 ffmpeg enhanced passthru
@@ -150,7 +153,6 @@ function ForceKill {
 
 Set-Alias -Name fk -Value ForceKill
 
-$script:UNI_ARROW = $([char]0x2192)
 
 function U {
 	#https://mnaoumov.wordpress.com/2014/06/14/unicode-literals-in-powershell/
