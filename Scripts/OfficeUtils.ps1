@@ -19,7 +19,10 @@ function ConvertClipboardTo-Equation {
 
 function ConvertTo-EquationChar {
 	param (
-		[char]$c
+
+		[Parameter(Mandatory = $true)]
+		[char]$c,
+		[switch]$copyToClipboard
 	)
 
 	#Miniscule a: [System.Text.Encoding]::Default.GetString(@(240,157,145,142))
@@ -82,6 +85,12 @@ function ConvertTo-EquationChar {
 	#for ($c=[int][char]'A'; $c -le [int][char]'Z'; $c++) { ConvertTo-EquationChar $c }
 	#for ($c=[int][char]'a'; $c -le [int][char]'z'; $c++) { ConvertTo-EquationChar $c }
 
-	return [System.Text.Encoding]::Default.GetString($rg1)
+	$strVal = [System.Text.Encoding]::Default.GetString($rg1)
+
+	if ($copyToClipboard) {
+		Set-Clipboard $strVal
+	}
+
+	return $strVal
 }
 
