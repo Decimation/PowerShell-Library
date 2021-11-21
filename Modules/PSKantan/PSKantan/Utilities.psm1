@@ -594,7 +594,5 @@ function Format-Binary {
 }
 
 Set-Alias -Name cts -Value ConvertTo-String
-
 Set-Alias -Name gb -Value Get-Bytes
-
 Set-Alias -Name fhx -Value Format-Hex
