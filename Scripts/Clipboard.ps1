@@ -68,8 +68,8 @@ function Clear-Clipboard {
 }
 
 
-$script:ANSI_FORMAT = 1
-$script:UNICODE_FORMAT = 13
+$global:ANSI_FORMAT = 1
+$global:UNICODE_FORMAT = 13
 
 function Set-ClipboardText {
 	param([Parameter(ValueFromPipeline = $true)][string]$value)
@@ -148,4 +148,11 @@ function Get-ClipboardText {
 		}
 
 	}
-} 
+}
+
+Set-Alias -Name gcb -Value Get-Clipboard
+Set-Alias -Name gcbt -Value Get-ClipboardText
+Set-Alias -Name scb -Value Set-Clipboard
+Set-Alias -Name scbt -Value Set-ClipboardText
+
+

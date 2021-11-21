@@ -1,6 +1,23 @@
 . "$ScriptPathRoot\Clipboard.ps1"
 
-function Get-EquationChar {
+
+function ConvertClipboardTo-Equation {
+	$s = Get-ClipboardText $global:UNICODE_FORMAT
+
+	$s2 = [string]::Empty
+
+	for ($i = 0; $i -lt $s.Length; $i++) {
+		$s2 += $(ConvertTo-EquationChar $s[$i])
+	}
+
+	Set-Clipboard $s2
+
+	Write-Host "$s $UNI_ARROW $s2"
+
+	return $s2
+}
+
+function ConvertTo-EquationChar {
 	param (
 		[char]$c
 	)
@@ -12,43 +29,59 @@ function Get-EquationChar {
 
 	$majuscule = [char]::IsUpper($c)
 	$miniscule = [char]::IsLower($c)
-	$ord = $majuscule ? [int][char]'A' - $c : [int][char]'a' - $c
+
+	$byte1Maj = 144
+	$byte1Min = 145
+	$byte2Maj = 180
+	$byte2Min = 142
+	$byte2MajM = 128
+
+	$majA = [char]'A'
+	$minA = [char]'a'
+	$majM = [char]'M'
+
+	$ord = $majuscule ? [int]$majA - $c : [int]$minA - $c
 
 	$lhs = [char]0
-	$b1 = 0
-	$b2 = 0
-	
-	$x = $c -ge [char]'M'
+	$byte1 = 0
+	$byte2 = 0
+
+	$x = $c -ge $majM
+
+	if ($c -eq 'h') {
+		$rgMinH = @(226, 132, $byte2Min)
+		return [System.Text.Encoding]::Default.GetString($rgMinH)
+	}
 
 	if ($majuscule) {
-		$lhs = 'A'
-		$b1 = 144
-		$b2 = 180
+		$lhs = $majA
+		$byte1 = $byte1Maj
+		$byte2 = $byte2Maj
 	}
 	elseif ($miniscule) {
-		$lhs = 'a'
-		$b1 = 145
-		$b2 = 142
+		$lhs = $minA
+		$byte1 = $byte1Min
+		$byte2 = $byte2Min
 	}
 
-	if ($x) {
-		$b1 = 145
-		$b2 = 128
-		$ord = [int][char]'M' - $c
+	if ($x -and $majuscule) {
+		$byte1 = $byte1Min
+		$byte2 = $byte2MajM
+		$ord = [int]$majM - $c
 	}
 	else {
 		$ord = [int][char]$lhs - $c
 	}
 
 	$ord = [Math]::Abs($ord)
+	$byte2 += $ord
+	$rg1 = @(240, 157, $byte1, $byte2)
 
-	$b2 += $ord
-	$rg1 = @(240, 157, $b1, $b2)
+	Write-Verbose "$x | $c`t$ord`t$rg1"
 
-	Write-Verbose "$c`t$ord`t$rg1"
-
-	#for ($c=[int][char]'A'; $c -le [int][char]'Z'; $c++) { Get-EquationChar $c }
-	#for ($c=[int][char]'a'; $c -le [int][char]'z'; $c++) { Get-EquationChar $c }
+	#for ($c=[int][char]'A'; $c -le [int][char]'Z'; $c++) { ConvertTo-EquationChar $c }
+	#for ($c=[int][char]'a'; $c -le [int][char]'z'; $c++) { ConvertTo-EquationChar $c }
 
 	return [System.Text.Encoding]::Default.GetString($rg1)
 }
+

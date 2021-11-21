@@ -123,7 +123,7 @@ function Get-TimeDurationString {
 }
 
 
-$script:UNI_ARROW = $([char]0x2192)
+
 $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 
 $private:ANSI_UNDERLINE = "$([char]0x1b)[4m"

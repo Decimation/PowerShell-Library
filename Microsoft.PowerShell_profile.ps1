@@ -128,5 +128,5 @@ function New-PInvoke {
 }
 
 
-
+. "$ScriptPathRoot\Clipboard.ps1"
 . "$ScriptPathRoot\Miscellaneous.ps1"

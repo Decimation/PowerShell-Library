@@ -150,6 +150,8 @@ function ForceKill {
 
 Set-Alias -Name fk -Value ForceKill
 
+$script:UNI_ARROW = $([char]0x2192)
+
 function U {
 	#https://mnaoumov.wordpress.com/2014/06/14/unicode-literals-in-powershell/
 
@@ -477,19 +479,20 @@ function Get-Bytes {
 	return $rg
 }
 
-function Convert-ToString {
+function ConvertTo-String {
 	param (
 		[Parameter(Mandatory = $true)][byte[]]$x,
-
 		[Parameter(Mandatory = $false)][System.Text.Encoding]$encoding
 
 	)
 	if (!($encoding)) {
 		$encoding = [System.Text.Encoding]::Default
 	}
-	
+
 	return $encoding.GetString($x)
 }
 
+
+Set-Alias -Name cts -Value ConvertTo-String
 
 Set-Alias -Name gb -Value Get-Bytes
