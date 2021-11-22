@@ -12,7 +12,7 @@ $cd = Get-Location
 xcopy "$s\Modules\PSKantan\" "$cd\Modules\PSKantan\" /y
 xcopy "$s\*.ps1" "$cd" /y
 xcopy "$s\*.psd1" "$cd" /y
-
+xcopy "$s\Scripts" "$cd\Scripts\" /y
 #Copy-Item -Path "$s\*.ps1" -Destination $cd
 #Copy-Item -Path "$s\*.psd1" -Destination $cd
 
