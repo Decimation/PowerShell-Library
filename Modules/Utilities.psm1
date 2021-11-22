@@ -593,6 +593,14 @@ function Format-Binary {
 	}
 }
 
+<# function Remove-ItemForce {
+	param (
+		$x
+	)
+
+	QCommand -s "del /f $x"
+} #>
+
 Set-Alias -Name cts -Value ConvertTo-String
 Set-Alias -Name gb -Value Get-Bytes
 Set-Alias -Name fhx -Value Format-Hex

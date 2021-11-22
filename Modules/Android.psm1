@@ -95,16 +95,47 @@ function script:EnsureRemoteOutput($dest) {
 }
 
 
-enum Direction {
+enum AdbDestination {
 	Remote
 	Local
+}
+enum Direction {
+	Up
+	Down
+}
+function AdbInputFastSwipe {
+	param (
+		[Parameter(Mandatory = $false)][Direction]$d,
+		[Parameter(Mandatory = $false)][int]$t,
+		[Parameter(Mandatory = $false)][int]$c
+
+	)
+
+	if (!($t)) {
+		$t = 25
+	}
+	if (!($d)) {
+		$d = [Direction]::Down
+	}
+
+	while ($c-- -gt 0) {
+		switch ($d) {
+			Down {
+				adb shell input swipe 500 1000 300 300 $t
+			}
+			Up {
+				adb shell input swipe 300 300 500 1000 $t
+			}
+		}
+		Start-Sleep -Milliseconds $t
+	}
 }
 
 function AdbSyncItems {
 	param (
 		[Parameter(Mandatory = $true)][string]$remote,
 		[Parameter(Mandatory = $false)][string]$local,
-		[Parameter(Mandatory = $true)][Direction]$d
+		[Parameter(Mandatory = $true)][AdbDestination]$d
 	)
 
 	#$remoteItems | ?{($localItems -notcontains $_)}

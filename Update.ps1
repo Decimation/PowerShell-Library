@@ -1,11 +1,11 @@
 $s = "$env:USERPROFILE\Documents\PowerShell"
 
-$b = Get-ChildItem $s
+#$b = Get-ChildItem $s
 
 $cd = Get-Location
 
 #Copy-Item -Path "$s\Modules" -Destination $cd -Recurse -Force
-Copy-Item -Path "$s\Modules\PSKantan" -Destination "$cd\Modules\PSKantan" -Recurse -Force
+Copy-Item -Path "$s\Modules\PSKantan\*" -Destination "$cd\Modules\" -Recurse -Force
 
 Copy-Item -Path "$s\Scripts" -Destination $cd -Recurse -Force
 
