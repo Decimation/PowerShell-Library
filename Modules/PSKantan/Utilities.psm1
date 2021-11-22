@@ -604,3 +604,10 @@ function Format-Binary {
 Set-Alias -Name cts -Value ConvertTo-String
 Set-Alias -Name gb -Value Get-Bytes
 Set-Alias -Name fhx -Value Format-Hex
+
+function global:CopyFilesToFolder ($fromFolder, $toFolder) {
+	$childItems = Get-ChildItem $fromFolder
+	$childItems | ForEach-Object {
+		Copy-Item -Path $_.FullName -Destination $toFolder -Recurse -Force
+	}
+}
