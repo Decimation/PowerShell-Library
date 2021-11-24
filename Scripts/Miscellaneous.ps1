@@ -18,7 +18,9 @@ function Get-CozyVOD {
 		$outFile = "$date.mp4"
 	}
 
-	ffmpeg -i "https://cozycdn.foxtrotstream.xyz/replays/$name/$date/index.m3u8" -c copy -bsf:a aac_adtstoasc -movflags +faststart $outFile
+	#ffmpeg -i "https://cozycdn.foxtrotstream.xyz/replays/$name/$date/index.m3u8" -c copy -bsf:a aac_adtstoasc -movflags +faststart $outFile
+	
+	ffmpeg -i "https://cozycdn.foxtrotstream.xyz/replays/$name/$date/index.m3u8" -c copy -movflags +faststart $outFile
 }
 
 
@@ -140,4 +142,27 @@ function Get-Underline {
 function Get-CenteredString {
 	param ($Message)
 	return ('{0}{1}' -f (' ' * (([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($Message.Length / 2)))), $Message)
+}
+
+function Get-Fraktur {
+	param (
+		[string]$s
+	)
+	$x1 = [string]::Empty
+	for ($i = 0; $i -lt $s.Length; $i++) {
+		$x = $s[$i]
+		if (-not [char]::IsLetter($x)) {
+			$x1 += $x
+			continue
+		}
+		$upper = [Char]::IsUpper($x)
+		$lower = [Char]::IsLower($x)
+		$lhs = $upper ? 0x1d504 :0x1d51e
+		$ch = [int][char]($upper ? 'A' : 'a')
+
+		$rhs = [System.Math]::Abs($ch - [int]$x)
+		$x1 += U ($lhs + $rhs)
+	}
+
+	return $x1
 }

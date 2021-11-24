@@ -100,13 +100,11 @@ function New-Const {
 	}
 
 	Set-Variable -Name $name -Value $val -Option Constant -Scope $scope -ErrorAction Ignore
-
 }
 
-
-Set-Variable -Name STD_IN -Value 0 -Option Constant -Scope Global -ErrorAction Ignore
-Set-Variable -Name STD_OUT -Value 1 -Option Constant -Scope Global -ErrorAction Ignore
-Set-Variable -Name STD_ERR -Value 2 -Option Constant -Scope Global -ErrorAction Ignore
+New-Const STD_IN 0
+New-Const STD_OUT 1
+New-Const STD_ERR 2
 
 function QCommand {
 	[CmdletBinding()]
