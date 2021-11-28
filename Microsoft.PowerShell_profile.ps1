@@ -4,18 +4,20 @@
 
 #region [Modules]
 
-
 $global:ModulePathRoot = "$Home\Documents\PowerShell\Modules\"
-
 $global:ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
-$LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object { [System.IO.File]::Exists($_) } | ForEach-Object { $_.ToString() }
 
+$LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object {
+	[System.IO.File]::Exists($_)
+} | ForEach-Object {
+	$_.ToString()
+}
 
 #https://github.com/WantStuff/AudioDeviceCmdlets
 Import-Module "$ModulePathRoot\AudioDeviceCmdlets.dll"
 
 function Import-LocalScript {
-	param($x)
+	param ($x)
 	. "$global:ScriptPathRoot\$x"
 }
 
@@ -37,35 +39,39 @@ Import-Module PSKantan
 
 $script:CallerVariableModule = {
 	# https://stackoverflow.com/questions/46528262/is-there-any-way-for-a-powershell-module-to-get-at-its-callers-scope
-
+	
 	New-Module {
 		function Get-CallerVariable {
-			param([Parameter(Position = 1)][string]$Name)
+			param ([Parameter(Position = 1)]
+				[string]$Name)
 			$PSCmdlet.SessionState.PSVariable.GetValue($Name)
 		}
 		function Set-CallerVariable {
-			param(
-				[Parameter(ValueFromPipeline)][string]$Value,
-				[Parameter(Position = 1)]$Name
+			param (
+				[Parameter(ValueFromPipeline)]
+				[string]$Value,
+				[Parameter(Position = 1)]
+				$Name
 			)
-			process { $PSCmdlet.SessionState.PSVariable.Set($Name, $Value) }
+			process {
+				$PSCmdlet.SessionState.PSVariable.Set($Name, $Value)
+			}
 		}
 	} | Import-Module
 }
 
 
 function Prompt {
-	#Write-Host ('PS ' + "[$(Get-Date -Format 'HH:mm:ss')] " + $(Get-Location) + '>') -NoNewline
-
+	
 	$C1 = [System.ConsoleColor]::Green
 	$C2 = [System.ConsoleColor]::Blue
-
+	
 	Write-Host 'PS ' -NoNewline -ForegroundColor $C2
 	$dll = $(Get-Date -Format 'HH:mm:ss')
 	Write-Host ("[$dll] ") -NoNewline -ForegroundColor $C1
 	Write-Host "$(Get-Location)" -NoNewline
 	Write-Host '>' -NoNewline
-
+	
 	return ' '
 }
 
@@ -83,14 +89,14 @@ Set-Alias -Name ie -Value Invoke-Expression
 
 #endregion
 
-# region Configuration
+#region Configuration
 
 $script:fr = 'ulm'
 $script:qr = ".`$PROFILE; $fr"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
-$InformationPreference	= 'Continue'
+$InformationPreference = 'Continue'
 $DebugPreference = 'Continue'
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
@@ -99,14 +105,18 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 #Set-Location $env:USERPROFILE\Downloads\
 
-# endregion
+#endregion
 
 function New-PInvoke {
 	param (
 		$imports,
-		$className, $dll, $returnType, $funcName, $funcParams
+		$className,
+		$dll,
+		$returnType,
+		$funcName,
+		$funcParams
 	)
-
+	
 	Add-Type @"
 	using System;
     using System.Text;
@@ -120,8 +130,6 @@ function New-PInvoke {
         public static extern $returnType $funcName($funcParams);
 	}
 "@
-
-
 }
 
 

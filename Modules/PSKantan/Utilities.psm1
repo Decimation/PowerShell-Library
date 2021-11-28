@@ -34,15 +34,15 @@ function ytmdl {
 
 function typename {
 	param ($x)
-
+	
 	$y = ($x | Get-Member)[0].TypeName
-
+	
 	return $y
 }
 
 function typeof {
 	param ($x)
-
+	
 	#return [type]::GetType((typename $x))
 	return $x.GetType()
 }
@@ -54,12 +54,12 @@ function typecodeof {
 	return $c
 }
 
-function ElevateTerminal {
+<# function ElevateTerminal {
 	Start-Process -Verb RunAs wt.exe
-}
+} #>
 
 function OpenLocation {
-	param($p)
+	param ($p)
 	Start-Process $p
 }
 
@@ -70,35 +70,39 @@ function OpenHere {
 function Get-CommandProcess {
 	[CmdletBinding()]
 	param (
-		[Parameter(Mandatory = $true)][string]$s
+		[Parameter(Mandatory = $true)]
+		[string]$s
 	)
-
+	
 	$pinfo = New-Object System.Diagnostics.ProcessStartInfo
 	$pinfo.FileName = 'cmd.exe'
-
+	
 	$pinfo.RedirectStandardError = $true
 	$pinfo.RedirectStandardOutput = $true
 	$pinfo.UseShellExecute = $false
-
+	
 	$pinfo.Arguments = "/c $s"
-
+	
 	$p = New-Object System.Diagnostics.Process
 	$p.StartInfo = $pinfo
-
+	
 	return $p
 }
 
 function New-Const {
 	param (
-		[Parameter(Mandatory = $true)][string]$name,
-		[Parameter(Mandatory = $true)]$val,
-		[Parameter(Mandatory = $false)][string]$scope
+		[Parameter(Mandatory = $true)]
+		[string]$name,
+		[Parameter(Mandatory = $true)]
+		$val,
+		[Parameter(Mandatory = $false)]
+		[string]$scope
 	)
-
+	
 	if (!($scope)) {
 		$scope = 'Global'
 	}
-
+	
 	Set-Variable -Name $name -Value $val -Option Constant -Scope $scope -ErrorAction Ignore
 }
 
@@ -107,42 +111,45 @@ New-Const STD_OUT 1
 New-Const STD_ERR 2
 
 function QCommand {
+	#todo: use Invoke-Command
 	[CmdletBinding()]
 	param (
-		[Parameter(Mandatory = $true)][string]$s,
-		[Parameter(Mandatory = $false)][int]$std,
+		[Parameter(Mandatory = $true)]
+		[string]$s,
+		[Parameter(Mandatory = $false)]
+		[int]$std,
 		[switch]$useCmd
 	)
-
+	
 	if ($useCmd) {
 		return (cmd.exe /c $s)
 	}
-
+	
 	$p = Get-CommandProcess $s
-
+	
 	$p.Start() | Out-Null
 	$p.WaitForExit()
-
+	
 	if (!($std)) {
 		$std = $STD_OUT
 	}
-
+	
 	if ($std -eq $STD_IN) {
 		$outStr = $p.StandardInput.ReadToEnd()
-	}
-	elseif ($std -eq $STD_OUT) {
+	} elseif ($std -eq $STD_OUT) {
 		$outStr = $p.StandardOutput.ReadToEnd()
-	}
-	elseif ($std -eq $STD_ERR) {
+	} elseif ($std -eq $STD_ERR) {
 		$outStr = $p.StandardError.ReadToEnd()
 	}
-
-
+	
+	
 	$outStr = $outStr.Trim()
-
+	
 	return $outStr
 }
 
+
+Set-Alias -Name ic -Value Invoke-Command
 
 function QInvoke($x) {
 	# $x = QInvoke("echo hello")
@@ -154,14 +161,16 @@ function QInvoke($x) {
 function WhereItem {
 	[CmdletBinding()]
 	param (
-		[Parameter(Mandatory = $true)][string]$s,
-		[Parameter(Mandatory = $false)][System.Management.Automation.CommandTypes]$c
+		[Parameter(Mandatory = $true)]
+		[string]$s,
+		[Parameter(Mandatory = $false)]
+		[System.Management.Automation.CommandTypes]$c
 	)
-
+	
 	if (!($c)) {
 		$c = [System.Management.Automation.CommandTypes]::Application
 	}
-
+	
 	return (Get-Command $s -CommandType $c).Path
 }
 
@@ -173,13 +182,13 @@ function IsAdmin {
 }
 
 function Get-IP {
-
+	
 	$wc = [System.Net.WebClient]::new()
-
+	
 	$ip = $wc.DownloadString('https://icanhazip.com/').Trim()
-
+	
 	$wc.Dispose()
-
+	
 	return $ip
 }
 
@@ -188,9 +197,10 @@ function Get-IP {
 
 function ForceKill {
 	param (
-		[Parameter(Mandatory = $true)][string]$name
+		[Parameter(Mandatory = $true)]
+		[string]$name
 	)
-
+	
 	# Stop-Process (Get-Process $name).Id
 	return (taskkill.exe /f /im $name)
 }
@@ -200,19 +210,17 @@ Set-Alias -Name fk -Value ForceKill
 
 function U {
 	#https://mnaoumov.wordpress.com/2014/06/14/unicode-literals-in-powershell/
-
-	param(
-		[int] $Code
-	)
-
+	
+	param ([int]$Code)
+	
 	if ((0 -le $Code) -and ($Code -le 0xFFFF)) {
-		return [char] $Code
+		return [char]$Code
 	}
-
+	
 	if ((0x10000 -le $Code) -and ($Code -le 0x10FFFF)) {
 		return [char]::ConvertFromUtf32($Code)
 	}
-
+	
 	throw "Invalid character code $Code"
 }
 
@@ -222,46 +230,59 @@ function PathJoin($x, $useCmd) {
 }
 
 function Flatten($a) {
-	, @($a | ForEach-Object { $_ })
+	 , @($a | ForEach-Object {
+			$_
+		})
 }
 
 function Get-Difference {
 	param (
-		[Parameter(Mandatory = $true)][object[]]$a,
-		[Parameter(Mandatory = $true)][object[]]$b
+		[Parameter(Mandatory = $true)]
+		[object[]]$a,
+		[Parameter(Mandatory = $true)]
+		[object[]]$b
 	)
-
-	return $b | Where-Object { ($a -notcontains $_) }
+	
+	return $b | Where-Object {
+		($a -notcontains $_)
+	}
 }
 
 function Get-Intersection {
 	param (
-		[Parameter(Mandatory = $true)][object[]]$a,
-		[Parameter(Mandatory = $true)][object[]]$b
+		[Parameter(Mandatory = $true)]
+		[object[]]$a,
+		[Parameter(Mandatory = $true)]
+		[object[]]$b
 	)
 	return Compare-Object $a $b -PassThru -IncludeEqual -ExcludeDifferent
 }
 
 function Get-Union {
 	param (
-		[Parameter(Mandatory = $true)][object[]]$a,
-		[Parameter(Mandatory = $true)][object[]]$b
+		[Parameter(Mandatory = $true)]
+		[object[]]$a,
+		[Parameter(Mandatory = $true)]
+		[object[]]$b
 	)
 	return Compare-Object $a $b -PassThru -IncludeEqual
 }
 
 function New-List {
 	param (
-		[Parameter(ParameterSetName = 'name', Position = 0)][string]$x,
-		[Parameter(ParameterSetName = 'type', Position = 0)][type]$typeX
+		[Parameter(ParameterSetName = 'name', Position = 0)]
+		[string]$x,
+		[Parameter(ParameterSetName = 'type', Position = 0)]
+		[type]$typeX
 	)
-
+	
 	return New-Object "System.Collections.Generic.List[$x]"
 }
 
 function New-RandomArray {
 	param (
-		[Parameter(Mandatory = $true)][int]$c
+		[Parameter(Mandatory = $true)]
+		[int]$c
 	)
 	$rg = [byte[]]::new($c)
 	$rand = [System.Random]::new()
@@ -276,22 +297,25 @@ function New-TempFile {
 
 function New-RandomFile {
 	param (
-		[Parameter(Mandatory = $true)][int]$x,
-		[Parameter(Mandatory = $false)][string]$f
+		[Parameter(Mandatory = $true)]
+		[int]$x,
+		[Parameter(Mandatory = $false)]
+		[string]$f
 	)
-
+	
 	if (!($f)) {
 		$f = $(New-TempFile)
 	}
-
+	
 	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
-
+	
 	return $f
 }
 
 function Get-FileBytes {
 	param (
-		[Parameter(Mandatory = $true)][string]$s
+		[Parameter(Mandatory = $true)]
+		[string]$s
 	)
 	$b = [System.IO.file]::ReadAllBytes($s)
 	return $b
@@ -300,19 +324,20 @@ function Get-FileBytes {
 
 function Get-RegistryFileType {
 	param (
-		[Parameter(Mandatory = $true)][string]$f
+		[Parameter(Mandatory = $true)]
+		[string]$f
 	)
-
+	
 	$s = ".$($f.Split('.')[-1])"
 	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
 	$p = $r | so -ExpandProperty '(Default)'
 	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
-
+	
 	Write-Host $r.'(default)'
 	Write-Host $r.'Content Type'
 	Write-Host $r.'PerceivedType'
 	Write-Host $r2.'(default)'
-
+	
 	return $r
 }
 
@@ -328,43 +353,50 @@ function ConvertFrom-Base64 {
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
-	param($commandName, $wordToComplete, $cursorPosition)
+	param ($commandName,
+		$wordToComplete,
+		$cursorPosition)
 	dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
 		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
 	}
 }
 
 function Get-FileMetadata {
-
+	
 	<#
 	Adapted from Get-FolderMetadata by Ed Wilson
 
 	https://devblogs.microsoft.com/scripting/list-music-file-metadata-in-a-csv-and-open-in-excel-with-powershell/
 	https://web.archive.org/web/20201111223917/https://gallery.technet.microsoft.com/scriptcenter/get-file-meta-data-function-f9e8d804
 	#>
-
+	
 	param (
-		[Parameter(Mandatory = $true)][string]$folder,
-		[Parameter(Mandatory = $false)][string]$filter
-
+		[Parameter(Mandatory = $true)]
+		[string]$folder,
+		[Parameter(Mandatory = $false)]
+		[string]$filter
+		
 	)
-
+	
 	$rg = New-List 'psobject'
 	$a = 0
 	$objShell = New-Object -ComObject Shell.Application
 	$objFolder = $objShell.namespace($folder)
-
+	
 	$items = $objFolder.items()
-
+	
 	if (($filter)) {
-		$items = $items | Where-Object { $_.Name -contains $filter }
+		$items = $items | Where-Object {
+			$_.Name -contains $filter
+		}
 	}
-
+	
 	foreach ($File in $items) {
 		$FileMetaData = New-Object PSOBJECT
-		for ($a ; $a -le 266; $a++) {
+		for ($a; $a -le 266; $a++) {
 			if ($objFolder.getDetailsOf($File, $a)) {
-				$hash += @{$($objFolder.getDetailsOf($objFolder.items, $a)) =
+				$hash += @{
+					$($objFolder.getDetailsOf($objFolder.items, $a)) =
 					$($objFolder.getDetailsOf($File, $a))
 				}
 				$FileMetaData | Add-Member $hash
@@ -373,19 +405,20 @@ function Get-FileMetadata {
 		}
 		$a = 0
 		#$FileMetaData
-
+		
 		$rg.Add($FileMetaData)
-
+		
 	}
 	Return $rg
 }
 function ConvertTo-Extension {
-	param($items, $ext)
-
+	param ($items,
+		$ext)
+	
 	$items | ForEach-Object {
 		$x = [System.IO.Path]::GetFileNameWithoutExtension($_) + $ext
 		$y = [System.IO.Path]::GetDirectoryName($_)
-
+		
 		ffmpeg.exe -i $_ ($y + '\' + $x)
 	}
 }
@@ -395,7 +428,7 @@ function Get-SanitizedFilename {
 	)
 	$invalids = [System.IO.Path]::GetInvalidFileNameChars()
 	$newName = [String]::Join('_', $origFileName.Split($invalids, [System.StringSplitOptions]::RemoveEmptyEntries)).TrimEnd('.')
-
+	
 	return $newName
 }
 
@@ -425,7 +458,7 @@ Set-Alias -Name a2c -Value aria2c
   Measure-CommandEx { ping -n 1 google.com }
 #>
 function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch]$Silent, [Switch]$Long) {
-
+	
 	$timings = @()
 	do {
 		$sw = New-Object Diagnostics.Stopwatch
@@ -434,42 +467,40 @@ function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch
 			$null = & $Expression
 			$sw.Stop()
 			Write-Host '.' -NoNewline
-		}
-		else {
+		} else {
 			$sw.Start()
 			& $Expression
 			$sw.Stop()
 		}
 		$timings += $sw.Elapsed
-
+		
 		$Samples--
-	}
-	while ($Samples -gt 0)
-
-
+	} while ($Samples -gt 0)
+	
+	
 	$stats = $timings | Measure-Object -Average -Minimum -Maximum -Property Ticks
-
+	
 	# Print the full timespan if the $Long switch was given.
-
-	$dict = @{}
-
+	
+	$dict = @{
+	}
+	
 	if ($Long) {
 		$dict = @{
 			'Avg' = $((New-Object System.TimeSpan $stats.Average).ToString());
 			'Min' = $((New-Object System.TimeSpan $stats.Minimum).ToString());
 			'Max' = $((New-Object System.TimeSpan $stats.Maximum).ToString());
 		}
-	}
-	else {
+	} else {
 		$dict = @{
 			'Avg' = "$((New-Object System.TimeSpan $stats.Average).TotalMilliseconds.ToString()) ms";
 			'Min' = "$((New-Object System.TimeSpan $stats.Minimum).TotalMilliseconds.ToString()) ms";
 			'Max' = "$((New-Object System.TimeSpan $stats.Maximum).TotalMilliseconds.ToString()) ms";
 		}
 	}
-
+	
 	return $dict
-
+	
 }
 
 Set-Alias time Measure-CommandEx
@@ -478,66 +509,69 @@ Set-Alias time Measure-CommandEx
 
 function Search-History {
 	param (
-		[Parameter(Mandatory, ValueFromPipeline)]$x
+		[Parameter(Mandatory, ValueFromPipeline)]
+		$x
 	)
 	process {
 		$p = (Get-PSReadLineOption).HistorySavePath
-		$c = Get-Content -Path $p
-
-
+		$c = Get-Content -Path $
+		
 		return $c | Where-Object $x
 	}
 }
 
 function Get-Bytes {
 	param (
-		[Parameter(Mandatory = $true)]$x,
-		[Parameter(Mandatory = $false)][System.Text.Encoding]$encoding
+		[Parameter(Mandatory = $true)]
+		$x,
+		[Parameter(Mandatory = $false)]
+		[System.Text.Encoding]$encoding
 	)
-
+	
 	$isStr = $x -is [string]
 	$typeX = $x.GetType()
 	$info1 = @()
 	$rg = @()
-
+	
 	if ($isStr) {
 		$typeX = [string]
-
+		
 		if (!($encoding)) {
 			$encoding = [System.Text.Encoding]::Default
 		}
-
+		
 		$info1 += $encoding.EncodingName
 		$rg = $encoding.GetBytes($x)
-	}
-	else {
+	} else {
 		$rg = [System.BitConverter]::GetBytes($x)
 	}
-
+	
 	Write-Host "[$($typeX.Name)]" -NoNewline -ForegroundColor Yellow
-
+	
 	if ($info1.Length -ne 0) {
 		Write-Host ' | ' -NoNewline
 		Write-Host "$($info1 -join ' | ')" -NoNewline
 	}
-
+	
 	Write-Host ' | ' -NoNewline
 	Write-Host "$x" -ForegroundColor Cyan
-
+	
 	return $rg
 }
 
 function ConvertTo-String {
 	param (
-		[Parameter(Mandatory = $true)][byte[]]$x,
-		[Parameter(Mandatory = $false)][System.Text.Encoding]$encoding
-
+		[Parameter(Mandatory = $true)]
+		[byte[]]$x,
+		[Parameter(Mandatory = $false)]
+		[System.Text.Encoding]$encoding
+		
 	)
-
+	
 	if (!($encoding)) {
 		$encoding = [System.Text.Encoding]::Default
 	}
-
+	
 	return $encoding.GetString($x)
 }
 
@@ -547,7 +581,7 @@ function IsReal {
 		$x
 	)
 	$c = typecodeof $x
-
+	
 	return IsInRange $c ([System.TypeCode]::Decimal) ([System.TypeCode]::Single)
 }
 
@@ -556,15 +590,17 @@ function IsInteger {
 		$x
 	)
 	$c = typecodeof $x
-
+	
 	return IsInRange $c ([System.TypeCode]::UInt64) ([System.TypeCode]::SByte)
 }
 
 function IsInRange {
 	param (
-		$a, $min, $max
+		$a,
+		$min,
+		$max
 	)
-
+	
 	return $a -le $min -and $c -ge $max
 }
 
@@ -578,15 +614,18 @@ function IsNumeric {
 
 function Format-Binary {
 	param (
-		[Parameter(ValueFromPipeline, Mandatory)]$x
+		[Parameter(ValueFromPipeline, Mandatory)]
+		$x
 	)
-
+	
 	process {
-
+		
 		$rg = Get-Bytes $x
 		$s = [string]::Join('', [System.Linq.Enumerable]::Select($rg,
-				[Func[object, object]] { param($a) [Convert]::ToString($a, 2) }))
-
+				[Func[object, object]] {
+					param ($a) [Convert]::ToString($a, 2)
+				}))
+		
 		return $s
 	}
 }
