@@ -270,12 +270,9 @@ function Get-Union {
 
 function New-List {
 	param (
-		[Parameter(ParameterSetName = 'name', Position = 0)]
-		[string]$x,
-		[Parameter(ParameterSetName = 'type', Position = 0)]
-		[type]$typeX
+		[Parameter(Mandatory = $true, Position = 0)]
+		$x
 	)
-	
 	return New-Object "System.Collections.Generic.List[$x]"
 }
 
@@ -295,7 +292,7 @@ function New-TempFile {
 	return [System.IO.Path]::GetTempFileName()
 }
 
-function New-RandomFile {
+<#function New-RandomFile {
 	param (
 		[Parameter(Mandatory = $true)]
 		[int]$x,
@@ -310,14 +307,51 @@ function New-RandomFile {
 	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
 	
 	return $f
+
+}#>
+
+function New-RandomFile {
+	param (
+		[Parameter(Mandatory = $true)]
+		[long]$length,
+		[Parameter(Mandatory = $false)]
+		[string]$file,
+		[switch][bool]$nullFile
+	)
+	
+	if (!($file)) {
+		$file = $(New-TempFile)
+	}
+	
+	if ((Test-Path $file)) {
+		return $false;
+	}
+	
+	$buf = & {
+		fsutil file createnew $file $length
+	}
+	
+	if (($nullFile)) {
+		return;
+	}
+	
+	$fs = [System.IO.File]::OpenWrite($(Resolve-Path $file))
+	$rg = [byte[]]$(New-RandomArray $length)
+	$fs.Write($rg, 0, $rg.Length)
+	$fs.Flush()
+	$fs.Close()
+	$fs.Dispose()
+	
+	return $true;
 }
+
 
 function Get-FileBytes {
 	param (
 		[Parameter(Mandatory = $true)]
-		[string]$s
+		[string]$file
 	)
-	$b = [System.IO.file]::ReadAllBytes($s)
+	$b = [System.IO.file]::ReadAllBytes($file)
 	return $b
 }
 
@@ -330,7 +364,7 @@ function Get-RegistryFileType {
 	
 	$s = ".$($f.Split('.')[-1])"
 	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
-	$p = $r | so -ExpandProperty '(Default)'
+	$p = $r | Select-Object -ExpandProperty '(Default)'
 	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
 	
 	Write-Host $r.'(default)'
@@ -409,8 +443,10 @@ function Get-FileMetadata {
 		$rg.Add($FileMetaData)
 		
 	}
-	Return $rg
+	
+	return $rg
 }
+
 function ConvertTo-Extension {
 	param ($items,
 		$ext)
@@ -419,9 +455,10 @@ function ConvertTo-Extension {
 		$x = [System.IO.Path]::GetFileNameWithoutExtension($_) + $ext
 		$y = [System.IO.Path]::GetDirectoryName($_)
 		
-		ffmpeg.exe -i $_ ($y + '\' + $x)
+		ffmpeg -i $_ ($y + '\' + $x)
 	}
 }
+
 function Get-SanitizedFilename {
 	param (
 		$origFileName
@@ -433,7 +470,7 @@ function Get-SanitizedFilename {
 }
 
 
-# region [Aliases]
+#region [Aliases]
 
 Set-Alias -Name ytdlp -Value yt-dlp.exe
 Set-Alias -Name ytdl -Value youtube-dl.exe
@@ -445,7 +482,7 @@ Set-Alias -Name mg -Value magick.exe
 
 Set-Alias -Name a2c -Value aria2c
 
-# endregion
+#endregion
 
 
 <#
@@ -630,21 +667,18 @@ function Format-Binary {
 	}
 }
 
-<# function Remove-ItemForce {
+function Select-Linq {
 	param (
-		$x
+		[Parameter(ValueFromPipeline = $true)]
+		[object[]]$rg,
+		[Parameter(Position = 0)]
+		[func[object, object]]$predicate
 	)
-
-	QCommand -s "del /f $x"
-} #>
+	process {
+		return [System.Linq.Enumerable]::Select($rg, $predicate)
+	}
+}
 
 Set-Alias -Name cts -Value ConvertTo-String
 Set-Alias -Name gb -Value Get-Bytes
-Set-Alias -Name fhx -Value Format-Hex
 
-function global:CopyFilesToFolder ($fromFolder, $toFolder) {
-	$childItems = Get-ChildItem $fromFolder
-	$childItems | ForEach-Object {
-		Copy-Item -Path $_.FullName -Destination $toFolder -Recurse -Force
-	}
-}

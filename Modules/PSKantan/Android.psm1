@@ -17,16 +17,14 @@ ADB enhanced passthru
 #>
 function adb {
 	
-	
 	$argC = $args.Count
 	$argList = $args
-	
 	$cmd = $argList[0]
 	
 	switch ($cmd) {
 		'push' {
 			$src = $argList[1]
-			$src = AdbEscape $src Shell
+			$src = Adb-Escape $src Shell
 			$argList[1] = $src
 			if ($argC -lt 3) {
 				$dest = $AdbRemoteOutputDefault
@@ -54,7 +52,7 @@ function adb {
 	
 	Write-Verbose "New args: $($argList -join ',')"
 	
-	adb.exe $argList
+	return (adb.exe $argList)
 }
 
 
@@ -113,7 +111,7 @@ enum Direction {
 	Down
 }
 
-function AdbInputFastSwipe {
+function Adb-InputFastSwipe {
 	param (
 		[Parameter(Mandatory = $false)]
 		[Direction]$d,
@@ -143,7 +141,7 @@ function AdbInputFastSwipe {
 	}
 }
 
-function AdbSyncItems {
+function Adb-SyncItems {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$remote,
@@ -159,8 +157,8 @@ function AdbSyncItems {
 	#https://stackoverflow.com/questions/45041320/adb-shell-input-text-with-space
 	
 	$localItems = Get-ChildItem -Name
-	$remoteItems = AdbListItems $remote
-	$remote = AdbEscape $remote Exchange
+	$remoteItems = Adb-GetItems $remote
+	$remote = Adb-Escape $remote Exchange
 	
 	#wh $remote
 	switch ($d) {
@@ -188,7 +186,7 @@ function AdbSyncItems {
 .Description
 Deletes file
 #>
-function AdbRemoveItem {
+function Adb-RemoveItem {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$src
@@ -201,7 +199,7 @@ function AdbRemoveItem {
 .Description
 Gets size of file
 #>
-function AdbFileSize {
+function Adb-GetFileSize {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$src
@@ -213,7 +211,7 @@ function AdbFileSize {
 .Description
 Lists directory content
 #>
-function AdbListItems {
+function Adb-GetItems {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$src,
@@ -223,7 +221,7 @@ function AdbListItems {
 		
 	)
 	
-	$src = AdbEscape $src Shell
+	$src = Adb-Escape $src Shell
 	$x = (adb shell ls $src)
 	
 	$files = ($x) -Split "`n"
@@ -241,18 +239,58 @@ function AdbListItems {
 
 #endregion
 
-function AdbListPackages {
+
+function Adb-TestPath {
+	param ($x)
+	
+	<#$s = "Dir"
+	$y = (adb shell "if [ -d $x ]; then echo $s; fi")
+	if ($y) {
+		$t = $y.Trim() -eq $s
+	}#>
+	
+	<#$s2 = "File"
+	$y2 = (adb shell "if [ -f $x ]; then echo $s2; fi")#>
+	$isDir=$false
+	$isFile = $false
+	$rg = [string[]] (adb shell wc -c $x 2>&1)
+	$s1 = $rg[0]
+	$sz=-1
+	if ($rg.Length -ge 2) {
+		
+		$isDir = $s1.Contains("Is a directory")
+	}
+	
+	elseif ($s1.Contains("No such")) {
+		
+	}else {
+		$isFile = $true
+	$sz=[int]$s1.Split(' ')[0]	
+	}
+	
+	
+	$buf = @{
+		IsFile = $isFile
+		IsDirectory = $isDir
+		Size=$sz
+	}
+	
+	
+	return $buf
+}
+
+function Adb-GetPackages {
 	return ((adb shell pm list packages -f) -split '`n')
 }
 
-function AdbEnablePackage {
+<#function Adb-EnablePackage {
 	param (
 		[Parameter(Mandatory = $true)]
 		[long]$x
 	)
 	
 	(adb shell pm enable $x)
-}
+}#>
 
 
 enum EscapeType {
@@ -260,7 +298,7 @@ enum EscapeType {
 	Exchange
 }
 
-function AdbEscape {
+function Adb-Escape {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$x,

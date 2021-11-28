@@ -29,11 +29,11 @@ function Import-LocalScripts {
 
 function Update-LocalModules {
 	Remove-Module PSKantan
-	Import-Module PSKantan
+	Import-Module -DisableNameChecking PSKantan
 	Write-Debug "[$env:USERNAME] Updated modules"
 }
 
-Import-Module PSKantan
+Import-Module -DisableNameChecking PSKantan
 
 #endregion
 
