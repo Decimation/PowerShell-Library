@@ -3,6 +3,7 @@
 # Android utilities
 #>
 
+
 $global:RD_SD = 'sdcard/'
 $global:RD_PIC = $RD_SD + 'Pictures/'
 $global:RD_VID = $RD_SD + 'Videos/'
@@ -25,14 +26,18 @@ function adb {
 		'push' {
 			$src = $argList[1]
 			$src = Adb-Escape $src Shell
+			
 			$argList[1] = $src
 			if ($argC -lt 3) {
 				$dest = $AdbRemoteOutputDefault
+			} else {
+				$dest = $argList[2]
 			}
 			
 			#$dest = $dest.Replace(' ', "`\ ")
+			#$dest = Adb-Escape $dest Shell
 			
-			$argList += $dest
+			#$argList += $dest
 			
 			Write-Verbose "push $src -> $dest"
 		}
@@ -52,7 +57,9 @@ function adb {
 	
 	Write-Verbose "New args: $($argList -join ',')"
 	
-	return (adb.exe $argList)
+	#return (adb.exe $argList)
+	adb.exe $argList
+	
 }
 
 
@@ -62,6 +69,7 @@ $script:AdbCommands = @(
 	'push', 'pull', 'connect', 'disconnect', 'tcpip',
 	'start-server', 'kill-server', 'shell', 'usb',
 	'devices', 'install', 'uninstall'
+	#todo...
 )
 
 Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
@@ -195,17 +203,6 @@ function Adb-RemoveItem {
 	(adb shell rm "$src")
 }
 
-<#
-.Description
-Gets size of file
-#>
-function Adb-GetFileSize {
-	param (
-		[Parameter(Mandatory = $true)]
-		[string]$src
-	)
-	return (adb shell wc -c "$src") -Split ' ' | Select-Object -Index 0
-}
 
 <#
 .Description
@@ -240,7 +237,7 @@ function Adb-GetItems {
 #endregion
 
 
-function Adb-TestPath {
+function Adb-GetItem {
 	param ($x)
 	
 	<#$s = "Dir"
@@ -251,28 +248,29 @@ function Adb-TestPath {
 	
 	<#$s2 = "File"
 	$y2 = (adb shell "if [ -f $x ]; then echo $s2; fi")#>
-	$isDir=$false
+	
+	$isDir = $false
 	$isFile = $false
 	$rg = [string[]] (adb shell wc -c $x 2>&1)
 	$s1 = $rg[0]
-	$sz=-1
-	if ($rg.Length -ge 2) {
-		
-		$isDir = $s1.Contains("Is a directory")
-	}
+	$size = -1
 	
-	elseif ($s1.Contains("No such")) {
-		
-	}else {
+	[array]::Sort($rg)
+	
+	if ($rg.Length -ge 2) {
+		$isDir = $rg[1].Contains("Is a directory")
+	} elseif ($s1.Contains("No such")) {
+		#...
+	} else {
 		$isFile = $true
-	$sz=[int]$s1.Split(' ')[0]	
+		$size = [int]$s1.Split(' ')[0]
 	}
 	
 	
 	$buf = @{
-		IsFile = $isFile
+		IsFile	    = $isFile
 		IsDirectory = $isDir
-		Size=$sz
+		Size	    = $size
 	}
 	
 	
@@ -308,8 +306,8 @@ function Adb-Escape {
 	
 	switch ($e) {
 		Shell {
-			$x = $x.Replace('`', '')
-			$x = $x.Replace(' ', '\ ')
+			$x = $x.Replace('`', [string]::Empty)
+			#$x = $x.Replace(' ', '\ ')
 			
 			return $x
 		}

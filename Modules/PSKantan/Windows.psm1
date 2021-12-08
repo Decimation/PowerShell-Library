@@ -24,7 +24,8 @@ function Assert-Win32CallSuccess {
 	param (
 		[Switch]$PassThru,
 		[Switch]$NullIsError,
-		[ScriptBlock]$action)
+		[ScriptBlock]$action
+	)
 	
 	$result = & $action
 	
@@ -75,8 +76,10 @@ $global:ANSI_FORMAT = 1
 $global:UNICODE_FORMAT = 13
 
 function Set-ClipboardText {
-	param ([Parameter(ValueFromPipeline = $true)]
-		[string]$value)
+	param (
+		[Parameter(ValueFromPipeline = $true)]
+		[string]$value
+	)
 	process {
 		
 		Use-Clipboard {

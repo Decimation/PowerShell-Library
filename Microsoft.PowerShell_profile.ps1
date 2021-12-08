@@ -42,8 +42,10 @@ $script:CallerVariableModule = {
 	
 	New-Module {
 		function Get-CallerVariable {
-			param ([Parameter(Position = 1)]
-				[string]$Name)
+			param (
+				[Parameter(Position = 1)]
+				[string]$Name
+			)
 			$PSCmdlet.SessionState.PSVariable.GetValue($Name)
 		}
 		function Set-CallerVariable {
@@ -63,12 +65,12 @@ $script:CallerVariableModule = {
 
 function Prompt {
 	
-	$C1 = [System.ConsoleColor]::Green
-	$C2 = [System.ConsoleColor]::Blue
+	$fg2 = [System.ConsoleColor]::Green
+	$fg1 = [System.ConsoleColor]::Blue
 	
-	Write-Host 'PS ' -NoNewline -ForegroundColor $C2
-	$dll = $(Get-Date -Format 'HH:mm:ss')
-	Write-Host ("[$dll] ") -NoNewline -ForegroundColor $C1
+	Write-Host 'PS ' -NoNewline -ForegroundColor $fg1
+	$currentDate = $(Get-Date -Format 'HH:mm:ss')
+	Write-Host ("[$currentDate] ") -NoNewline -ForegroundColor $fg2
 	Write-Host "$(Get-Location)" -NoNewline
 	Write-Host '>' -NoNewline
 	

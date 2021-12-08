@@ -6,6 +6,14 @@ $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 $global:ANSI_UNDERLINE = "$([char]0x1b)[4m"
 $global:ANSI_END = "$([char]0x001b)[0m"
 
+function Nuke-Item {
+	param ($x)
+	#todo
+	
+	takeown /F $x /R
+	sudo rm $x
+}
+
 
 <#
 .Description
