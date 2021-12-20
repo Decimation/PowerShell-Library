@@ -2,29 +2,46 @@
 
 function Compress-Item {
 	param (
-		[Parameter(Mandatory = $true)]$f,
-		[Parameter(Mandatory = $true)]$f2,
-		[Parameter(Mandatory = $true)]$q
+		[Parameter(Mandatory = $true)]
+		$f,
+		[Parameter(Mandatory = $true)]
+		$f2,
+		[Parameter(Mandatory = $true)]
+		$q
 	)
-
+	
 	magick.exe convert -filter Triangle -define filter:support=2 -unsharp 0.25x0.08+8.3+0.045 -dither None `
-		-posterize 136 -quality $q -define png:compression-filter=5 -define png:compression-level=9 `
-		-define png:compression-strategy=1 -define png:exclude-chunk=all -interlace none -colorspace sRGB `
-		$f $f2
+			   -posterize 136 -quality $q -define png:compression-filter=5 -define png:compression-level=9 `
+			   -define png:compression-strategy=1 -define png:exclude-chunk=all -interlace none -colorspace sRGB `
+			   $f $f2
 }
 
 function Get-ConcatVideo {
 	param (
-		$x, $f, $o
+		$files,
+		$listFile,
+		$output
 	)
-
-	$x | ForEach-Object {
-		Add-Content -Value "file '$_'" -Path $f
+	
+	$files | ForEach-Object {
+		Add-Content -Value "file '$_'" -Path $listFile
 	}
-
-	ffmpeg.exe -f concat -safe 0 -i $f -c copy $o
-
-	Remove-Item $f
+	
+	ffmpeg.exe -f concat -safe 0 -i $listFile -c copy $output
+	
+	Remove-Item $listFile
 }
 
-
+function Get-Clip {
+	param (
+		[parameter][string]$input,
+		[parameter][timespan]$start,
+		[parameter][timespan]$end,
+		[parameter][string]$output
+	)
+	
+	$t = $end - $start
+	$startStr = [string]$start
+	$tStr = [string]$t
+	ffmpeg -ss $startStr -i $input -t $tStr $output
+}
