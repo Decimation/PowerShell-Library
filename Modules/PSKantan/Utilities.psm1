@@ -15,6 +15,7 @@ function Nuke-Item {
 }
 
 
+
 <#
 .Description
 ffmpeg enhanced passthru
@@ -559,9 +560,12 @@ function Search-History {
 	)
 	process {
 		$p = (Get-PSReadLineOption).HistorySavePath
-		$c = Get-Content -Path $
+		$c = Get-Content -Path $p
 		
-		return $c | Where-Object $x
+		#return $c | Where-Object $x
+		return $c | Select-String $x
+		
+		
 	}
 }
 
