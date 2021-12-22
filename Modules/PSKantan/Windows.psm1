@@ -163,6 +163,26 @@ Set-Alias -Name gcbt -Value Get-ClipboardText
 Set-Alias -Name scb -Value Set-Clipboard
 Set-Alias -Name scbt -Value Set-ClipboardText
 
-
+function Get-EnvironmentVariables {
+	param (
+		[Parameter(Mandatory = $false)]
+		[System.EnvironmentVariableTarget]$t
+	)
+	
+	
+	if (!($t)) {
+		$t = [System.EnvironmentVariableTarget]::Machine
+	}
+	
+	$lm = Get-ItemProperty -Path "Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+	$cu = Get-ItemProperty -Path "Registry::HKEY_CURRENT_USER\Environment"
+	
+	if ($t -eq [System.EnvironmentVariableTarget]::Machine) {
+		return $lm
+	}
+	if ($t -eq [System.EnvironmentVariableTarget]::User) {
+		return $cu
+	}
+}
 
 
