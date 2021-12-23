@@ -7,30 +7,55 @@
 $global:ModulePathRoot = "$Home\Documents\PowerShell\Modules\"
 $global:ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
 
+$PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
+
 $LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object {
 	[System.IO.File]::Exists($_)
 } | ForEach-Object {
 	$_.ToString()
 }
 
+
+<#$global:WinPSRoot = "$env:WINDIR\System32\WindowsPowerShell\v1.0\"
+$global:WinModulePathRoot = "$WinPSRoot\Modules\"
+$global:WinModules = gci "$WinModulePathRoot" | % {
+	$_.FullName
+}#>
+
 #https://github.com/WantStuff/AudioDeviceCmdlets
-Import-Module "$ModulePathRoot\AudioDeviceCmdlets.dll"
 
-function Import-LocalScript {
+Import-Module AudioDeviceCmdlets
+
+
+function Import-WinModule {
+	param ($name)
+	Import-Module $name -UseWindowsPowerShell -NoClobber -WarningAction SilentlyContinue
+}
+
+#Get-PSSession -Name WinPSCompatSession
+
+function Get-WinSession {
+	return Get-PSSession -Name WinPSCompatSession
+	
+}
+function Invoke-WinCommand {
+	param ([scriptblock]$x)
+	Invoke-Command -Session $(Get-WinSession) $x
+}
+
+#Import-WinModule Appx
+#Import-WinModule PnpDevice
+#Import-WinModule Microsoft.PowerShell.Management
+
+#https://github.com/PowerShell/WindowsCompatibility
+#Install-Module WindowsCompatability
+
+
+function Reload-Module {
 	param ($x)
-	. "$global:ScriptPathRoot\$x"
-}
-
-function Import-LocalScripts {
-	foreach ($x in $LocalScripts) {
-		. "$x"
-	}
-}
-
-function Update-LocalModules {
-	Remove-Module PSKantan
-	Import-Module -DisableNameChecking PSKantan
-	Write-Debug "[$env:USERNAME] Updated modules"
+	Remove-Module $x
+	Import-Module -Force -DisableNameChecking $x
+	
 }
 
 Import-Module -DisableNameChecking PSKantan
@@ -85,15 +110,27 @@ Set-Alias -Name wd -Value Write-Debug
 Set-Alias -Name so -Value Select-Object
 Set-Alias -Name ss -Value Select-String
 
-Set-Alias -Name ulm -Value Update-LocalModules
-
 Set-Alias -Name ie -Value Invoke-Expression
+
+
+<#
+#	%	Foreach-Object
+#	? 	Where-Object
+#	^	Select-Object
+#	~ 	Select-String
+#>
+
+Set-Alias ^ Select-Object
+Set-Alias ~ Select-String
+
 
 #endregion
 
 #region Configuration
 
-$script:fr = 'ulm'
+$script:fr = [string] {
+	Reload-Module PSKantan
+}
 $script:qr = ".`$PROFILE; $fr"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
@@ -120,20 +157,79 @@ function New-PInvoke {
 	)
 	
 	Add-Type @"
-	using System;
-    using System.Text;
-    using System.Runtime.InteropServices;
+using System;
+using System.Text;
+using System.Runtime.InteropServices;
 
-	$imports
+$imports
 
-	public static class $className
-	{
-		[DllImport("$dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern $returnType $funcName($funcParams);
-	}
+public static class $className
+{
+	[DllImport("$dll", SetLastError = true, CharSet = CharSet.Unicode)]
+	public static extern $returnType $funcName($funcParams);
+}
 "@
 }
 
+
+Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+Set-PSReadLineOption -HistorySearchCursorMovesToEnd
+
+try {
+	Set-PSReadLineOption -Colors @{
+		CommandColor			    = "`e[93m"
+		CommentColor			    = "`e[32m"
+		ContinuationPromptColor	    = "`e[37m"
+		DefaultTokenColor		    = "`e[38;5;255m"
+		EmphasisColor			    = "`e[96m"
+		ErrorColor				    = "`e[91m"
+		InlinePredictionColor	    = "`e[90m"
+		KeywordColor			    = "`e[38;5;204m"
+		ListPredictionColor		    = "`e[33m"
+		ListPredictionSelectedColor = "`e[48;5;238m"
+		MemberColor				    = "`e[38;2;221;17;221m"
+		NumberColor				    = "`e[97m"
+		OperatorColor			    = "`e[90m"
+		ParameterColor			    = "`e[38;2;255;255;0m"
+		SelectionColor			    = "`e[30;47m"
+		StringColor				    = "`e[36m"
+		TypeColor				    = "`e[38;2;0;255;34m"
+		VariableColor			    = "`e[92m"
+		
+	}
+} catch {
+	
+}
+
+
+Set-PSReadlineKeyHandler -Key F2 -ScriptBlock {
+	[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
+	
+	#Write-Verbose "$([Microsoft.PowerShell.PSConsoleReadLine]::GetKeyHandlers())" `
+	
+	$pvs = [Microsoft.PowerShell.PSConsoleReadLine]::GetOptions().PredictionViewStyle
+	
+	if ($pvs -eq 'ListView') {
+		Set-PSReadLineKeyHandler -Key "Ctrl+UpArrow" -Function PreviousSuggestion
+		Set-PSReadLineKeyHandler -Key "Ctrl+DownArrow" -Function NextSuggestion
+	} else {
+		Set-PSReadlineKeyHandler -Key "Tab" -Function AcceptNextSuggestionWord
+		Set-PSReadlineKeyHandler -Chord "Ctrl+Tab" -Function AcceptSuggestion
+	}
+	
+
+	#Set-PSReadLineKeyHandler -Key Tab -Function Complete
+	<#[Microsoft.PowerShell.PSConsoleReadLine]::SetKeyHandler(@('tab'), [scriptblock]{
+			[Microsoft.PowerShell.PSConsoleReadLine]::AcceptNextSuggestionWord()
+		}, "", "")#>
+}
+
+Set-PSReadLineKeyHandler -Key "Tab" -Function TabCompleteNext
+Set-PSReadlineKeyHandler -Key "Shift+Tab" -Function TabCompletePrevious
+Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+Set-PSReadLineKeyHandler -Key "Tab" -Function TabCompleteNext
+Set-PSReadLineKeyHandler -Key F1 -Function ShowCommandHelp
+Set-PSReadLineKeyHandler -Key "Ctrl+p" -Function ShowParameterHelp
 
 #Write-Debug 'Imported miscellaneous'
 #. "$ScriptPathRoot\Miscellaneous.ps1"
