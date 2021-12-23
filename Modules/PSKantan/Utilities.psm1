@@ -145,9 +145,11 @@ function QCommand {
 	
 	if ($std -eq $STD_IN) {
 		$outStr = $p.StandardInput.ReadToEnd()
-	} elseif ($std -eq $STD_OUT) {
+	}
+ elseif ($std -eq $STD_OUT) {
 		$outStr = $p.StandardOutput.ReadToEnd()
-	} elseif ($std -eq $STD_ERR) {
+	}
+ elseif ($std -eq $STD_ERR) {
 		$outStr = $p.StandardError.ReadToEnd()
 	}
 	
@@ -239,7 +241,7 @@ function PathJoin($x, $useCmd) {
 }
 
 function Flatten($a) {
-	 , @($a | ForEach-Object {
+	, @($a | ForEach-Object {
 			$_
 		})
 }
@@ -339,6 +341,7 @@ function New-RandomFile {
 	$buf = & {
 		fsutil file createnew $file $length
 	}
+	Write-Verbose "$buf"
 	
 	if (($nullFile)) {
 		return;
@@ -513,7 +516,8 @@ function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch
 			$null = & $Expression
 			$sw.Stop()
 			Write-Host '.' -NoNewline
-		} else {
+		}
+		else {
 			$sw.Start()
 			& $Expression
 			$sw.Stop()
@@ -537,7 +541,8 @@ function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch
 			'Min' = $((New-Object System.TimeSpan $stats.Minimum).ToString());
 			'Max' = $((New-Object System.TimeSpan $stats.Maximum).ToString());
 		}
-	} else {
+	}
+ else {
 		$dict = @{
 			'Avg' = "$((New-Object System.TimeSpan $stats.Average).TotalMilliseconds.ToString()) ms";
 			'Min' = "$((New-Object System.TimeSpan $stats.Minimum).TotalMilliseconds.ToString()) ms";
@@ -591,7 +596,8 @@ function Get-Bytes {
 		
 		$info1 += $encoding.EncodingName
 		$rg = $encoding.GetBytes($x)
-	} else {
+	}
+ else {
 		$rg = [System.BitConverter]::GetBytes($x)
 	}
 	
@@ -693,4 +699,22 @@ function Select-Linq {
 
 Set-Alias -Name cts -Value ConvertTo-String
 Set-Alias -Name gb -Value Get-Bytes
+
+
+function Search-InFiles {
+
+	param(
+		[Parameter(Mandatory = $true, Position = 0)]$filter,
+		[Parameter(Mandatory = $false, Position = 1)]$dir
+	)
+
+	if (($dir)) {
+		$rg = Get-ChildItem $dir -Recurse
+	}
+	else {
+		$rg = Get-ChildItem -Recurse
+	}
+
+	return $rg | Select-String -Pattern $filter
+}
 
