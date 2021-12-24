@@ -697,9 +697,6 @@ function Select-Linq {
 	}
 }
 
-Set-Alias -Name cts -Value ConvertTo-String
-Set-Alias -Name gb -Value Get-Bytes
-
 
 function Search-InFiles {
 

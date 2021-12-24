@@ -205,8 +205,6 @@ try {
 Set-PSReadlineKeyHandler -Key F2 -ScriptBlock {
 	[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
 	
-	#Write-Verbose "$([Microsoft.PowerShell.PSConsoleReadLine]::GetKeyHandlers())" `
-	
 	$pvs = [Microsoft.PowerShell.PSConsoleReadLine]::GetOptions().PredictionViewStyle
 	
 	if ($pvs -eq 'ListView') {
@@ -217,11 +215,6 @@ Set-PSReadlineKeyHandler -Key F2 -ScriptBlock {
 		Set-PSReadlineKeyHandler -Chord "Ctrl+Tab" -Function AcceptSuggestion
 	}
 	
-
-	#Set-PSReadLineKeyHandler -Key Tab -Function Complete
-	<#[Microsoft.PowerShell.PSConsoleReadLine]::SetKeyHandler(@('tab'), [scriptblock]{
-			[Microsoft.PowerShell.PSConsoleReadLine]::AcceptNextSuggestionWord()
-		}, "", "")#>
 }
 
 Set-PSReadLineKeyHandler -Key "Tab" -Function TabCompleteNext
@@ -231,8 +224,6 @@ Set-PSReadLineKeyHandler -Key "Tab" -Function TabCompleteNext
 Set-PSReadLineKeyHandler -Key F1 -Function ShowCommandHelp
 Set-PSReadLineKeyHandler -Key "Ctrl+p" -Function ShowParameterHelp
 
-#Write-Debug 'Imported miscellaneous'
-#. "$ScriptPathRoot\Miscellaneous.ps1"
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 

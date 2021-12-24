@@ -18,13 +18,20 @@ ADB enhanced passthru
 #>
 function adb {
 	
-	$argC = $args.Count
-	$argList = $args
+	
+	$argC = $input.Count
+	$argList = $input
 	$cmd = $argList[0]
 	
 	switch ($cmd) {
 		'push' {
-			$src = $argList[1]
+			if ($Path) {
+				process {
+					$src = $Path
+				}
+			} else {
+				$src = $argList[1]
+			}
 			$src = Adb-Escape $src Shell
 			
 			$argList[1] = $src
