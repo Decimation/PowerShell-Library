@@ -192,18 +192,18 @@ public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam)
 '@
 
 #Add the SendMessage function as a static method of a class
-$SendMessageFunc = Add-Type -MemberDefinition $Signature -Name 'Win32SendMessage' -Namespace Win32Functions -PassThru
+$global:SendMessageFunc = Add-Type -MemberDefinition $Signature -Name 'Win32SendMessage' -Namespace Win32Functions -PassThru
 
 function SendMessage {
 	param (
 		[Parameter(Mandatory = $true)]
-		$name,
+		[System.Diagnostics.Process]$p1,
 		[Parameter(Mandatory = $true)]
 		$k
 	)
 	
-	$p = (Get-Process $name).MainWindowHandle
-	
+	#$p = (Get-Process $name).MainWindowHandle
+	$p=$p1.MainWindowHandle
 	$SendMessageFunc::SendMessage($p, 0x0100, $k, 0x002C0001)
 	$SendMessageFunc::SendMessage($p, 0x0101, $k, 0x002C0001)
 }
