@@ -19,8 +19,8 @@ ADB enhanced passthru
 function adb {
 	
 	
-	$argC = $input.Count
-	$argList = $input
+	$argC = $args.Count
+	$argList = $args
 	$cmd = $argList[0]
 	
 	switch ($cmd) {
@@ -221,12 +221,19 @@ function Adb-GetItems {
 		[string]$src,
 		[Parameter(Mandatory = $false)]
 		[string]$filter,
-		[switch]$relative
-		
+		[switch]$relative,
+		[switch]$recurse
 	)
 	
+	
+	$lsArgs = @()
+	
+	if ($recurse) {
+		$lsArgs += '-R'
+	}
+	
 	$src = Adb-Escape $src Shell
-	$x = (adb shell ls $src)
+	$x = (adb shell ls $lsArgs $src)
 	
 	$files = ($x) -Split "`n"
 	

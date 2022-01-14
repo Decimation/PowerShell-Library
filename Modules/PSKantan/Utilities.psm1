@@ -216,7 +216,7 @@ function ForceKill {
 	return (taskkill.exe /f /im $name)
 }
 
-Set-Alias -Name fk -Value ForceKill
+Set-Alias -Name kill -Value ForceKill
 
 
 function U {
@@ -407,14 +407,14 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	}
 }
 
-function Get-FileMetadata {
+<#function Get-FileMetadata {
 	
 	<#
 	Adapted from Get-FolderMetadata by Ed Wilson
 
 	https://devblogs.microsoft.com/scripting/list-music-file-metadata-in-a-csv-and-open-in-excel-with-powershell/
 	https://web.archive.org/web/20201111223917/https://gallery.technet.microsoft.com/scriptcenter/get-file-meta-data-function-f9e8d804
-	#>
+	>
 	
 	param (
 		[Parameter(Mandatory = $true)]
@@ -457,7 +457,7 @@ function Get-FileMetadata {
 	}
 	
 	return $rg
-}
+}#>
 
 function ConvertTo-Extension {
 	param ($items,

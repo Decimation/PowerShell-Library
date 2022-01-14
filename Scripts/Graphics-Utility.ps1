@@ -1,9 +1,11 @@
 ﻿#Requires -Module PSKantan
+
 [CmdletBinding()]
 param (
 	[Parameter()]
 	[string]$arg
 )
+
 function Restart-Graphics {
 	
 	Import-WinModule PnpDevice
@@ -18,14 +20,8 @@ function Restart-Graphics {
 	}
 	
 	$d | Disable-PnpDevice -Confirm:$false
-	
 	$d | Enable-PnpDevice -Confirm:$false
 }
-
-
-
-
-
 
 function Amd-GetHotkeysDisabled {
 	

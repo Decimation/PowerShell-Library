@@ -27,28 +27,30 @@ $global:WinModules = gci "$WinModulePathRoot" | % {
 Import-Module AudioDeviceCmdlets
 
 
-function Import-WinModule {
+<#function __Import-WinModule {
 	param ($name)
 	Import-Module $name -UseWindowsPowerShell -NoClobber -WarningAction SilentlyContinue
 }
 
 #Get-PSSession -Name WinPSCompatSession
 
-function Get-WinSession {
+function __Get-WinSession {
 	return Get-PSSession -Name WinPSCompatSession
-	
 }
-function Invoke-WinCommand {
+
+function __Invoke-WinCommand {
 	param ([scriptblock]$x)
-	Invoke-Command -Session $(Get-WinSession) $x
-}
+	Invoke-Command -Session $(__Get-WinSession) $x
+}#>
 
 #Import-WinModule Appx
 #Import-WinModule PnpDevice
 #Import-WinModule Microsoft.PowerShell.Management
 
 #https://github.com/PowerShell/WindowsCompatibility
-#Install-Module WindowsCompatability
+
+#Install-Module WindowsCompatibility -Scope CurrentUser
+#Import-Module WindowsCompatability
 
 
 function Reload-Module {
@@ -136,7 +138,7 @@ $script:qr = ".`$PROFILE; $fr"
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
 $InformationPreference = 'Continue'
-$DebugPreference = 'Continue'
+$DebugPreference = 'SilentlyContinue'
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
@@ -170,7 +172,7 @@ public static class $className
 }
 "@
 }
-
+#region 
 
 Set-PSReadLineOption -PredictionSource HistoryAndPlugin
 Set-PSReadLineOption -HistorySearchCursorMovesToEnd
@@ -208,21 +210,39 @@ Set-PSReadlineKeyHandler -Key F2 -ScriptBlock {
 	$pvs = [Microsoft.PowerShell.PSConsoleReadLine]::GetOptions().PredictionViewStyle
 	
 	if ($pvs -eq 'ListView') {
-		Set-PSReadLineKeyHandler -Key "Ctrl+UpArrow" -Function PreviousSuggestion
-		Set-PSReadLineKeyHandler -Key "Ctrl+DownArrow" -Function NextSuggestion
+		& $ListViewHandler
 	} else {
-		Set-PSReadlineKeyHandler -Key "Tab" -Function AcceptNextSuggestionWord
-		Set-PSReadlineKeyHandler -Chord "Ctrl+Tab" -Function AcceptSuggestion
+		& $InlineViewHandler
 	}
+	& $OtherKeyHandlers
+	
 	
 }
+$ListViewHandler = {
+	Set-PSReadLineKeyHandler -Key "Ctrl+UpArrow" -Function PreviousSuggestion
+	Set-PSReadLineKeyHandler -Key "Ctrl+DownArrow" -Function NextSuggestion
+}
 
-Set-PSReadLineKeyHandler -Key "Tab" -Function TabCompleteNext
-Set-PSReadlineKeyHandler -Key "Shift+Tab" -Function TabCompletePrevious
-Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadLineKeyHandler -Key "Tab" -Function TabCompleteNext
-Set-PSReadLineKeyHandler -Key F1 -Function ShowCommandHelp
-Set-PSReadLineKeyHandler -Key "Ctrl+p" -Function ShowParameterHelp
+$InlineViewHandler = {
+	Set-PSReadlineKeyHandler -Key "Tab" -Function AcceptNextSuggestionWord
+	Set-PSReadlineKeyHandler -Chord "Ctrl+Tab" -Function AcceptSuggestion
+}
+
+& $InlineViewHandler
+
+$OtherKeyHandlers = {
+	Set-PSReadLineKeyHandler -Key "Tab" -Function TabCompleteNext
+	Set-PSReadlineKeyHandler -Key "Shift+Tab" -Function TabCompletePrevious
+	Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+	Set-PSReadLineKeyHandler -Key "Tab" -Function TabCompleteNext
+	Set-PSReadLineKeyHandler -Key F1 -Function ShowCommandHelp
+	Set-PSReadLineKeyHandler -Key "Ctrl+p" -Function ShowParameterHelp
+	Set-PSReadLineKeyHandler -Chord "Ctrl+d" -Function ForwardWord
+}
+
+& $OtherKeyHandlers
+
+#endregion
 
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
