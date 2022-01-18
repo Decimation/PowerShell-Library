@@ -248,3 +248,4 @@ $OtherKeyHandlers = {
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
 Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
+Import-Module 'C:\Library\vcpkg\scripts\posh-vcpkg'
