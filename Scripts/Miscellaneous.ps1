@@ -33,16 +33,23 @@ function Get-Translation {
 	$cmd = @(
 		'from googletrans import *',
 		"tmp = Translator().translate('$x', dest='$y')",
+		"for x in tmp.extra_data['translation']:`n
+			for y in x:`n
+				if y!=None:`n
+					print(y)",
 		"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))"
 		<# "ed = tmp.extra_data['all-translations']"
 		"for i in range(len(ed)):"
 		"	for j in range(len(ed[i])):"
 		"		print(','.join(ed[i][j]))" #>
+
+
 	)
+
 
 	#Translator().translate('energy', dest='ja').extra_data['all-translations']
 
-	$f1 = $(Get-TempFile)
+	$f1 = $(New-TempFile)
 	$cmd | Out-File $f1
 	python $f1
 
@@ -52,7 +59,7 @@ function Get-Translation {
 		'print(tmp2)'
 	)
 
-	$f2 = $(Get-TempFile)
+	$f2 = $(New-TempFile)
 	$cmd2 | Out-File $f2
 	python $f2
 }

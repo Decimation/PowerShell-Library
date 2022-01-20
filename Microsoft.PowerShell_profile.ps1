@@ -277,7 +277,7 @@ Set-PSReadLineKeyHandler -Key F5 -ScriptBlock {
 & $OtherKeyHandlers
 
 #endregion
-
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 

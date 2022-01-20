@@ -26,10 +26,13 @@ function adb {
 	switch ($cmd) {
 		'push' {
 			if ($Path) {
-				process {
+				<# process {
 					$src = $Path
-				}
-			} else {
+				} #>
+				$src = $Path
+				
+			}
+			else {
 				$src = $argList[1]
 			}
 			$src = Adb-Escape $src Shell
@@ -37,7 +40,8 @@ function adb {
 			$argList[1] = $src
 			if ($argC -lt 3) {
 				$dest = $AdbRemoteOutputDefault
-			} else {
+			}
+			else {
 				$dest = $argList[2]
 			}
 			
@@ -272,19 +276,21 @@ function Adb-GetItem {
 	[array]::Sort($rg)
 	
 	if ($rg.Length -ge 2) {
-		$isDir = $rg[1].Contains("Is a directory")
-	} elseif ($s1.Contains("No such")) {
+		$isDir = $rg[1].Contains('Is a directory')
+	}
+ elseif ($s1.Contains('No such')) {
 		#...
-	} else {
+	}
+ else {
 		$isFile = $true
 		$size = [int]$s1.Split(' ')[0]
 	}
 	
 	
 	$buf = @{
-		IsFile	    = $isFile
+		IsFile      = $isFile
 		IsDirectory = $isDir
-		Size	    = $size
+		Size        = $size
 	}
 	
 	
@@ -332,7 +338,8 @@ function Adb-Escape {
 			foreach ($b in $x2) {
 				if ($b.Contains(' ')) {
 					$b2 = "`"$b/`""
-				} else {
+				}
+				else {
 					$b2 = $b
 				}
 				$x3.Add($b2)
