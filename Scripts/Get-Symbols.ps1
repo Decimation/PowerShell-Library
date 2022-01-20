@@ -4,7 +4,7 @@ function Get-Symbols {
 		[Parameter(Mandatory = $false)][string]$dest
 	)
 
-	if (!($dest)) {
+	if (!($dest) -or ( $dest -eq '.')) {
 		$dest = Get-Location
 	}
 	
@@ -13,8 +13,10 @@ function Get-Symbols {
 	
 	
 	$p = [System.IO.Path]::GetFileNameWithoutExtension($s)
-	Rename-Item "$p.pdb" "$p-1"
+	# Rename-Item "$p.pdb" "$p-1"
+	Move-Item "$p.pdb" "$p-1"
 	Move-Item $(Get-ChildItem $(Get-ChildItem "$p-1")) .
-	Remove-Item pingme.txt
 	Remove-Item "$p-1" -Recurse
+	Remove-Item pingme.txt
+
 }

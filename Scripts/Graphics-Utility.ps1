@@ -2,7 +2,7 @@
 
 [CmdletBinding()]
 param (
-	[Parameter()]
+	[Parameter(Mandatory = $false)]
 	[string]$arg
 )
 
@@ -15,8 +15,8 @@ function Restart-Graphics {
 		return
 	}
 	
-	$d = Get-PnpDevice | where {
-		$_.class -like "Display*"
+	$d = Get-PnpDevice | Where-Object {
+		$_.class -like 'Display*'
 	}
 	
 	$d | Disable-PnpDevice -Confirm:$false
@@ -47,7 +47,7 @@ function Amd-ToggleHotkeys {
 	$nv = (-not $v)
 	$r = Amd-SetHotkeysDisabled $nv
 	
-	return $r ? $nv: $false
+	return $r ? $nv : $false
 }
 
 if ($arg -eq 'togglehk') {

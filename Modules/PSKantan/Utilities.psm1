@@ -20,17 +20,17 @@ function Nuke-Item {
 .Description
 ffmpeg enhanced passthru
 #>
-function ffmpeg {
+<# function ffmpeg {
 	ffmpeg.exe -hide_banner $args
-}
+} #>
 
 <#
 .Description
 ffprobe enhanced passthru
 #>
-function ffprobe {
+<# function ffprobe {
 	ffprobe.exe -hide_banner $args
-}
+} #>
 
 <#
 .Description
@@ -145,9 +145,11 @@ function QCommand {
 	
 	if ($std -eq $STD_IN) {
 		$outStr = $p.StandardInput.ReadToEnd()
-	} elseif ($std -eq $STD_OUT) {
+	}
+ elseif ($std -eq $STD_OUT) {
 		$outStr = $p.StandardOutput.ReadToEnd()
-	} elseif ($std -eq $STD_ERR) {
+	}
+ elseif ($std -eq $STD_ERR) {
 		$outStr = $p.StandardError.ReadToEnd()
 	}
 	
@@ -204,24 +206,30 @@ function Get-IP {
 
 
 
-function Kill {
+function XKill {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$name
 	)
 	
 	# Stop-Process (Get-Process $name).Id
-	return (taskkill.exe /f /im $name)
+	#Stop-Process -Id $_.Id -Force
+	
+	return (gsudo -d taskkill.exe /f /im $name)
 }
 
 function KillAll {
-	param ($x)
-	Get-Process -name '*$x*' | ForEach-Object {
-		Stop-Process -Id $_.Id -Force
+	param ($x, [switch]$strict)
+	
+	if (-not $strict) {
+		$x = "*$x*"
+	}
+	Get-Process -Name $x | ForEach-Object {
+		XKill $_.Id
 	}
 }
 
-
+Set-Alias kill XKill
 
 function U {
 	#https://mnaoumov.wordpress.com/2014/06/14/unicode-literals-in-powershell/
@@ -258,16 +266,16 @@ function Search-InFiles {
 		$filter = "*$filter*"
 	}
 	if (-not ($path)) {
-		$path = "."
+		$path = '.'
 	}
 	
-	return gci -Path $path -Filter "$filter" -Recurse -ErrorAction SilentlyContinue
+	return Get-ChildItem -Path $path -Filter "$filter" -Recurse -ErrorAction SilentlyContinue
 }
 
 Set-Alias Search Search-InFiles
 
 function Flatten($a) {
-	 , @($a | ForEach-Object {
+	, @($a | ForEach-Object {
 			$_
 		})
 }
@@ -542,7 +550,8 @@ function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch
 			$null = & $Expression
 			$sw.Stop()
 			Write-Host '.' -NoNewline
-		} else {
+		}
+		else {
 			$sw.Start()
 			& $Expression
 			$sw.Stop()
@@ -566,7 +575,8 @@ function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch
 			'Min' = $((New-Object System.TimeSpan $stats.Minimum).ToString());
 			'Max' = $((New-Object System.TimeSpan $stats.Maximum).ToString());
 		}
-	} else {
+	}
+ else {
 		$dict = @{
 			'Avg' = "$((New-Object System.TimeSpan $stats.Average).TotalMilliseconds.ToString()) ms";
 			'Min' = "$((New-Object System.TimeSpan $stats.Minimum).TotalMilliseconds.ToString()) ms";
@@ -620,7 +630,8 @@ function Get-Bytes {
 		
 		$info1 += $encoding.EncodingName
 		$rg = $encoding.GetBytes($x)
-	} else {
+	}
+ else {
 		$rg = [System.BitConverter]::GetBytes($x)
 	}
 	
