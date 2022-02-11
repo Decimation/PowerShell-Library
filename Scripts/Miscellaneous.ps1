@@ -30,38 +30,27 @@ function Get-Translation {
 		[Parameter(Mandatory = $true)][string]$y
 	)
 
-	$cmd = @(
-		'from googletrans import *',
-		"tmp = Translator().translate('$x', dest='$y')",
-		"for x in tmp.extra_data['translation']:`n
-			for y in x:`n
-				if y!=None:`n
-					print(y)",
-		"print('{0} ({1})'.format(tmp.text, tmp.pronunciation))"
-		<# "ed = tmp.extra_data['all-translations']"
-		"for i in range(len(ed)):"
-		"	for j in range(len(ed[i])):"
-		"		print(','.join(ed[i][j]))" #>
+	$cmd = @"
+from googletrans import *
+tmp = Translator().translate('$x', dest='$y')
+print('{0} ({1})'.format(tmp.text, tmp.pronunciation))
+print('extra data:')
+for x in tmp.extra_data['translation']:
+	for y in x:
+		if y!=None:
+			print(y)
+"@
+	python -c $cmd
+	Write-Host
 
-
-	)
-
-
-	#Translator().translate('energy', dest='ja').extra_data['all-translations']
-
-	$f1 = $(New-TempFile)
-	$cmd | Out-File $f1
-	python $f1
-
-	$cmd2 = @(
-		'from translatepy import *',
-		"tmp2 = Translator().translate('$x', '$y')",
-		'print(tmp2)'
-	)
-
-	$f2 = $(New-TempFile)
-	$cmd2 | Out-File $f2
-	python $f2
+	$cmd2 = @"
+from translatepy import *
+tmp2 = Translator().translate('$x', '$y')
+print(tmp2)
+"@
+		
+	
+	python -c $cmd2
 }
 
 
@@ -163,7 +152,7 @@ function Get-Fraktur {
 			continue
 		}
 		$upper = [Char]::IsUpper($x)
-		$lower = [Char]::IsLower($x)
+		#$lower = [Char]::IsLower($x)
 		$lhs = $upper ? 0x1d504 :0x1d51e
 		$ch = [int][char]($upper ? 'A' : 'a')
 

@@ -185,7 +185,6 @@ function WhereItem {
 	return (Get-Command $s -CommandType $c).Path
 }
 
-
 function IsAdmin {
 	$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 	$principal = New-Object Security.Principal.WindowsPrincipal $identity

@@ -282,3 +282,5 @@ Set-PSReadLineKeyHandler -Key F5 -ScriptBlock {
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
 Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
+
+Invoke-Expression "$(thefuck --alias)"
