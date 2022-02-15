@@ -6,14 +6,53 @@ $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 $global:ANSI_UNDERLINE = "$([char]0x1b)[4m"
 $global:ANSI_END = "$([char]0x001b)[0m"
 
-function Nuke-Item {
+function Get-PublicIP {
+	return (Invoke-WebRequest ifconfig.me/ip).Content.Trim()
+	
+}
+
+function Get-PackageManagers {
+	param ($x)
+	#todo
+	$pkgm = @('pip search', 'scoop search', 'choco search', 'winget search')
+	
+	
+	for ($i = 0; $i -lt $pkgm.Length; $i++) {
+		
+		$pm = $pkgm[$i]
+		$exe = ($pm -split ' ')[0]
+		
+		Write-Debug "$exe | $pm"
+		
+		if (Get-Command $exe) {
+			Start-Job -ScriptBlock {
+				Invoke-Expression "$($args[0]) $($args[1])"
+			} -ArgumentList @($pm, $x) -Name "Search_$i"
+		}
+		
+		
+	}
+	
+	# Wait for it all to complete
+	While (Get-Job -State 'Running') {
+		Start-Sleep 10
+	}
+	
+	# Getting the information back from the jobs
+	Get-Job | Receive-Job
+	
+}
+
+
+function XRemove {
 	param ($x)
 	#todo
 	
 	takeown /F $x /R
-	sudo rm $x
+	sudo rm -Force $x
 }
 
+Set-Alias xrm XRemove
 
 
 <#
@@ -205,30 +244,6 @@ function Get-IP {
 
 
 
-function XKill {
-	param (
-		[Parameter(Mandatory = $true)]
-		[string]$name
-	)
-	
-	# Stop-Process (Get-Process $name).Id
-	#Stop-Process -Id $_.Id -Force
-	
-	return (gsudo -d taskkill.exe /f /im $name)
-}
-
-function KillAll {
-	param ($x, [switch]$strict)
-	
-	if (-not $strict) {
-		$x = "*$x*"
-	}
-	Get-Process -Name $x | ForEach-Object {
-		XKill $_.Id
-	}
-}
-
-Set-Alias kill XKill
 
 function U {
 	#https://mnaoumov.wordpress.com/2014/06/14/unicode-literals-in-powershell/
@@ -253,7 +268,7 @@ function PathJoin($x, $useCmd) {
 
 
 function Search-InFiles {
-	param(
+	param (
 		[parameter(Mandatory = $true)]
 		$filter,
 		[parameter(Mandatory = $false)]
@@ -601,7 +616,7 @@ function Search-History {
 		$c = Get-Content -Path $p
 		
 		#return $c | Where-Object $x
-		return $c | Select-String $x
+		return $c | Select-String -Pattern $x
 		
 		
 	}

@@ -11,6 +11,6 @@
 	VariablesToExport     = '*'
 	AliasesToExport       = '*'
 
-	NestedModules         = @('Android', 'Media', 'Utilities', 'Windows')
+	NestedModules         = @('Android', 'Utilities', 'Windows')
 	#ModuleList            = @('Android')
 }

@@ -256,7 +256,9 @@ function Adb-GetItems {
 
 
 function Adb-GetItem {
-	param ($x)
+	param ($x,
+		[Parameter(Mandatory = $false)]$x2
+	)
 	
 	<#$s = "Dir"
 	$y = (adb shell "if [ -d $x ]; then echo $s; fi")
@@ -278,14 +280,13 @@ function Adb-GetItem {
 	if ($rg.Length -ge 2) {
 		$isDir = $rg[1].Contains('Is a directory')
 	}
- elseif ($s1.Contains('No such')) {
+	elseif ($s1.Contains('No such')) {
 		#...
 	}
- else {
+	else {
 		$isFile = $true
 		$size = [int]$s1.Split(' ')[0]
 	}
-	
 	
 	$buf = @{
 		IsFile      = $isFile
@@ -293,7 +294,48 @@ function Adb-GetItem {
 		Size        = $size
 	}
 	
-	
+	if ($isDir) {
+		$items = Adb-GetItems $x
+		$buf += @{ 
+			Items       = $items
+			NumberItems = $items.Length 
+		}
+	}
+
+	<# if ($x2) {
+		for ($i = 0; $i -lt $items.Length; $i++) {
+			$v=$items[$i]
+			
+		}
+	} #>
+	<# $cb = 0
+	$err = 0
+	$buf.Items | ForEach-Object -Parallel { 
+		$using:cb
+		$using:err
+
+		$outbuf = (adb.exe shell "wc $_" 2>nul)
+		#Write-Debug ">> $outbuf"
+		if ($null -eq $outbuf) {
+			$err++
+
+		}
+		elseif ($outbuf.GetType() -eq [string]) {
+			
+			$split = $outbuf.Trim().Split(' ')
+			$bytes = $split[2]
+			Write-Debug "$bytes"
+			$cb += [int]::Parse($bytes)
+		}
+		else {
+		}
+		#Write-Host "`r$i/$($items.Length)" -NoNewline
+		#Write-Host "`r$cb"
+		
+	} #>
+
+	#lines words bytes
+
 	return $buf
 }
 

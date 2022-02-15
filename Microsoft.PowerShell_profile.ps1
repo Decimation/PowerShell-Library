@@ -6,10 +6,13 @@ using namespace Microsoft.PowerShell
 
 #region [Modules]
 
-$global:ModulePathRoot = "$Home\Documents\PowerShell\Modules\"
-$global:ScriptPathRoot = "$Home\Documents\PowerShell\Scripts\"
+$global:PSROOT = "$HOME\Documents\PowerShell\"
+
+$global:ModulePathRoot = "$PSROOT\Modules\"
+$global:ScriptPathRoot = "$PSROOT\Scripts\"
 
 $PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
+
 
 <# $LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object {
 	[System.IO.File]::Exists($_)
@@ -123,6 +126,7 @@ Set-Alias -Name ie -Value Invoke-Expression
 
 Set-Alias ^ Select-Object
 Set-Alias ~ Select-String
+Set-Alias '**' Get-Command
 
 $global:CommonLocation = "$env:USERPROFILE\Downloads" 
 
