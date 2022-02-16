@@ -631,12 +631,12 @@ function Get-Bytes {
 	)
 	
 	$isStr = $x -is [string]
-	$typeX = $x.GetType()
+	#$typeX = $x.GetType()
 	$info1 = @()
 	$rg = @()
 	
 	if ($isStr) {
-		$typeX = [string]
+		#$typeX = [string]
 		
 		if (!($encoding)) {
 			$encoding = [System.Text.Encoding]::Default
@@ -645,11 +645,11 @@ function Get-Bytes {
 		$info1 += $encoding.EncodingName
 		$rg = $encoding.GetBytes($x)
 	}
- else {
+	else {
 		$rg = [System.BitConverter]::GetBytes($x)
 	}
 	
-	Write-Host "[$($typeX.Name)]" -NoNewline -ForegroundColor Yellow
+	<# Write-Host "[$($typeX.Name)]" -NoNewline -ForegroundColor Yellow
 	
 	if ($info1.Length -ne 0) {
 		Write-Host ' | ' -NoNewline
@@ -657,7 +657,7 @@ function Get-Bytes {
 	}
 	
 	Write-Host ' | ' -NoNewline
-	Write-Host "$x" -ForegroundColor Cyan
+	Write-Host "$x" -ForegroundColor Cyan #>
 	
 	return $rg
 }
@@ -733,14 +733,31 @@ function Format-Binary {
 	}
 }
 
-function Select-Linq {
+function Linq-Where {
+	
 	param (
-		[Parameter(ValueFromPipeline = $true)]
-		[object[]]$rg,
-		[Parameter(Position = 0)]
-		[func[object, object]]$predicate
+		[Parameter(ValueFromPipeline)]
+		$rg,
+		[Parameter()]
+		$predicate
 	)
 	process {
+		$predicate = [func[object, bool]]$predicate
+		return [System.Linq.Enumerable]::Where($rg, $predicate)
+	}	
+}
+
+
+function Linq-Select {
+	param (
+		[Parameter(ValueFromPipeline)]
+		$rg,
+		[Parameter()]
+		$predicate
+	)
+	process {
+		$predicate = [func[object, object]]$predicate
+
 		return [System.Linq.Enumerable]::Select($rg, $predicate)
 	}
 }

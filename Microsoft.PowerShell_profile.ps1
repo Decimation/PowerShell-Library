@@ -114,7 +114,7 @@ Set-Alias -Name wd -Value Write-Debug
 
 Set-Alias -Name so -Value Select-Object
 Set-Alias -Name ss -Value Select-String
-
+Set-Alias gpr Get-Process
 Set-Alias -Name ie -Value Invoke-Expression
 
 <#
@@ -122,11 +122,14 @@ Set-Alias -Name ie -Value Invoke-Expression
 #	? 	Where-Object
 #	^	Select-Object
 #	~ 	Select-String
+#	**	Get-Command
+#	
 #>
 
 Set-Alias ^ Select-Object
 Set-Alias ~ Select-String
-Set-Alias '**' Get-Command
+Set-Alias ** Get-Command
+
 
 $global:CommonLocation = "$env:USERPROFILE\Downloads" 
 
