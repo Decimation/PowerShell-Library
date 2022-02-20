@@ -185,10 +185,10 @@ function QCommand {
 	if ($std -eq $STD_IN) {
 		$outStr = $p.StandardInput.ReadToEnd()
 	}
- elseif ($std -eq $STD_OUT) {
+	elseif ($std -eq $STD_OUT) {
 		$outStr = $p.StandardOutput.ReadToEnd()
 	}
- elseif ($std -eq $STD_ERR) {
+	elseif ($std -eq $STD_ERR) {
 		$outStr = $p.StandardError.ReadToEnd()
 	}
 	
@@ -229,20 +229,6 @@ function IsAdmin {
 	$principal = New-Object Security.Principal.WindowsPrincipal $identity
 	return $principal.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
 }
-
-function Get-IP {
-	
-	$wc = [System.Net.WebClient]::new()
-	
-	$ip = $wc.DownloadString('https://icanhazip.com/').Trim()
-	
-	$wc.Dispose()
-	
-	return $ip
-}
-
-
-
 
 
 function U {
@@ -286,12 +272,10 @@ function Search-InFiles {
 	return Get-ChildItem -Path $path -Filter "$filter" -Recurse -ErrorAction SilentlyContinue
 }
 
-Set-Alias Search Search-InFiles
+Set-Alias search Search-InFiles
 
 function Flatten($a) {
-	, @($a | ForEach-Object {
-			$_
-		})
+	, @($a | ForEach-Object { $_ })
 }
 
 function Get-Difference {
@@ -350,24 +334,6 @@ function New-RandomArray {
 function New-TempFile {
 	return [System.IO.Path]::GetTempFileName()
 }
-
-<#function New-RandomFile {
-	param (
-		[Parameter(Mandatory = $true)]
-		[int]$x,
-		[Parameter(Mandatory = $false)]
-		[string]$f
-	)
-	
-	if (!($f)) {
-		$f = $(New-TempFile)
-	}
-	
-	[System.IO.File]::WriteAllBytes($f, $(New-RandomArray $x))
-	
-	return $f
-
-}#>
 
 function New-RandomFile {
 	param (
@@ -445,15 +411,6 @@ function ConvertFrom-Base64 {
 }
 
 
-# PowerShell parameter completion shim for the dotnet CLI
-Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
-	param ($commandName,
-		$wordToComplete,
-		$cursorPosition)
-	dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
-		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
-	}
-}
 
 <#function Get-FileMetadata {
 	
@@ -507,24 +464,15 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	return $rg
 }#>
 
-function ConvertTo-Extension {
-	param ($items,
-		$ext)
-	
-	$items | ForEach-Object {
-		$x = [System.IO.Path]::GetFileNameWithoutExtension($_) + $ext
-		$y = [System.IO.Path]::GetDirectoryName($_)
-		
-		ffmpeg -i $_ ($y + '\' + $x)
-	}
-}
+
 
 function Get-SanitizedFilename {
 	param (
 		$origFileName
 	)
 	$invalids = [System.IO.Path]::GetInvalidFileNameChars()
-	$newName = [String]::Join('_', $origFileName.Split($invalids, [System.StringSplitOptions]::RemoveEmptyEntries)).TrimEnd('.')
+	$newName = [String]::Join('_', $origFileName.Split($invalids, 
+			[System.StringSplitOptions]::RemoveEmptyEntries)).TrimEnd('.')
 	
 	return $newName
 }
@@ -604,8 +552,6 @@ function Measure-CommandEx ([ScriptBlock]$Expression, [int]$Samples = 1, [Switch
 
 Set-Alias time Measure-CommandEx
 
-
-
 function Search-History {
 	param (
 		[Parameter(Mandatory, ValueFromPipeline)]
@@ -662,21 +608,6 @@ function Get-Bytes {
 	return $rg
 }
 
-function ConvertTo-String {
-	param (
-		[Parameter(Mandatory = $true)]
-		[byte[]]$x,
-		[Parameter(Mandatory = $false)]
-		[System.Text.Encoding]$encoding
-		
-	)
-	
-	if (!($encoding)) {
-		$encoding = [System.Text.Encoding]::Default
-	}
-	
-	return $encoding.GetString($x)
-}
 
 
 function IsReal {
@@ -763,3 +694,25 @@ function Linq-Select {
 }
 
 
+
+$Signature = @'
+[DllImport("user32.dll")]
+public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
+'@
+
+#Add the SendMessage function as a static method of a class
+$global:SendMessageFunc = Add-Type -MemberDefinition $Signature -Name 'Win32SendMessage' -Namespace Win32Functions -PassThru
+
+function SendMessage {
+	param (
+		[Parameter(Mandatory = $true)]
+		[System.Diagnostics.Process]$p1,
+		[Parameter(Mandatory = $true)]
+		$k
+	)
+	
+	#$p = (Get-Process $name).MainWindowHandle
+	$p = $p1.MainWindowHandle
+	$SendMessageFunc::SendMessage($p, 0x0100, $k, 0x002C0001)
+	$SendMessageFunc::SendMessage($p, 0x0101, $k, 0x002C0001)
+}

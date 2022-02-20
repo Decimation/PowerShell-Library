@@ -66,6 +66,7 @@ function Reload-Module {
 }
 
 Import-Module -DisableNameChecking PSKantan
+
 # Import-Module 'C:\Library\vcpkg\scripts\posh-vcpkg'
 
 #endregion
@@ -112,9 +113,6 @@ function Prompt {
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
 
-Set-Alias -Name so -Value Select-Object
-Set-Alias -Name ss -Value Select-String
-Set-Alias gpr Get-Process
 Set-Alias -Name ie -Value Invoke-Expression
 
 <#
@@ -130,18 +128,10 @@ Set-Alias ^ Select-Object
 Set-Alias ~ Select-String
 Set-Alias ** Get-Command
 
-
-$global:CommonLocation = "$env:USERPROFILE\Downloads" 
-
-function Set-LocationToCommon {
-	Set-Location $CommonLocation
-}
-
-# Set-Alias cdc Set-LocationToCommon
-
 $script:fr = [string] {
 	Reload-Module PSKantan
 }
+
 $script:qr = ".`$PROFILE; $fr"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
@@ -177,7 +167,8 @@ public static class $className
 }
 "@
 }
-#region 
+
+#region Keys
 
 Set-PSReadLineOption -PredictionSource HistoryAndPlugin
 Set-PSReadLineOption -HistorySearchCursorMovesToEnd
@@ -220,13 +211,13 @@ $TogglePredictionView = {
 	if ($pvs -eq 'ListView') {
 		& $ListViewHandler
 	}
- else {
+	else {
 		& $InlineViewHandler
 	}
 	& $OtherKeyHandlers
 	$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
 	
-
+	
 	[PSConsoleReadLine]::AcceptLine()
 	Write-Host 'Prediction view: ' -NoNewline
 	Write-Host "$pvs" -ForegroundColor DarkCyan
@@ -250,6 +241,9 @@ $OtherKeyHandlers = {
 	Set-PSReadLineKeyHandler -Key 'Tab' -Function TabCompleteNext
 	Set-PSReadlineKeyHandler -Key 'Shift+Tab' -Function TabCompletePrevious
 	Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+	Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+	Set-PSReadLineKeyHandler -Key 'Ctrl+UpArrow' -Function PreviousHistory
+	Set-PSReadLineKeyHandler -Key 'Ctrl+DownArrow' -Function NextHistory
 	Set-PSReadLineKeyHandler -Key 'Tab' -Function TabCompleteNext
 	Set-PSReadLineKeyHandler -Key F1 -Function ShowCommandHelp
 	Set-PSReadLineKeyHandler -Key 'Ctrl+p' -Function ShowParameterHelp
@@ -284,10 +278,22 @@ Set-PSReadLineKeyHandler -Key F5 -ScriptBlock {
 & $OtherKeyHandlers
 
 #endregion
+
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
 Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
+
+# PowerShell parameter completion shim for the dotnet CLI
+Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
+	param ($commandName,
+		$wordToComplete,
+		$cursorPosition)
+	dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
+		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+	}
+}
+
 
 Invoke-Expression "$(thefuck --alias)"

@@ -27,8 +27,14 @@ function Get-CozyVOD {
 function Get-Translation {
 	param (
 		[Parameter(Mandatory = $true)][string]$x,
-		[Parameter(Mandatory = $true)][string]$y
+		[Parameter(Mandatory = $true)][string]$y,
+		[Parameter(Mandatory = $false)][string]$src
+
 	)
+	
+	if (!($src)) {
+		$src = 'auto'
+	}
 
 	$cmd = @"
 from googletrans import *
@@ -45,11 +51,15 @@ for x in tmp.extra_data['translation']:
 
 	$cmd2 = @"
 from translatepy import *
-tmp2 = Translator().translate('$x', '$y')
+import pprint
+tmp2 = Translator().translate('$x', '$y',source_language='$src')
 print(tmp2)
+tmp3 = Translator().transliterate('$x', '$y',source_language='$src')
+print(tmp3)
+tmp4 = Translator().dictionary('$x', '$y',source_language='$src')
+pprint.PrettyPrinter(depth=2).pprint(tmp4.__dict__)
 "@
-		
-	
+
 	python -c $cmd2
 }
 
