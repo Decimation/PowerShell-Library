@@ -112,7 +112,6 @@ function Prompt {
 
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
-
 Set-Alias -Name ie -Value Invoke-Expression
 
 <#
@@ -294,6 +293,5 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
 	}
 }
-
 
 Invoke-Expression "$(thefuck --alias)"
