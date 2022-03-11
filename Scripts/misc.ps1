@@ -142,51 +142,19 @@ function Convert-ObjFromHashTable {
 	return $o
 }
 
+
+
+#region
+
+
 function adb {
 
-	
 	$argBuf = [System.Collections.Generic.List[string]]::new()
 	$argBuf.AddRange([string[]]$args)
 
-	Write-Debug "Original args: $($argBuf -join ',')"
+	Write-Debug "Original args: $($argBuf -join ',')`n"
 
 	switch ($argBuf[0]) {
-		'push' {
-			$d = ($argBuf | Select-Object -Index 2)
-			if (-not $d) {
-				$argBuf += 'sdcard/'
-			}
-		}
-		'xpull' {
-			
-			$ri = adb_get-items $argBuf[1]
-			$c = $argBuf[2] ?? 5
-			$argBuf.Clear()
-
-			$j = @()
-			$l = $ri.Length
-			$dr = [math]::DivRem($l, $c)
-			$b = $dr.Item1
-			$rem = $dr.Item2
-			$ri2 = New-Chunks -Array $ri -Groups $b
-			Write-Host "$b | $c | $rem | $l | $($ri2.Length)"
-			for ($i = 0; $i -lt $ri2.Length; $i++) {
-				$j1 = Start-Job -Name "ri_$i" -ScriptBlock { 
-					param($ff)
-					for ($j = 0; $j -lt $ff.Length; $j++) {
-						Write-Debug "$ff|$($ff[$j])"
-						adb.exe pull $ff[$j]
-	
-					}
-				} -ArgumentList @($ri2[$i])
-
-				$j += $j1
-				Write-Host "$($j.Id)"
-			}
-
-
-			return $ri
-		}
 		
 
 		Default {}
@@ -197,24 +165,45 @@ function adb {
 	adb.exe @argBuf
 }
 
+function Adb-QPush {
+	
+	param($f, [parameter(Mandatory = $false)] $d = 'sdcard/')
 
+	if ($f -is [array]) {
+		$f | ForEach-Object -Parallel { 
+			adb.exe push "$_" $using:d
+		}
+	}
 
-function adb_get-items {
-
-	$argBuf = [System.Collections.Generic.List[string]]::new()
-	$argBuf.AddRange([string[]]$args)
-
-	Write-Debug "Original args: $($argBuf -join ',')"
-
-	$pred = $argBuf[0]
-	$type = $argBuf[1] ?? 'f'
-	$argBuf.Clear()
-	$argBuf.AddRange(("shell find $pred -type $type" -split ' '))
-
-	return adb @argBuf
 }
 
-function New-Chunks {
+function Adb-QPull {
+	$r = Adb-GetItems @args
+	Write-Verbose "$($r.Length)"
+	$r | ForEach-Object -Parallel { 
+		adb.exe pull $_
+	}
+	
+}
+
+function Adb-GetItems {
+	[CmdletBinding()]
+	param (
+		[Parameter()]
+		$pred,
+		[parameter(Mandatory = $false)]$type = 'f'
+	)
+
+	$a = (("shell find $pred -type $type" -split ' '))
+
+	return adb @a
+}
+
+#endregion
+
+
+#region
+<# function New-Chunks {
 	[CmdletBinding()]
 	param (
 		[parameter(ParameterSetName = 'ArrayGroups', Mandatory = $true)]
@@ -283,4 +272,5 @@ function Split-ArrayInChunks_UsingArrayList($inArray, $numberOfChunks) {
 	Write-Host 'Number of arryList:'$Lists.Count
 	Write-Host 'Number of items in first arryList:' $Lists[0].Count
 	return $Lists
-}
+} #>
+#endregion
