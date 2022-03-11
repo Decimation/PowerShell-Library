@@ -1,18 +1,43 @@
 #param($op, $op2)
 
+[string]$op_search = 'search'
+[string]$op_install = 'install'
+[string]$op_uninstall = 'uninstall'
+[string]$op_update = 'update'
+[string]$op_list = 'list'
+
+
+
 class PackageManager {
 	[string]$name
-	[string]$search = 'search'
-	[string]$install = 'install'
-	[string]$uninstall = 'uninstall'
-	[string]$update = 'update'
-	[string]$list = 'list'
+	[string]$search
+	[string]$install
+	[string]$uninstall
+	[string]$update
+	[string]$list
+	
+
+	[void]Clear() {
+		$this.GetType().GetFields()
+
+	}
+	
+}
+
+
+$DefaultPackageManager = [PackageManager] @{
+	search    = $op_search
+	install   = $op_install
+	uninstall = $op_uninstall
+	update    = $op_update
+	list      = $op_list
 }
 
 $PackageManagers = @(
 	[PackageManager]@{
 		name = 'scoop'
-	},
+	}, 
+	
 	[PackageManager]@{
 		name = 'winget'
 	},
@@ -25,62 +50,16 @@ $PackageManagers = @(
 		name = 'choco'
 	},
 	[PackageManager]@{
-		name = 'pip'
+		name = 'Get-AppxPackage'
+	},
+	[PackageManager]@{
+		name   = 'pip'
+		update = (($op_install + ' --upgrade'))
 	}
 )
 
-<# function QPackageManage {
-	[CmdletBinding()]
-
-	param (
-		$op, $op2
-	)
-	$rg = @()
-	$jobs = Get-PMJobs $op $op2
-	for ($i = 0; $i -lt $jobs.Length; $i++) {
-		Write-Host "$($jobs[$i])"
-		$r = Receive-Job -Job $jobs[$i] -Keep
-		$rg += $r
-	}
-	return $rg
-} #>
-
-#function qs{ $args|%{receive-Job $_}}
-
-#$jobs|%{Receive-Job $_ -Keep}
 
 $sxx = [string]::new('-', $([console]::BufferWidth))
-
-<# function QPackageManage {
-	param($jobs)
-
-	# $jobs | ForEach-Object {
-	# 	$jj = $_
-	# 	Write-Host "$sz`n>> $($jj.Name)" -ForegroundColor Green
-		
-	# 	# if ($r) {
-	# 	# 	Wait-Job $_
-	# 	# }
-
-	# 	$jx = Receive-Job $jj -Keep:$keep -Wait:$r
-	# 	if ($jx.State -eq 'Completed') {
-	# 		$jobs.RemoveAt
-	# 	}
-	# }
-
-	# while ($jobs | Where-Object { $_.State -ne 'Completed' }) { 
-	# 	# QPackageManage $jobs $keep $r 
-		
-	# }
-
-	# process {
-
-	# 	$jobs | ForEach-Object -Parallel {
-	# 		$res = Receive-Job -Job $_ -Wait -WriteJobInResults
-
-	# 	}
-	# }
-} #>
 
 
 function Get-PMJobs {
@@ -142,6 +121,8 @@ function Get-PMJobs {
 	$op = 'search'
 	$op2 = 'test'
 } #>
-
+if (-not $args) {
+	return
+}
 Write-Debug "$($args -join ',')"
 Get-PMJobs @args
