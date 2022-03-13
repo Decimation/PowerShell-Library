@@ -299,3 +299,6 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 }
 
 #Invoke-Expression "$(thefuck --alias)"
+
+Import-Module ZLocation
+

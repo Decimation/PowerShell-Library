@@ -780,7 +780,15 @@ function Linq-Where {
 		return [System.Linq.Enumerable]::Where($rg, $predicate)
 	}	
 }
-
+function Linq-First {
+	param (
+		[Parameter(ValueFromPipeline)]
+		$rg,
+		[Parameter()]
+		$predicate
+	)
+	[System.Linq.Enumerable]::First($rg, [System.Func[object, bool]] $predicate)
+}
 
 function Linq-Select {
 	param (
