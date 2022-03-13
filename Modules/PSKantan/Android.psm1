@@ -12,66 +12,8 @@ $global:RD_DOC = $RD_SD + 'Documents/'
 
 $global:AdbRemoteOutputDefault = $RD_SD
 
-<#
-.Description
-ADB enhanced passthru
-#>
-function adb {
-	
-	
-	$argC = $args.Count
-	$argList = $args
-	$cmd = $argList[0]
-	
-	switch ($cmd) {
-		'push' {
-			if ($Path) {
-				<# process {
-					$src = $Path
-				} #>
-				$src = $Path
-				
-			}
-			else {
-				$src = $argList[1]
-			}
-			$src = Adb-Escape $src Shell
-			
-			$argList[1] = $src
-			if ($argC -lt 3) {
-				$dest = $AdbRemoteOutputDefault
-			}
-			else {
-				$dest = $argList[2]
-			}
-			
-			#$dest = $dest.Replace(' ', "`\ ")
-			#$dest = Adb-Escape $dest Shell
-			
-			#$argList += $dest
-			
-			Write-Verbose "push $src -> $dest"
-		}
-		'pull' {
-			
-		}
-		'shell' {
-			
-		}
-		
-		# todo ...
-		
-		Default {
-			
-		}
-	}
-	
-	Write-Verbose "New args: $($argList -join ',')"
-	
-	#return (adb.exe $argList)
-	adb.exe $argList
-	
-}
+
+
 
 
 #region ADB completion
@@ -252,6 +194,10 @@ Lists directory content
 	return $files
 }#>
 
+<#
+.Description
+ADB enhanced passthru
+#>
 function adb {
 	
 	$argBuf = [System.Collections.Generic.List[string]]::new()

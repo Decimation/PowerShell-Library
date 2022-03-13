@@ -14,12 +14,6 @@ $global:ScriptPathRoot = "$PSROOT\Scripts\"
 $PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
 
 
-<# $LocalScripts = (Get-ChildItem $global:ScriptPathRoot) | Where-Object {
-	[System.IO.File]::Exists($_)
-} | ForEach-Object {
-	$_.ToString()
-} #>
-
 
 # region Windows PWSH
 
@@ -57,7 +51,6 @@ function __Invoke-WinCommand {
 # endregion
 
 
-
 function Reload-Module {
 	param ($x)
 	Remove-Module $x
@@ -69,34 +62,29 @@ Import-Module -DisableNameChecking PSKantan
 
 #https://github.com/WantStuff/AudioDeviceCmdlets
 
-Import-Module AudioDeviceCmdlets
 
-#endregion
-
-$script:CallerVariableModule = {
-	# https://stackoverflow.com/questions/46528262/is-there-any-way-for-a-powershell-module-to-get-at-its-callers-scope
+# https://stackoverflow.com/questions/46528262/is-there-any-way-for-a-powershell-module-to-get-at-its-callers-scope
 	
-	New-Module {
-		function Get-CallerVariable {
-			param (
-				[Parameter(Position = 1)]
-				[string]$Name
-			)
-			$PSCmdlet.SessionState.PSVariable.GetValue($Name)
+New-Module {
+	function Get-CallerVariable {
+		param (
+			[Parameter(Position = 1)]
+			[string]$Name
+		)
+		$PSCmdlet.SessionState.PSVariable.GetValue($Name)
+	}
+	function Set-CallerVariable {
+		param (
+			[Parameter(ValuefromPipeline)]
+			[string]$Value,
+			[Parameter(Position = 1)]
+			$Name
+		)
+		process {
+			$PSCmdlet.SessionState.PSVariable.Set($Name, $Value)
 		}
-		function Set-CallerVariable {
-			param (
-				[Parameter(ValueFromPipeline)]
-				[string]$Value,
-				[Parameter(Position = 1)]
-				$Name
-			)
-			process {
-				$PSCmdlet.SessionState.PSVariable.Set($Name, $Value)
-			}
-		}
-	} | Import-Module
-}
+	}
+} | Import-Module
 
 function Prompt {
 	
@@ -133,10 +121,15 @@ Set-Alias ~ Select-String
 
 # endregion
 
-$script:fr = [string] {
+$script:rmpsk = [string] {
+	Import-Module PSKantan -Force -DisableNameChecking
+}
+$script:rmpsk2 = [string] {
 	Reload-Module PSKantan
 }
-$script:qr = ".`$PROFILE; $fr"
+
+$script:qr = ".`$PROFILE; $rmpsk"
+$script:qr2 = ".`$PROFILE; $rmpsk2"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
@@ -148,30 +141,6 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
 
-function New-PInvoke {
-	param (
-		$imports,
-		$className,
-		$dll,
-		$returnType,
-		$funcName,
-		$funcParams
-	)
-	
-	Add-Type @"
-using System;
-using System.Text;
-using System.Runtime.InteropServices;
-
-$imports
-
-public static class $className
-{
-	[DllImport("$dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	public static extern $returnType $funcName($funcParams);
-}
-"@
-}
 
 #region Keys
 
@@ -179,22 +148,27 @@ Set-PSReadLineOption -PredictionSource HistoryAndPlugin
 Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 
 Set-PSReadLineOption -Colors @{
-	Command                = "$([char]0x1b)[93m"
+	Command                = "$([char]0x1b)[93;1m"
+	# Command                = '#d6c956'
 	Comment                = "$([char]0x1b)[32m"
 	ContinuationPrompt     = "$([char]0x1b)[37m"
-	Emphasis               = "$([char]0x1b)[96m"
+	Emphasis               = "`e[38;5;166m"
 	Error                  = "$([char]0x1b)[91m"
-	InlinePrediction       = "$([char]0x1b)[90m"
-	Keyword                = "$([char]0x1b)[38;5;204m"
+	InlinePrediction       = "$([char]0x1b)[0;90m"
+	# Keyword                = "$([char]0x1b)[38;5;204m"
+	Keyword                = "$([char]0x1b)[38;5;27;1m"
 	ListPrediction         = "$([char]0x1b)[33m"
-	ListPredictionSelected = "$([char]0x1b)[48;5;238m"
-	Member                 = '#BEB7FF'
-	Number                 = '#dad27e'
-	Operator               = "$([char]0x1b)[90m"
+	ListPredictionSelected = "$([char]0x1b)[48;5;234;4m"
+	# Member                 = '#BEB7FF'
+	Member                 = '#ff3690'
+	# Number                 = '#dad27e'
+	Number                 = '#73fff6'
+	# Operator               = "$([char]0x1b)[38;5;254m"
+	Operator               = "$([char]0x1b)[36m"
 	Parameter              = "$([char]0x1b)[38;2;255;165;0;3m"
 	Selection              = "$([char]0x1b)[30;47m"
-	String                 = "$([char]0x1b)[36m"
-	Variable               = "$([char]0x1b)[38;2;0;255;34;1m"
+	String                 = "$([char]0x1b)[38;5;136m"
+	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	Type                   = '#9CDCFE'
 }
 
@@ -203,6 +177,7 @@ function Get-PSConsoleReadlineOptions {
 }
 
 $TogglePredictionView = {
+	[Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
 	[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
 	
 	$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
@@ -273,7 +248,13 @@ Set-PSReadLineKeyHandler -Key F5 -ScriptBlock {
 	# $Host.ui.WriteLine('Reloaded profile')
 	[PSConsoleReadLine]::Ding()
 }
-
+Set-PSReadLineKeyHandler -Key 'Ctrl+F5' -ScriptBlock {
+	ie $qr2
+	[PSConsoleReadLine]::AcceptLine()
+	Write-Host 'Reloaded profile full' -ForegroundColor DarkGreen
+	# $Host.ui.WriteLine('Reloaded profile')
+	[PSConsoleReadLine]::Ding()
+}
 & $OtherKeyHandlers
 
 #endregion
@@ -295,5 +276,8 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 #Invoke-Expression "$(thefuck --alias)"
 
 Import-Module ZLocation
-
-
+# Install-Module -Name Terminal-Icons -Repository PSGallery
+# Install-Module oh-my-posh -Scope CurrentUser
+Import-Module oh-my-posh
+# Set-PoshPrompt microverse-power
+Import-Module AudioDeviceCmdlets

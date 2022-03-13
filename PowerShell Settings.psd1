@@ -6,5 +6,5 @@
 	# will be excluded.
 	ExcludeRules = @('PSAvoidUsingAliases', 'PSAvoidUsingWriteHost', 'PSUseApprovedVerbs', 'PSReviewUnusedParameter', 'PSAvoidGlobalVars',
 		'PSUseShouldProcessForStateChangingFunctions', 'PSUseSingularNouns', 'PSAvoidUsingInvokeExpression', 'PSAvoidUsingPositionalParameters', 'PSUseApprovedVerbs',
-		'PSAvoidTrailingWhitespace')
+		'PSAvoidTrailingWhitespace', 'PSPossibleIncorrectComparisonWithNull')
 }
