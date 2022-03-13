@@ -9,12 +9,6 @@
 #Requires -Module PSKantan
 $ds = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
 
-[string]$pm_search = 'search'
-[string]$pm_install = 'install'
-[string]$pm_uninstall = 'uninstall'
-[string]$pm_update = 'update'
-[string]$pm_list = 'list'
-
 class BackupSource {
 	[string]$name
 	[scriptblock]$run
@@ -33,21 +27,11 @@ class PackageManager : BackupSource {
 	}
 }
 
-
-$DefaultPackageManager = [PackageManager] @{
-	search    = $pm_search
-	install   = $pm_install
-	uninstall = $pm_uninstall
-	update    = $pm_update
-	list      = $pm_list
-}
-
-$PackageManagers = @(
+$Index = @(
 	[PackageManager]@{
 		name = 'scoop'
 		run  = { 
 			scoop export | Out-File 'scoop.txt'
-
 		}
 	},
 	[PackageManager]@{
@@ -56,10 +40,8 @@ $PackageManagers = @(
 		install = '-S'
 		run     = {
 			if ((Get-Command -Name pacman)) {
-		
 				Write-Host 'Export: pacman'
 				pacman -Q | Out-File 'pacman.txt'
-		
 			}
 		}
 	},
@@ -67,7 +49,6 @@ $PackageManagers = @(
 		name = 'choco'
 		run  = {
 			choco export 'choco.config' --include-version-numbers | Out-Null
-
 		}
 	},
 	[PackageManager]@{
@@ -75,24 +56,21 @@ $PackageManagers = @(
 		update = (($pm_install + ' --upgrade'))
 		run    = {
 			pip list | Out-File 'pip.txt'
-			
 		}
 	},
 	[PackageManager]@{
 		name = 'npm'
 		run  = {
 			npm list -g | Out-File 'npm.txt'
-
 		}
 	},
 	[PackageManager]@{
 		name = 'winget'
 		run  = {
 			winget export 'winget.json' --include-versions | Out-Null
-
 		}
 	},
-	[src]@{
+	[BackupSource]@{
 		name = 'appx'
 		run  = {
 			if ((Get-Command -Name Invoke-WinCommand)) {
@@ -108,11 +86,10 @@ $PackageManagers = @(
 					Export-StartLayout 'start layout.xml'
 				} -ArgumentList $ds
 				Write-Host 'Export: Start layout'
-		
 			}
 		}
 	},
-	[src]@{
+	[BackupSource]@{
 		name = 'bd'
 		run  = {
 			$bd = "$env:APPDATA\BetterDiscord"
@@ -123,7 +100,7 @@ $PackageManagers = @(
 			}
 		}
 	},
-	[src]@{
+	[BackupSource]@{
 		name = 'env'
 		run  = {
 			$lm = Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
@@ -136,7 +113,7 @@ $PackageManagers = @(
 			$cu | Out-File 'env variables (user).txt'
 		}
 	}
-	[src]@{
+	[BackupSource]@{
 		name = 'progfiles'
 		run  = {
 			Get-ChildItem $env:ProgramFiles | Out-File 'programs.txt'
@@ -151,12 +128,13 @@ Write-Debug "$($args -join ',')"
 switch ($args[0]) {
 	'run' {
 		$n = $args[1]
-		$op = $PackageManagers | Where-Object { $_.name -eq $n }
+		$op = $Index | Where-Object { $_.name -eq $n }
 		Write-Debug "$($op.name)"
 		& $op.run
 	}
+	
 	Default {
-		$PackageManagers | ForEach-Object { 
+		$Index | ForEach-Object { 
 			$_.name
 		} | Format-Table
 	}
