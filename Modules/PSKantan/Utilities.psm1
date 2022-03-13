@@ -676,6 +676,7 @@ function Search-History {
 }
 
 function Get-Bytes {
+	[outputtype([byte[]])]
 	param (
 		[Parameter(Mandatory = $true)]
 		$x,

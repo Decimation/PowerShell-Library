@@ -329,3 +329,39 @@ function Get-ScreenRefreshRate {
 
 	return $frequency
 }
+
+
+# region Windows PWSH
+
+<#$global:WinPSRoot = "$env:WINDIR\System32\WindowsPowerShell\v1.0\"
+$global:WinModulePathRoot = "$WinPSRoot\Modules\"
+$global:WinModules = gci "$WinModulePathRoot" | % {
+	$_.FullName
+}#>
+
+<#function __Import-WinModule {
+	param ($name)
+	Import-Module $name -UseWindowsPowerShell -NoClobber -WarningAction SilentlyContinue
+}
+
+#Get-PSSession -Name WinPSCompatSession
+
+function __Get-WinSession {
+	return Get-PSSession -Name WinPSCompatSession
+}
+
+function __Invoke-WinCommand {
+	param ([scriptblock]$x)
+	Invoke-Command -Session $(__Get-WinSession) $x
+}#>
+
+#Import-WinModule Appx
+#Import-WinModule PnpDevice
+#Import-WinModule Microsoft.PowerShell.Management
+
+#https://github.com/PowerShell/WindowsCompatibility
+
+#Install-Module WindowsCompatibility -Scope CurrentUser
+#Import-Module WindowsCompatability
+
+# endregion

@@ -8,47 +8,12 @@ using namespace Microsoft.PowerShell
 
 $global:PSROOT = "$HOME\Documents\PowerShell\"
 
-$global:ModulePathRoot = "$PSROOT\Modules\"
-$global:ScriptPathRoot = "$PSROOT\Scripts\"
+$global:PSModuleRoot = "$PSROOT\Modules\"
+$global:PSScriptRoot = "$PSROOT\Scripts\"
 
 $PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
 
 
-
-# region Windows PWSH
-
-<#$global:WinPSRoot = "$env:WINDIR\System32\WindowsPowerShell\v1.0\"
-$global:WinModulePathRoot = "$WinPSRoot\Modules\"
-$global:WinModules = gci "$WinModulePathRoot" | % {
-	$_.FullName
-}#>
-
-<#function __Import-WinModule {
-	param ($name)
-	Import-Module $name -UseWindowsPowerShell -NoClobber -WarningAction SilentlyContinue
-}
-
-#Get-PSSession -Name WinPSCompatSession
-
-function __Get-WinSession {
-	return Get-PSSession -Name WinPSCompatSession
-}
-
-function __Invoke-WinCommand {
-	param ([scriptblock]$x)
-	Invoke-Command -Session $(__Get-WinSession) $x
-}#>
-
-#Import-WinModule Appx
-#Import-WinModule PnpDevice
-#Import-WinModule Microsoft.PowerShell.Management
-
-#https://github.com/PowerShell/WindowsCompatibility
-
-#Install-Module WindowsCompatibility -Scope CurrentUser
-#Import-Module WindowsCompatability
-
-# endregion
 
 
 function Reload-Module {
@@ -160,27 +125,37 @@ Set-PSReadLineOption -Colors @{
 	ListPrediction         = "$([char]0x1b)[33m"
 	ListPredictionSelected = "$([char]0x1b)[48;5;234;4m"
 	# Member                 = '#BEB7FF'
-	Member                 = '#ff3690'
+	# Member                 = '#ff3690'
+	Member                 = "$([char]0x1b)[38;5;170m"
 	# Number                 = '#dad27e'
 	Number                 = '#73fff6'
+	# Number                 = "$([char]0x1b)[38;5;136m"
 	# Operator               = "$([char]0x1b)[38;5;254m"
-	Operator               = "$([char]0x1b)[36m"
+	Operator               = "$([char]0x1b)[38;5;166m"
 	Parameter              = "$([char]0x1b)[38;2;255;165;0;3m"
 	Selection              = "$([char]0x1b)[30;47m"
-	String                 = "$([char]0x1b)[38;5;156m"
+	String                 = "$([char]0x1b)[38;5;215m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
-	Type                   = '#9CDCFE'
+	# Type                   = '#9CDCFE'
+	Type                   = "$([char]0x1b)[38;5;81;1m"
 }
 
 function Get-PSConsoleReadlineOptions {
 	return [Microsoft.PowerShell.PSConsoleReadLine]::GetOptions()
 }
-function global:RemoveLine {
+
+function script:Clear-PSLine {
+	<# $a = ''
+	$b = 0
+	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$a, [ref]$b)
 	[Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
+	[Microsoft.PowerShell.PSConsoleReadLine]::Insert($a) #>
+	[Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
+
 }
 
 $TogglePredictionView = {
-	global:RemoveLine
+	Clear-PSLine
 	[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
 	
 	$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
