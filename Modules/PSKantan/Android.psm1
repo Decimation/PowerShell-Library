@@ -219,7 +219,7 @@ function Adb-RemoveItem {
 .Description
 Lists directory content
 #>
-function Adb-GetItems {
+<#function Adb-GetItems {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$src,
@@ -250,8 +250,73 @@ function Adb-GetItems {
 		$files = $files | Select-String -Pattern $filter
 	}
 	return $files
+}#>
+
+function adb {
+	
+	$argBuf = [System.Collections.Generic.List[string]]::new()
+	$argBuf.AddRange([string[]]$args)
+	
+	Write-Debug "Original args: $($argBuf -join ',')`n"
+	
+	switch ($argBuf[0]) {
+		
+		
+		Default {
+		}
+	}
+	
+	Write-Debug "Final args: $($argBuf -join ',')"
+	
+	adb.exe @argBuf
 }
 
+function Adb-QPush {
+	
+	param ($f,
+		[parameter(Mandatory = $false)]
+		$d = 'sdcard/')
+	
+	if ($f -is [array]) {
+		$f | ForEach-Object -Parallel {
+			adb.exe push "$_" $using:d
+		}
+	}
+	
+}
+
+function Adb-QPull {
+	$r = Adb-GetItems @args
+	Write-Verbose "$($r.Length)"
+	$r | ForEach-Object -Parallel {
+		adb.exe pull $_
+	}
+	
+}
+
+function Adb-GetItems {
+	[CmdletBinding()]
+	param (
+		[Parameter()]
+		$pred,
+		[parameter(Mandatory = $false)]
+		$type = 'f',
+		[parameter(Mandatory = $false)]
+		[switch]$sort
+		
+	)
+	
+	$a = (("shell find $pred -type $type" -split ' '))
+	$v = adb @a
+	
+	if ($sort) {
+		$v = $v | Sort-Object
+	}
+	
+	$v = [string[]]$v
+	
+	return $v
+}
 #endregion
 
 

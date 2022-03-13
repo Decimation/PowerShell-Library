@@ -6,6 +6,109 @@ $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 $global:ANSI_UNDERLINE = "$([char]0x1b)[4m"
 $global:ANSI_END = "$([char]0x001b)[0m"
 
+
+
+$WinMedia = "$env:WINDIR\Media"
+
+$script:WinSoundPlayer = ([System.Media.SoundPlayer]::new())
+
+
+function Start-WinSound {
+	param (
+		$pred
+	)
+	
+	$p = "$WinMedia\$pred"
+	if (-not (Resolve-Path $p -ErrorAction Ignore)) {
+		$p = Get-ChildItem "$p.*"
+		Write-Debug "$p"
+	}
+	$script:WinSoundPlayer.SoundLocation = ($p)
+	$script:WinSoundPlayer.Play()
+}
+
+function Stop-WinSound {
+	$script:WinSoundPlayer.Stop()
+}
+
+function Get-SubstringBetween {
+	param ([string]$value,
+		[string]$a,
+		[string]$b)
+	
+	$posA = $value.IndexOf($a, [System.StringComparison]::Ordinal)
+	$posB = $value.LastIndexOf($b, [System.StringComparison]::Ordinal)
+	
+	$inv = -1
+	
+	if ($posA -eq $inv -or $posB -eq $inv) {
+		return [String]::Empty
+	}
+	
+	$adjustedPosA = $posA + $a.Length
+	$pred = $adjustedPosA -ge $posB ? [String]::Empty: $value[$adjustedPosA .. $posB]
+	$sz = [string]::new([char[]]$pred)
+	
+	if ($sz.EndsWith($b)) {
+		$sz = $sz.Substring(0, $sz.LastIndexOf($b))
+	}
+	return $sz
+}
+
+function Convert-ObjToHashTable {
+	[CmdletBinding()]
+	param (
+		[parameter(Mandatory = $true, ValueFromPipeline = $true)]
+		[pscustomobject]$Object
+	)
+	
+	$HashTable = @{
+	}
+	$ObjectMembers = Get-Member -InputObject $Object -MemberType *Property
+	foreach ($Member in $ObjectMembers) {
+		$HashTable.$($Member.Name) = $Object.$($Member.Name)
+	}
+	return $HashTable
+}
+
+function Convert-Obj {
+	param (
+		$a,
+		$t
+	)
+	<# Write-Debug "$( $t)"
+	if ($t -is [string]) {
+		$t = $t.Substring(1, $t.Length - 2)
+		Write-Debug "$( $t)"
+
+		$t2 = [type]::GetType($t)
+	}
+	else {
+		$t2 = $t
+	} #>
+	return [System.Management.Automation.LanguagePrimitives]::ConvertTo($a, ($t2))
+}
+
+Set-Alias cast Convert-Obj
+Set-Alias conv Convert-Obj
+
+function Convert-ObjFromHashTable {
+	param (
+		[parameter(Mandatory = $true)]
+		$pred,
+		[parameter(Mandatory = $false)]
+		$t
+	)
+	
+	$o = New-Object pscustomobject
+	$o | Add-Member $pred
+	
+	if ($t) {
+		$o = Convert-Obj $o $t
+	}
+	
+	return $o
+}
 function Get-PublicIP {
 	return (Invoke-WebRequest ifconfig.me/ip).Content.Trim()
 	

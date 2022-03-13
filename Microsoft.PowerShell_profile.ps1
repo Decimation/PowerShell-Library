@@ -21,16 +21,13 @@ $PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadi
 } #>
 
 
+# region Windows PWSH
+
 <#$global:WinPSRoot = "$env:WINDIR\System32\WindowsPowerShell\v1.0\"
 $global:WinModulePathRoot = "$WinPSRoot\Modules\"
 $global:WinModules = gci "$WinModulePathRoot" | % {
 	$_.FullName
 }#>
-
-#https://github.com/WantStuff/AudioDeviceCmdlets
-
-Import-Module AudioDeviceCmdlets
-
 
 <#function __Import-WinModule {
 	param ($name)
@@ -57,6 +54,9 @@ function __Invoke-WinCommand {
 #Install-Module WindowsCompatibility -Scope CurrentUser
 #Import-Module WindowsCompatability
 
+# endregion
+
+
 
 function Reload-Module {
 	param ($x)
@@ -67,7 +67,9 @@ function Reload-Module {
 
 Import-Module -DisableNameChecking PSKantan
 
-# Import-Module 'C:\Library\vcpkg\scripts\posh-vcpkg'
+#https://github.com/WantStuff/AudioDeviceCmdlets
+
+Import-Module AudioDeviceCmdlets
 
 #endregion
 
@@ -110,6 +112,8 @@ function Prompt {
 	return ' '
 }
 
+# region Aliases
+
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
 Set-Alias -Name ie -Value Invoke-Expression
@@ -119,18 +123,19 @@ Set-Alias -Name ie -Value Invoke-Expression
 #	? 	Where-Object
 #	^	Select-Object
 #	~ 	Select-String
-#	**	Get-Command
+#	
 #	
 #>
 
 Set-Alias ^ Select-Object
 Set-Alias ~ Select-String
-Set-Alias ** Get-Command
+
+
+# endregion
 
 $script:fr = [string] {
 	Reload-Module PSKantan
 }
-
 $script:qr = ".`$PROFILE; $fr"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
@@ -139,8 +144,9 @@ $InformationPreference = 'Continue'
 $DebugPreference = 'SilentlyContinue'
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
-$PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
 $OutputEncoding = [System.Text.Encoding]::UTF8
+
+$PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
 
 function New-PInvoke {
 	param (
@@ -286,12 +292,10 @@ Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
-	param ($commandName,
-		$wordToComplete,
-		$cursorPosition)
+	param ($commandName, $wordToComplete, $cursorPosition)
 	dotnet complete --position $cursorPosition "$wordToComplete" | ForEach-Object {
 		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
 	}
 }
 
-Invoke-Expression "$(thefuck --alias)"
+#Invoke-Expression "$(thefuck --alias)"
