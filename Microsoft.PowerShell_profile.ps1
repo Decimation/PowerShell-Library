@@ -178,30 +178,24 @@ public static class $className
 Set-PSReadLineOption -PredictionSource HistoryAndPlugin
 Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 
-try {
-	Set-PSReadLineOption -Colors @{
-		CommandColor                = "`e[93m"
-		CommentColor                = "`e[32m"
-		ContinuationPromptColor     = "`e[37m"
-		DefaultTokenColor           = "`e[38;5;255m"
-		EmphasisColor               = "`e[96m"
-		ErrorColor                  = "`e[91m"
-		InlinePredictionColor       = "`e[90m"
-		KeywordColor                = "`e[38;5;204m"
-		ListPredictionColor         = "`e[33m"
-		ListPredictionSelectedColor = "`e[48;5;238m"
-		MemberColor                 = "`e[38;2;221;17;221m"
-		NumberColor                 = "`e[97m"
-		OperatorColor               = "`e[90m"
-		ParameterColor              = "`e[38;2;255;255;0m"
-		SelectionColor              = "`e[30;47m"
-		StringColor                 = "`e[36m"
-		TypeColor                   = "`e[38;2;0;255;34m"
-		VariableColor               = "`e[92m"
-	}
-}
-catch {
-	Write-Verbose ''
+Set-PSReadLineOption -Colors @{
+	Command                = "$([char]0x1b)[93m"
+	Comment                = "$([char]0x1b)[32m"
+	ContinuationPrompt     = "$([char]0x1b)[37m"
+	Emphasis               = "$([char]0x1b)[96m"
+	Error                  = "$([char]0x1b)[91m"
+	InlinePrediction       = "$([char]0x1b)[90m"
+	Keyword                = "$([char]0x1b)[38;5;204m"
+	ListPrediction         = "$([char]0x1b)[33m"
+	ListPredictionSelected = "$([char]0x1b)[48;5;238m"
+	Member                 = '#BEB7FF'
+	Number                 = '#dad27e'
+	Operator               = "$([char]0x1b)[90m"
+	Parameter              = "$([char]0x1b)[38;2;255;165;0;3m"
+	Selection              = "$([char]0x1b)[30;47m"
+	String                 = "$([char]0x1b)[36m"
+	Variable               = "$([char]0x1b)[38;2;0;255;34;1m"
+	Type                   = '#9CDCFE'
 }
 
 function Get-PSConsoleReadlineOptions {
