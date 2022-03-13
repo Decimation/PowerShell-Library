@@ -296,26 +296,44 @@ function Adb-QPull {
 
 function Adb-GetItems {
 	[CmdletBinding()]
+	[outputtype([string[]])]
 	param (
 		[Parameter()]
-		$pred,
-		[parameter(Mandatory = $false)]
-		$type = 'f',
-		[parameter(Mandatory = $false)]
-		[switch]$sort
-		
+		$x
 	)
 	
-	$a = (("shell find $pred -type $type" -split ' '))
-	$v = adb @a
+	$r = Adb-FindItems $x
 	
-	if ($sort) {
-		$v = $v | Sort-Object
+	$r = [string[]] ($r | Sort-Object)
+
+	if ($pattern) {
+		$r = $r | Where-Object {
+			$_ -match $pattern 
+		}
 	}
 	
-	$v = [string[]]$v
+	return $r
+}
+function Adb-FindItems {
+	[CmdletBinding()]
+	[outputtype([string[]])]
+	param (
+		$x,
+		[Parameter(Mandatory = $false)]
+		$name,
+		[parameter(Mandatory = $false)]
+		$type = 'f'
+	)
+	$a = @('shell', "find $x")
+	if ($name) {
+		$a += '-name', $name
+	}
+	$a += '-type', $type
 	
-	return $v
+	$r = adb @a
+	
+	
+	return $r
 }
 #endregion
 
@@ -324,15 +342,6 @@ function Adb-GetItem {
 	param ($x,
 		[Parameter(Mandatory = $false)]$x2
 	)
-	
-	<#$s = "Dir"
-	$y = (adb shell "if [ -d $x ]; then echo $s; fi")
-	if ($y) {
-		$t = $y.Trim() -eq $s
-	}#>
-	
-	<#$s2 = "File"
-	$y2 = (adb shell "if [ -f $x ]; then echo $s2; fi")#>
 	
 	$isDir = $false
 	$isFile = $false
@@ -367,38 +376,6 @@ function Adb-GetItem {
 		}
 	}
 
-	<# if ($x2) {
-		for ($i = 0; $i -lt $items.Length; $i++) {
-			$v=$items[$i]
-			
-		}
-	} #>
-	<# $cb = 0
-	$err = 0
-	$buf.Items | ForEach-Object -Parallel { 
-		$using:cb
-		$using:err
-
-		$outbuf = (adb.exe shell "wc $_" 2>nul)
-		#Write-Debug ">> $outbuf"
-		if ($null -eq $outbuf) {
-			$err++
-
-		}
-		elseif ($outbuf.GetType() -eq [string]) {
-			
-			$split = $outbuf.Trim().Split(' ')
-			$bytes = $split[2]
-			Write-Debug "$bytes"
-			$cb += [int]::Parse($bytes)
-		}
-		else {
-		}
-		#Write-Host "`r$i/$($items.Length)" -NoNewline
-		#Write-Host "`r$cb"
-		
-	} #>
-
 	#lines words bytes
 
 	return $buf
@@ -407,15 +384,6 @@ function Adb-GetItem {
 function Adb-GetPackages {
 	return ((adb shell pm list packages -f) -split '`n')
 }
-
-<#function Adb-EnablePackage {
-	param (
-		[Parameter(Mandatory = $true)]
-		[long]$x
-	)
-	
-	(adb shell pm enable $x)
-}#>
 
 
 enum EscapeType {

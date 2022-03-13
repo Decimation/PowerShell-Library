@@ -57,18 +57,22 @@ function Get-SubstringBetween {
 
 function Convert-ObjToHashTable {
 	[CmdletBinding()]
+	[outputtype([hashtable])]
 	param (
 		[parameter(Mandatory = $true, ValueFromPipeline = $true)]
 		[pscustomobject]$Object
 	)
+	process {
+		$HashTable = @{
+		}
+		$ObjectMembers = Get-Member -InputObject $Object -MemberType *Property
+		foreach ($Member in $ObjectMembers) {
+			$HashTable.$($Member.Name) = $Object.$($Member.Name)
+		}
+		return $HashTable
+	}
 	
-	$HashTable = @{
-	}
-	$ObjectMembers = Get-Member -InputObject $Object -MemberType *Property
-	foreach ($Member in $ObjectMembers) {
-		$HashTable.$($Member.Name) = $Object.$($Member.Name)
-	}
-	return $HashTable
+	
 }
 
 function Convert-Obj {
@@ -787,7 +791,10 @@ function Linq-First {
 		[Parameter()]
 		$predicate
 	)
-	[System.Linq.Enumerable]::First($rg, [System.Func[object, bool]] $predicate)
+	process {
+
+		[System.Linq.Enumerable]::First($rg, [System.Func[object, bool]] $predicate)
+	}
 }
 
 function Linq-Select {
