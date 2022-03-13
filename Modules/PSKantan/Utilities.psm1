@@ -834,3 +834,10 @@ function SendMessage {
 	$SendMessageFunc::SendMessage($p, 0x0100, $k, 0x002C0001)
 	$SendMessageFunc::SendMessage($p, 0x0101, $k, 0x002C0001)
 }
+
+function Test-Command {
+	param (
+		$x
+	)
+	return ($null -ne (Get-Command -Name $x -ErrorAction SilentlyContinue ))
+}

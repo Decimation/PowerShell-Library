@@ -1,4 +1,12 @@
-﻿<#	
+﻿[CmdletBinding()]
+param(
+	[parameter(Mandatory = $true)]$op, 
+	[parameter(Mandatory = $false)]$query,
+	[parameter(Mandatory = $false)]$n = '.' 
+)
+
+
+<#	
 	.NOTES
 	===========================================================================
 	 Created on:   	12/21/2021 4:37 PM
@@ -7,32 +15,32 @@
 #>
 
 #Requires -Module PSKantan
-$ds = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
 
+
+# region 
 class BackupSource {
 	[string]$name
-	[scriptblock]$run
+	[scriptblock]$export
 }
 
 class PackageManager : BackupSource {
 	
-	[string]$search
-	[string]$install
-	[string]$uninstall
-	[string]$update
-	[string]$list
-
+	[string]$search = 'search'
+	[string]$install = 'install'
+	[string]$uninstall = 'uninstall'
+	[string]$update = 'update'
+	[string]$list = 'list'
 	
 	
-	[void]Clear() {
-		$this.GetType().GetFields()
-	}
 }
+# endregion
+
+# region 
 
 $Index = @(
 	[PackageManager]@{
-		name = 'scoop'
-		run  = { 
+		name   = 'scoop'
+		export = { 
 			Write-Debug "$($args -join ',')"
 			$dir = $args[0]
 			scoop export | Out-File "$dir\scoop.txt"
@@ -42,7 +50,8 @@ $Index = @(
 		name    = 'pacman'
 		search  = '-Q'
 		install = '-S'
-		run     = {
+		list    = $this.search
+		export  = {
 			$dir = $args[0]
 
 			if ((Get-Command -Name pacman)) {
@@ -51,8 +60,8 @@ $Index = @(
 		}
 	},
 	[PackageManager]@{
-		name = 'choco'
-		run  = {
+		name   = 'choco'
+		export = {
 			$dir = $args[0]
 
 			choco export "$dir\choco.config" --include-version-numbers | Out-Null
@@ -61,51 +70,51 @@ $Index = @(
 	[PackageManager]@{
 		name   = 'pip'
 		update = (($pm_install + ' --upgrade'))
-		run    = {
+		export = {
 			$dir = $args[0]
 
 			pip list | Out-File "$dir\pip.txt"
 		}
 	},
 	[PackageManager]@{
-		name = 'npm'
-		run  = {
+		name   = 'npm'
+		export = {
 			$dir = $args[0]
 
 			npm list -g | Out-File "$dir\npm.txt"
 		}
 	},
 	[PackageManager]@{
-		name = 'winget'
-		run  = {
+		name   = 'winget'
+		export = {
 			$dir = $args[0]
 
 			winget export "$dir\winget.json" --include-versions | Out-Null
 		}
 	},
 	[BackupSource]@{
-		name = 'appx'
-		run  = {
+		name   = 'appx'
+		export = {
 			$dir = $args[0]
 
 			if ((Get-Command -Name Invoke-WinCommand)) {
 				Invoke-WinCommand {
 					param ($arg0)
 					Get-AppxPackage | Out-File "$dir\apps.txt"
-				} -ArgumentList $ds
+				} -ArgumentList $OutputFolder
 		
 		
 				Invoke-WinCommand {
 					param ($arg0)
 					
 					Export-StartLayout "$dir\start layout.xml"
-				} -ArgumentList $ds
+				} -ArgumentList $OutputFolder
 			}
 		}
 	},
 	[BackupSource]@{
-		name = 'bd'
-		run  = {
+		name   = 'bd'
+		export = {
 			$dir = $args[0]
 
 			$bd = "$env:APPDATA\BetterDiscord"
@@ -117,8 +126,8 @@ $Index = @(
 		}
 	},
 	[BackupSource]@{
-		name = 'env'
-		run  = {
+		name   = 'env_vars'
+		export = {
 			$dir = $args[0]
 			
 			$lm = Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
@@ -129,8 +138,8 @@ $Index = @(
 		}
 	}
 	[BackupSource]@{
-		name = 'progfiles'
-		run  = {
+		name   = 'progfiles'
+		export = {
 			$dir = $args[0]
 			Get-ChildItem $env:ProgramFiles | Out-File "$dir\programs.txt"
 			Get-ChildItem ${env:ProgramFiles(x86)} | Out-File "$dir\programs (x86).txt"
@@ -138,26 +147,42 @@ $Index = @(
 	}
 )
 
+# endregion
 
-Write-Debug "$($args -join ',')"
 
-switch ($args[0]) {
-	'run' {
-		$n = $args[1]
-		$op = $Index | Where-Object { $_.name -match $n }
-		foreach ($a in $op) {
+$IndexSelected = $Index | Where-Object { $_.name -match $n }
+$OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
 
-			if (-not (Test-Path $ds)) {
-				mkdir $ds
+
+switch ($op) {
+	'export' {
+		
+		foreach ($a in $IndexSelected) {
+
+			if (-not (Test-Path $OutputFolder)) {
+				mkdir $OutputFolder
 			}
-			
-			Write-Host ">> $ds"
+
+			Write-Host ">> $OutputFolder"
 			Write-Host "$($a.name)"
-			& $a.run $ds
+			& $a.export $OutputFolder
 		}
 	}
-	
 	Default {
+		$f = $op
+		foreach ($e in $IndexSelected) {
+			$v = @($e.$f, $query)
+			
+			if (-not (Test-Command $e.name)) {
+				continue;
+			}
+		
+			Write-Host ">> $($e.name)" -ForegroundColor Green
+			& $e.name @v
+		}
+	}
+
+	'help' {
 		$Index | ForEach-Object { 
 			$_.name
 		} | Format-Table

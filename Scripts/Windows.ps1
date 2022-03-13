@@ -316,6 +316,7 @@ function Set-ScreenRefreshRate {
         } 
 '@ # don't indend this line
 
+
 	Add-Type $pinvokeCode -ErrorAction SilentlyContinue
 
 	[Display.PrimaryScreen]::ChangeRefreshRate($frequency) 
