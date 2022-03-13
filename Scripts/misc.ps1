@@ -118,13 +118,25 @@ function Convert-ObjToHashTable {
 	return $HashTable
 }
 
-function obj_cast {
+function Convert-Obj {
 	param (
 		$a, $t
 	)
+	<# Write-Debug "$( $t)"
+	if ($t -is [string]) {
+		$t = $t.Substring(1, $t.Length - 2)
+		Write-Debug "$( $t)"
 
-	return [System.Management.Automation.LanguagePrimitives]::ConvertTo($a, ($t))
+		$t2 = [type]::GetType($t)
+	}
+	else {
+		$t2 = $t
+	} #>
+	return [System.Management.Automation.LanguagePrimitives]::ConvertTo($a, ($t2))
 }
+
+Set-Alias cast Convert-Obj
+Set-Alias conv Convert-Obj
 
 function Convert-ObjFromHashTable {
 	param (
@@ -136,7 +148,7 @@ function Convert-ObjFromHashTable {
 	$o | Add-Member $pred
 	
 	if ($t) {
-		$o = obj_cast $o $t
+		$o = Convert-Obj $o $t
 	}
 
 	return $o
@@ -191,12 +203,21 @@ function Adb-GetItems {
 	param (
 		[Parameter()]
 		$pred,
-		[parameter(Mandatory = $false)]$type = 'f'
+		[parameter(Mandatory = $false)]$type = 'f',
+		[parameter(Mandatory = $false)][switch]$sort
+		
 	)
 
 	$a = (("shell find $pred -type $type" -split ' '))
+	$v = adb @a
+	
+	if ($sort) {
+		$v = $v | Sort-Object
+	}
 
-	return adb @a
+	$v = [string[]]$v
+	
+	return $v 
 }
 
 #endregion
