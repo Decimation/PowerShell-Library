@@ -167,7 +167,7 @@ Set-PSReadLineOption -Colors @{
 	Operator               = "$([char]0x1b)[36m"
 	Parameter              = "$([char]0x1b)[38;2;255;165;0;3m"
 	Selection              = "$([char]0x1b)[30;47m"
-	String                 = "$([char]0x1b)[38;5;136m"
+	String                 = "$([char]0x1b)[38;5;156m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	Type                   = '#9CDCFE'
 }
@@ -175,9 +175,12 @@ Set-PSReadLineOption -Colors @{
 function Get-PSConsoleReadlineOptions {
 	return [Microsoft.PowerShell.PSConsoleReadLine]::GetOptions()
 }
+function global:RemoveLine {
+	[Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
+}
 
 $TogglePredictionView = {
-	[Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
+	global:RemoveLine
 	[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
 	
 	$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
@@ -196,6 +199,7 @@ $TogglePredictionView = {
 	Write-Host 'Prediction view: ' -NoNewline
 	Write-Host "$pvs" -ForegroundColor DarkCyan
 }
+
 Set-PSReadlineKeyHandler -Key F2 -ScriptBlock $TogglePredictionView
 
 
@@ -241,20 +245,21 @@ Set-PSReadLineKeyHandler -Key F4 -ScriptBlock {
 	# $Host.ui.WriteLine()
 }
 
+
 Set-PSReadLineKeyHandler -Key F5 -ScriptBlock {
 	ie $qr
 	[PSConsoleReadLine]::AcceptLine()
 	Write-Host 'Reloaded profile' -ForegroundColor DarkGreen
-	# $Host.ui.WriteLine('Reloaded profile')
 	[PSConsoleReadLine]::Ding()
 }
+
 Set-PSReadLineKeyHandler -Key 'Ctrl+F5' -ScriptBlock {
 	ie $qr2
 	[PSConsoleReadLine]::AcceptLine()
 	Write-Host 'Reloaded profile full' -ForegroundColor DarkGreen
-	# $Host.ui.WriteLine('Reloaded profile')
 	[PSConsoleReadLine]::Ding()
 }
+
 & $OtherKeyHandlers
 
 #endregion
