@@ -245,10 +245,12 @@ function Adb-GetItems {
 	[outputtype([string[]])]
 	param (
 		[Parameter()]
-		$x
+		$x,
+		[Parameter(Mandatory = $false)]
+		$t
 	)
 	
-	$r = Adb-FindItems $x
+	$r = Adb-FindItems $x -type $t
 	
 	$r = [string[]] ($r | Sort-Object)
 
@@ -268,13 +270,16 @@ function Adb-FindItems {
 		[Parameter(Mandatory = $false)]
 		$name,
 		[parameter(Mandatory = $false)]
-		$type = 'f'
+		$type
 	)
 	$a = @('shell', "find $x")
 	if ($name) {
 		$a += '-name', $name
 	}
-	$a += '-type', $type
+	if ($type) {
+		
+		$a += '-type', $type
+	}
 	
 	$r = adb @a
 	
@@ -289,7 +294,7 @@ function Adb-GetItem {
 		[Parameter(Mandatory = $false)]$x2
 	)
 	
-	$isDir = $false
+	<# $isDir = $false
 	$isFile = $false
 	$rg = [string[]] (adb shell wc -c $x 2>&1)
 	$s1 = $rg[0]
@@ -323,6 +328,35 @@ function Adb-GetItem {
 	}
 
 	#lines words bytes
+
+	return $buf #>
+	$a = @('shell', "wc -c $x", '2>&1')
+	$x = adb @a
+	$x = [string]$x
+	Write-Debug "$x|$(typeof $x)"
+
+	if ($x -match 'Is a directory') {
+		$isDir = $true
+		$isFile = $false
+	}
+	elseif ($x -match ('No such')) {
+		#...
+		return
+	}
+	else {
+		$isDir = $false
+		$isFile = $true
+		$size = [int]$x.Split(' ')[0]
+	}
+	
+	$buf = @{
+		IsFile      = $isFile
+		IsDirectory = $isDir
+		Size        = $size
+		Orig        = $x
+	}
+	
+	
 
 	return $buf
 }
