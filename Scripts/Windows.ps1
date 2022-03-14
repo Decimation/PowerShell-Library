@@ -365,3 +365,13 @@ function __Invoke-WinCommand {
 #Import-Module WindowsCompatability
 
 # endregion
+
+$Signature = @'
+[DllImport("user32.dll")]
+public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
+[DllImport("user32.dll")]
+public static extern int PostMessage(int hWnd, int hMsg, int wParam, int lParam);
+'@
+
+#Add the SendMessage function as a static method of a class
+$global:Win32 = Add-Type -MemberDefinition $Signature -Name 'Win32' -Namespace Win32Functions -PassThru

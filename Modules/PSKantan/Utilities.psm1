@@ -243,27 +243,34 @@ function Get-CommandProcess {
 	
 	return $p
 }
-
-function New-Const {
+function New-QVar {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$name,
 		[Parameter(Mandatory = $true)]
 		$val,
 		[Parameter(Mandatory = $false)]
-		[string]$scope
+		[string]$scope = 'Global', 
+		[Parameter(Mandatory = $false)]
+		[System.Management.Automation.ScopedItemOptions]
+		$opt = [System.Management.Automation.ScopedItemOptions]::None
 	)
 	
-	if (!($scope)) {
-		$scope = 'Global'
+
+	$sp = @{
+		'Scope'  = $scope
+		'Name'   = $name
+		'Value'  = $val
+		'Option' = $opt
+		
 	}
 	
-	Set-Variable -Name $name -Value $val -Option Constant -Scope $scope -ErrorAction Ignore
+	Set-Variable @sp -ErrorAction Ignore
 }
 
-New-Const STD_IN 0
-New-Const STD_OUT 1
-New-Const STD_ERR 2
+$STD_IN = 0
+$STD_OUT = 1
+$STD_ERR = 2
 
 function QCommand {
 	#todo: use Invoke-Command
@@ -590,11 +597,9 @@ function Get-SanitizedFilename {
 Set-Alias -Name ytdlp -Value yt-dlp.exe
 Set-Alias -Name ytdl -Value youtube-dl.exe
 Set-Alias -Name gdl -Value gallery-dl.exe
-Set-Alias -Name yg -Value you-get.exe
 Set-Alias -Name fg -Value ffmpeg
 Set-Alias -Name fp -Value ffprobe
 Set-Alias -Name mg -Value magick.exe
-
 Set-Alias -Name a2c -Value aria2c
 
 #endregion
@@ -813,22 +818,11 @@ function Linq-Select {
 }
 
 
-
-$Signature = @'
-[DllImport("user32.dll")]
-public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
-[DllImport("user32.dll")]
-public static extern int PostMessage(int hWnd, int hMsg, int wParam, int lParam);
-'@
-
-#Add the SendMessage function as a static method of a class
-$global:Win32 = Add-Type -MemberDefinition $Signature -Name 'Win32' -Namespace Win32Functions -PassThru
-
 function Test-Command {
 	param (
 		$x
 	)
-	return ($null -ne (Get-Command -Name $x -ErrorAction SilentlyContinue ))
+	return ($null -ne (Get-Command -Name $x -ErrorAction SilentlyContinue))
 }
 
 
