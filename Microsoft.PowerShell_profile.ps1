@@ -4,7 +4,6 @@ using namespace Microsoft.PowerShell
 # Profile
 #>
 
-#region [Modules]
 
 $global:PSROOT = "$HOME\Documents\PowerShell\"
 
@@ -13,20 +12,13 @@ $global:PSScriptRoot = "$PSROOT\Scripts\"
 
 $PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
 
-
-
-
 function Reload-Module {
 	param ($x)
 	Remove-Module $x
 	Import-Module -Force -DisableNameChecking $x
-	
 }
 
 Import-Module -DisableNameChecking PSKantan
-
-#https://github.com/WantStuff/AudioDeviceCmdlets
-
 
 # https://stackoverflow.com/questions/46528262/is-there-any-way-for-a-powershell-module-to-get-at-its-callers-scope
 	
@@ -89,6 +81,7 @@ Set-Alias ~ Select-String
 $script:rmpsk = [string] {
 	Import-Module PSKantan -Force -DisableNameChecking
 }
+
 $script:rmpsk2 = [string] {
 	Reload-Module PSKantan
 }
@@ -98,13 +91,16 @@ $script:qr2 = ".`$PROFILE; $rmpsk2"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
+# region 
 $InformationPreference = 'Continue'
-$DebugPreference = 'SilentlyContinue'
+$ErrorActionPreference = 'Inquire'
+$DebugPreference = 'Continue'
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
+# endregion
 
 
 #region Keys
@@ -237,22 +233,35 @@ Set-PSReadLineKeyHandler -Key 'Ctrl+F5' -ScriptBlock {
 
 & $OtherKeyHandlers
 
+$script:ap = [System.Enum]::GetValues([System.Management.Automation.ActionPreference]) `
+	-notmatch 'Suspend'
+
 Set-PSReadLineKeyHandler -Key F6 -ScriptBlock {
-	$global:DebugPreference = $global:DebugPreference -match 'Silently' ? 'Continue' : 'SilentlyContinue'
+	$idx = Wrap ($script:ap.IndexOf($global:DebugPreference) + 1) ($script:ap.Count)
+	$global:DebugPreference = $script:ap[$idx]
 	[PSConsoleReadLine]::AcceptLine()
 	Write-Host 'Debug preference: ' -NoNewline -ForegroundColor Yellow
 	Write-Host "$global:DebugPreference" -ForegroundColor Green
 	[PSConsoleReadLine]::Ding()
 
 }
+function Wrap { param($i, $n) return (($i % $n) + $n) % $n }
 
+Set-PSReadLineKeyHandler -Key F7 -ScriptBlock {
+	$idx = Wrap ($script:ap.IndexOf($global:ErrorActionPreference) + 1) ($script:ap.Count)
+	$global:ErrorActionPreference = $script:ap[$idx]
+	[PSConsoleReadLine]::AcceptLine()
+	Write-Host 'Error action preference: ' -NoNewline -ForegroundColor Yellow
+	Write-Host "$global:ErrorActionPReference" -ForegroundColor Green
+	[PSConsoleReadLine]::Ding()
+
+}
 #endregion
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
-Write-Debug "[$env:USERNAME] Loaded profile ($LoadTime)"
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
@@ -261,12 +270,17 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
 	}
 }
+function New-AdminWT {
+	sudo wt -w 0 nt
+}
+
 
 #Invoke-Expression "$(thefuck --alias)"
-
-Import-Module ZLocation
 # Install-Module -Name Terminal-Icons -Repository PSGallery
 # Install-Module oh-my-posh -Scope CurrentUser
+
+Import-Module ZLocation
 Import-Module oh-my-posh
-# Set-PoshPrompt microverse-power
+#https://github.com/WantStuff/AudioDeviceCmdlets
 Import-Module AudioDeviceCmdlets
+# Set-PoshPrompt microverse-power

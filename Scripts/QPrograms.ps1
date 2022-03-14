@@ -43,7 +43,7 @@ $Index = @(
 		export = { 
 			Write-Debug "$($args -join ',')"
 			$dir = $args[0]
-			scoop export | Out-File "$dir\scoop.txt"
+			scoop export | Out-File "$dir\scoop.txt" | Out-Null
 		}
 	},
 	[PackageManager]@{
@@ -55,7 +55,7 @@ $Index = @(
 			$dir = $args[0]
 
 			if ((Get-Command -Name pacman)) {
-				pacman -Q | Out-File "$dir\pacman.txt"
+				pacman -Q | Out-File "$dir\pacman.txt" | Out-Null
 			}
 		}
 	},
@@ -73,7 +73,7 @@ $Index = @(
 		export = {
 			$dir = $args[0]
 
-			pip list | Out-File "$dir\pip.txt"
+			pip list | Out-File "$dir\pip.txt" | Out-Null
 		}
 	},
 	[PackageManager]@{
@@ -81,7 +81,7 @@ $Index = @(
 		export = {
 			$dir = $args[0]
 
-			npm list -g | Out-File "$dir\npm.txt"
+			npm list -g | Out-File "$dir\npm.txt" | Out-Null
 		}
 	},
 	[PackageManager]@{
@@ -153,19 +153,26 @@ $Index = @(
 $IndexSelected = $Index | Where-Object { $_.name -match $n }
 $OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
 
-
+Write-Host "$($IndexSelected|Select-Object -ExpandProperty name)"
 switch ($op) {
 	'export' {
 		
+		if (-not (Test-Path $OutputFolder)) {
+			mkdir $OutputFolder
+		}
+
+		$i = 0.0
+		$l = $IndexSelected.Length
+		
 		foreach ($a in $IndexSelected) {
 
-			if (-not (Test-Path $OutputFolder)) {
-				mkdir $OutputFolder
-			}
 
-			Write-Host ">> $OutputFolder"
+			# Write-Host ">> $OutputFolder"
 			Write-Host "$($a.name)"
-			& $a.export $OutputFolder
+			& $a.export $OutputFolder | Out-Null
+			$i++
+			
+			Write-Progress -Id 1 -Activity Updating -Status 'Progress' -PercentComplete (($i / $l) * 100.0)
 		}
 	}
 	Default {
