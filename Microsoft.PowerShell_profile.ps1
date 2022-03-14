@@ -237,6 +237,15 @@ Set-PSReadLineKeyHandler -Key 'Ctrl+F5' -ScriptBlock {
 
 & $OtherKeyHandlers
 
+Set-PSReadLineKeyHandler -Key F6 -ScriptBlock {
+	$global:DebugPreference = $global:DebugPreference -match 'Silently' ? 'Continue' : 'SilentlyContinue'
+	[PSConsoleReadLine]::AcceptLine()
+	Write-Host 'Debug preference: ' -NoNewline -ForegroundColor Yellow
+	Write-Host "$global:DebugPreference" -ForegroundColor Green
+	[PSConsoleReadLine]::Ding()
+
+}
+
 #endregion
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12

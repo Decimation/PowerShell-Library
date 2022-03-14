@@ -207,7 +207,6 @@ function adb {
 	
 	switch ($argBuf[0]) {
 		
-		
 		Default {
 		}
 	}
@@ -219,9 +218,11 @@ function adb {
 
 function Adb-QPush {
 	
-	param ($f,
+	param (
+		$f,
 		[parameter(Mandatory = $false)]
-		$d = 'sdcard/')
+		$d = 'sdcard/'
+	)
 	
 	if ($f -is [array]) {
 		$f | ForEach-Object -Parallel {
@@ -294,42 +295,7 @@ function Adb-GetItem {
 		[Parameter(Mandatory = $false)]$x2
 	)
 	
-	<# $isDir = $false
-	$isFile = $false
-	$rg = [string[]] (adb shell wc -c $x 2>&1)
-	$s1 = $rg[0]
-	$size = -1
 	
-	[array]::Sort($rg)
-	
-	if ($rg.Length -ge 2) {
-		$isDir = $rg[1].Contains('Is a directory')
-	}
-	elseif ($s1.Contains('No such')) {
-		#...
-	}
-	else {
-		$isFile = $true
-		$size = [int]$s1.Split(' ')[0]
-	}
-	
-	$buf = @{
-		IsFile      = $isFile
-		IsDirectory = $isDir
-		Size        = $size
-	}
-	
-	if ($isDir) {
-		$items = Adb-GetItems $x
-		$buf += @{ 
-			Items       = $items
-			NumberItems = $items.Length 
-		}
-	}
-
-	#lines words bytes
-
-	return $buf #>
 	$a = @('shell', "wc -c $x", '2>&1')
 	$x = adb @a
 	$x = [string]$x
@@ -362,7 +328,8 @@ function Adb-GetItem {
 }
 
 function Adb-GetPackages {
-	return ((adb shell pm list packages -f) -split '`n')
+	$aa = @('shell', 'pm list packages -f')
+	return (adb @aa)
 }
 
 
