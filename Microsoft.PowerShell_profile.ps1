@@ -262,7 +262,6 @@ Set-PSReadLineKeyHandler -Key F7 -ScriptBlock {
 
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
-
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	param ($commandName, $wordToComplete, $cursorPosition)
@@ -270,6 +269,7 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
 	}
 }
+
 function New-AdminWT {
 	sudo wt -w 0 nt
 }

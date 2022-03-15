@@ -41,7 +41,7 @@ $Index = @(
 	[PackageManager]@{
 		name   = 'scoop'
 		export = { 
-			Write-Debug "$($args -join ',')"
+			# Write-Debug "$($args -join ',')"
 			$dir = $args[0]
 			scoop export | Out-File "$dir\scoop.txt" | Out-Null
 		}
@@ -54,9 +54,8 @@ $Index = @(
 		export  = {
 			$dir = $args[0]
 
-			if ((Get-Command -Name pacman)) {
-				pacman -Q | Out-File "$dir\pacman.txt" | Out-Null
-			}
+			pacman -Q | Out-File "$dir\pacman.txt" | Out-Null
+			
 		}
 	},
 	[PackageManager]@{
@@ -154,6 +153,7 @@ $IndexSelected = $Index | Where-Object { $_.name -match $n }
 $OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
 
 Write-Host "$($IndexSelected|Select-Object -ExpandProperty name)"
+
 switch ($op) {
 	'export' {
 		
@@ -161,18 +161,16 @@ switch ($op) {
 			mkdir $OutputFolder
 		}
 
-		$i = 0.0
 		$l = $IndexSelected.Length
 		
-		foreach ($a in $IndexSelected) {
-
-
-			# Write-Host ">> $OutputFolder"
-			Write-Host "$($a.name)"
-			& $a.export $OutputFolder | Out-Null
+		for ($i = 0; $i -lt $l; $i++) {
+			$val = $IndexSelected[$i]
+			& $val.export $OutputFolder
 			$i++
+			$sz = [string]::Format('{0:00}/{1:00}', $i + 1, $l)
+			Write-Host "`r$sz" -NoNewline
 			
-			Write-Progress -Id 1 -Activity Updating -Status 'Progress' -PercentComplete (($i / $l) * 100.0)
+			# Write-Progress -Id 1 -Activity Updating -Status 'Progress' -PercentComplete (($i / $l) * 100.0)
 		}
 	}
 	Default {
