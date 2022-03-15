@@ -1,3 +1,4 @@
+using namespace System.Management.Automation
 
 $global:UNI_ARROW = $([char]0x2192)
 $global:ZERO_WIDTH_SPACE = $([char]"`u{200b}")
@@ -8,28 +9,6 @@ $global:ANSI_END = "$([char]0x001b)[0m"
 
 
 
-$WinMedia = "$env:WINDIR\Media"
-
-$script:WinSoundPlayer = ([System.Media.SoundPlayer]::new())
-
-
-function Start-WinSound {
-	param (
-		$pred
-	)
-	
-	$p = "$WinMedia\$pred"
-	if (-not (Resolve-Path $p -ErrorAction Ignore)) {
-		$p = Get-ChildItem "$p.*"
-		Write-Debug "$p"
-	}
-	$script:WinSoundPlayer.SoundLocation = ($p)
-	$script:WinSoundPlayer.Play()
-}
-
-function Stop-WinSound {
-	$script:WinSoundPlayer.Stop()
-}
 
 function Get-SubstringBetween {
 	param ([string]$value,
@@ -118,38 +97,6 @@ function Get-PublicIP {
 	
 }
 
-function Get-PackageManagers {
-	param ($x)
-	#todo
-	$pkgm = @('pip search', 'scoop search', 'choco search', 'winget search')
-	
-	
-	for ($i = 0; $i -lt $pkgm.Length; $i++) {
-		
-		$pm = $pkgm[$i]
-		$exe = ($pm -split ' ')[0]
-		
-		Write-Debug "$exe | $pm"
-		
-		if (Get-Command $exe) {
-			Start-Job -ScriptBlock {
-				Invoke-Expression "$($args[0]) $($args[1])"
-			} -ArgumentList @($pm, $x) -Name "Search_$i"
-		}
-		
-		
-	}
-	
-	# Wait for it all to complete
-	While (Get-Job -State 'Running') {
-		Start-Sleep 10
-	}
-	
-	# Getting the information back from the jobs
-	Get-Job | Receive-Job
-	
-}
-
 
 function XRemove {
 	param ($x)
@@ -183,12 +130,16 @@ ffprobe enhanced passthru
 ytmdl enhanced passthru
 #>
 function ytmdl {
-	py.exe (WhereItem ytmdl) $args
+	py.exe (Find-Item ytmdl) $args
 }
 
 
 function typename {
-	param ($x)
+	[CmdletBinding()]
+	param (
+		[Parameter(ValueFromPipeline)]
+		$x
+	)
 	
 	$y = ($x | Get-Member)[0].TypeName
 	
@@ -196,7 +147,11 @@ function typename {
 }
 
 function typeof {
-	param ($x)
+	[CmdletBinding()]
+	param (
+		[Parameter(ValueFromPipeline)]
+		$x
+	)
 	
 	#return [type]::GetType((typename $x))
 	return $x.GetType()
@@ -322,21 +277,25 @@ function QInvoke($x) {
 	return $buf2
 }
 
-function WhereItem {
+function Find-Item {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$s,
 		[Parameter(Mandatory = $false)]
-		[System.Management.Automation.CommandTypes]$c
+		[CommandTypes]$c = [CommandTypes]::All, 
+		[switch]$pw = $false
 	)
-	
-	if (!($c)) {
-		$c = [System.Management.Automation.CommandTypes]::Application
+		
+	if ((Test-Command 'whereis' Application) -and $pw) {
+		return (whereis $s)
 	}
-	
+		
 	return (Get-Command $s -CommandType $c).Path
 }
+	
+
+Set-Alias whereitem Find-Item
 
 function IsAdmin {
 	$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -820,9 +779,12 @@ function Linq-Select {
 
 function Test-Command {
 	param (
-		$x
+		[Parameter(Mandatory)]
+		$x, 
+		[Parameter(Mandatory = $false)]
+		[CommandTypes]$c = [CommandTypes]::All
 	)
-	return ($null -ne (Get-Command -Name $x -ErrorAction SilentlyContinue))
+	return ($null -ne (Get-Command -CommandType $c -Name $x -ErrorAction SilentlyContinue))
 }
 
 
@@ -1411,3 +1373,7 @@ public static class $className
 "@
 }
 
+
+function New-AdminWT {
+	sudo wt -w 0 nt
+}

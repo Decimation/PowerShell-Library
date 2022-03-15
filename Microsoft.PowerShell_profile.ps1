@@ -271,9 +271,6 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	}
 }
 
-function New-AdminWT {
-	sudo wt -w 0 nt
-}
 
 
 #Invoke-Expression "$(thefuck --alias)"

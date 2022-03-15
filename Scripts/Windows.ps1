@@ -375,3 +375,27 @@ public static extern int PostMessage(int hWnd, int hMsg, int wParam, int lParam)
 
 #Add the SendMessage function as a static method of a class
 $global:Win32 = Add-Type -MemberDefinition $Signature -Name 'Win32' -Namespace Win32Functions -PassThru
+
+
+$WinMedia = "$env:WINDIR\Media"
+
+$script:WinSoundPlayer = ([System.Media.SoundPlayer]::new())
+
+
+function Start-WinSound {
+	param (
+		$pred
+	)
+	
+	$p = "$WinMedia\$pred"
+	if (-not (Resolve-Path $p -ErrorAction Ignore)) {
+		$p = Get-ChildItem "$p.*"
+		Write-Debug "$p"
+	}
+	$script:WinSoundPlayer.SoundLocation = ($p)
+	$script:WinSoundPlayer.Play()
+}
+
+function Stop-WinSound {
+	$script:WinSoundPlayer.Stop()
+}
