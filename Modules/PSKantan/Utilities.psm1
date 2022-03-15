@@ -1126,6 +1126,7 @@ function Invoke-Parallel {
 					ElseIf ( $runspaceTimeout -ne 0 -and $runtime.totalseconds -gt $runspaceTimeout) {
 						$script:completedCount++
 						$timedOutTasks = $true
+						Write-Verbose "$timedOutTasks"
 
 						#add logging details and cleanup
 						$log.status = 'TimedOut'

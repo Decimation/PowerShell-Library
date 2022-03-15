@@ -92,8 +92,9 @@ $script:qr2 = ".`$PROFILE; $rmpsk2"
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
 # region 
+
 $InformationPreference = 'Continue'
-$ErrorActionPreference = 'Inquire'
+$ErrorActionPreference = 'Continue'
 $DebugPreference = 'Continue'
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
@@ -284,3 +285,8 @@ Import-Module oh-my-posh
 #https://github.com/WantStuff/AudioDeviceCmdlets
 Import-Module AudioDeviceCmdlets
 # Set-PoshPrompt microverse-power
+
+function global:qprint {
+	param($rg)
+	return [string]($rg -join ',')
+}

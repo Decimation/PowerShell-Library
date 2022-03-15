@@ -203,15 +203,19 @@ function adb {
 	$argBuf = [System.Collections.Generic.List[string]]::new()
 	$argBuf.AddRange([string[]]$args)
 	
-	Write-Debug "Original args: $($argBuf -join ',')`n"
+	Write-Debug "Original args: $(qprint $argBuf)`n"
 	
 	switch ($argBuf[0]) {
-		
+		'push' {
+			if ($argBuf.Count -lt 3) {
+				$argBuf += 'sdcard/'
+			}
+		}
 		Default {
 		}
 	}
 	
-	Write-Debug "Final args: $($argBuf -join ',')"
+	Write-Debug "Final args: $(qprint $argBuf)"
 	
 	adb.exe @argBuf
 }
