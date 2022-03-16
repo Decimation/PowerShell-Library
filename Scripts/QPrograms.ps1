@@ -143,6 +143,13 @@ $Index = @(
 			Get-ChildItem $env:ProgramFiles | Out-File "$dir\programs.txt"
 			Get-ChildItem ${env:ProgramFiles(x86)} | Out-File "$dir\programs (x86).txt"
 		}
+	}, [BackupSource]@{
+		name   = 'winterm'
+		export = {
+			Copy-Item 'C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json' "$dir\wt_settings.json"
+
+
+		}
 	}
 )
 
