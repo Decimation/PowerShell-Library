@@ -1,11 +1,19 @@
 using namespace System.Management.Automation
 
+# region 
+
 $global:UNI_ARROW = $([char]0x2192)
 $global:ZERO_WIDTH_SPACE = $([char]"`u{200b}")
-
 $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
-$global:ANSI_UNDERLINE = "$([char]0x1b)[4m"
-$global:ANSI_END = "$([char]0x001b)[0m"
+
+$global:ANSI_START = "$([char]0x001b)"
+$global:ANSI_STOP = "$ANSI_START[0m"
+
+$global:ANSI_UNDERLINE = "$ANSI_START[4m"
+$global:ANSI_ITALIC = "$ANSI_START[3m"
+$global:ANSI_BOLD = "$ANSI_START[1m"
+
+# endregion
 
 
 

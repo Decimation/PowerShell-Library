@@ -44,23 +44,27 @@ New-Module {
 	}
 } | Import-Module
 
+
 function Prompt {
 	
-	$fg2 = [System.ConsoleColor]::DarkYellow
+	$fg2 = [System.ConsoleColor]::Yellow
 	$fg1 = [System.ConsoleColor]::Blue
 	
-	$ANSI_ITALIC = "`e[3m"
-	$ANSI_BOLD = "`e[1m"
 	$currentDate = $(Get-Date -Format 'HH:mm:ss')
 	$cd = Get-Location
 	#$cd2 = ([string]($cd)).Replace("$HOME", "~")
 
 	# Write-Host ("[$currentDate] ") -NoNewline -ForegroundColor $fg2
-	Write-Host "$($ANSI_BOLD)$($env:USERNAME)@$($env:COMPUTERNAME)$($ANSI_END) " -NoNewline -ForegroundColor Green
-	Write-Host 'PS ' -NoNewline -ForegroundColor $fg1
+	$u = "`e[38;5;36;1m$($env:USERNAME)`e[0m"
+	$c = "`e[38;5;25;1m$($env:COMPUTERNAME)`e[0m"
 
-	Write-Host "$($ANSI_ITALIC)$cd$($ANSI_END)" -ForegroundColor $fg2
-	Write-Host '>' -NoNewline
+	Write-Host "`e[1m$u@$c`e[0m " -NoNewline `
+		-ForegroundColor Green
+	$p = "PS "
+	Write-Host "`e[38;5;13m$($p)`e[0m" -NoNewline
+
+	Write-Host "`e[38;5;220;3m$cd`e[0m"
+	Write-Host '$' -NoNewline
 	
 	<# 
 	
