@@ -8,8 +8,8 @@ using namespace Microsoft.PowerShell
 
 $global:PSROOT = "$HOME\Documents\PowerShell\"
 
-$global:PSModuleRoot = "$PSROOT\Modules\"
-$global:PSScriptRoot = "$PSROOT\Scripts\"
+$global:PSModules = "$global:PSROOT\Modules\"
+$global:PSScripts = "$global:PSROOT\Scripts\"
 
 $PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
 
@@ -46,15 +46,35 @@ New-Module {
 
 function Prompt {
 	
-	$fg2 = [System.ConsoleColor]::Green
+	$fg2 = [System.ConsoleColor]::DarkYellow
 	$fg1 = [System.ConsoleColor]::Blue
 	
-	Write-Host 'PS ' -NoNewline -ForegroundColor $fg1
+	$ANSI_ITALIC = "`e[3m"
+	$ANSI_BOLD = "`e[1m"
 	$currentDate = $(Get-Date -Format 'HH:mm:ss')
-	Write-Host ("[$currentDate] ") -NoNewline -ForegroundColor $fg2
-	Write-Host "$(Get-Location)" -NoNewline
+	$cd = Get-Location
+	#$cd2 = ([string]($cd)).Replace("$HOME", "~")
+
+	# Write-Host ("[$currentDate] ") -NoNewline -ForegroundColor $fg2
+	Write-Host "$($ANSI_BOLD)$($env:USERNAME)@$($env:COMPUTERNAME)$($ANSI_END) " -NoNewline -ForegroundColor Green
+	Write-Host 'PS ' -NoNewline -ForegroundColor $fg1
+
+	Write-Host "$($ANSI_ITALIC)$cd$($ANSI_END)" -ForegroundColor $fg2
 	Write-Host '>' -NoNewline
 	
+	<# 
+	
+	[System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+	$env:USERNAME
+	$env:USERDOMAIN
+	$env:COMPUTERNAME
+	#>
+
+	<# 
+	Deci@TESSERACT MSYS ~
+	$
+	#>
+
 	return ' '
 }
 

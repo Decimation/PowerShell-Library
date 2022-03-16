@@ -146,9 +146,7 @@ $Index = @(
 	}, [BackupSource]@{
 		name   = 'winterm'
 		export = {
-			Copy-Item 'C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json' "$dir\wt_settings.json"
-
-
+			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" "$dir\wt_settings.json"
 		}
 	}
 )
