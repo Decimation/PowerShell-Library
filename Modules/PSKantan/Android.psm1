@@ -229,7 +229,7 @@ function Adb-QPush {
 	)
 	
 	if ($f -is [array]) {
-		$f | ForEach-Object -Parallel {
+		$f | Invoke-Parallel -ImportVariables -Quiet -ScriptBlock {
 			adb.exe push "$_" $using:d
 		}
 	}
@@ -237,10 +237,16 @@ function Adb-QPush {
 }
 
 function Adb-QPull {
+	
+	$d = Get-Location
+	Write-Host "$d"
+	Read-Host
 	$r = Adb-GetItems @args
-	Write-Verbose "$($r.Length)"
-	$r | ForEach-Object -Parallel {
-		adb.exe pull $_
+	
+	$r | Invoke-Parallel -ImportVariables -Quiet -ScriptBlock {
+		adb.exe pull $_ "$d"
+
+		<# Write-Progress -Activity g -PercentComplete (($i / $l) * 100.0) #>
 	}
 	
 }

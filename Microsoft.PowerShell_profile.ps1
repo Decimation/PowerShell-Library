@@ -146,7 +146,9 @@ Set-PSReadLineOption -Colors @{
 	# Operator               = "$([char]0x1b)[38;5;254m"
 	Operator               = "$([char]0x1b)[38;5;166m"
 	Parameter              = "$([char]0x1b)[38;2;255;165;0;3m"
-	Selection              = "$([char]0x1b)[48;5;250;38;5;0m"
+	# Selection              = "$([char]0x1b)[48;5;250;38;5;0m"
+	Selection              = "$([char]0x1b)[7m"
+
 	String                 = "$([char]0x1b)[38;5;215m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	# Type                   = '#9CDCFE'
@@ -198,15 +200,20 @@ $ListViewHandler = {
 }
 
 $InlineViewHandler = {
-	# Set-PSReadlineKeyHandler -Key 'Tab' -Function AcceptNextSuggestionWord
+	Set-PSReadlineKeyHandler -Key 'Tab' -Function AcceptNextSuggestionWord
 	Set-PSReadlineKeyHandler -Chord 'Ctrl+Tab' -Function AcceptSuggestion
 }
 
 & $InlineViewHandler
 
 $OtherKeyHandlers = {
-	#Set-PSReadLineKeyHandler -Key 'Tab' -Function TabCompleteNext
-	Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
+	<# Set-PSReadLineKeyHandler -Key 'Tab' -Function TabCompleteNext
+	Set-PSReadlineKeyHandler -Chord 'Ctrl+Tab' -Function AcceptSuggestion
+	Set-PSReadlineKeyHandler -Chord 'Ctrl+q' -Function MenuComplete
+	Set-PSReadlineKeyHandler -Key 'Shift+Tab' -Function TabCompletePrevious #>
+	Set-PSReadLineKeyHandler -Key 'Tab' -Function MenuComplete
+	Set-PSReadlineKeyHandler -Chord 'Ctrl+Tab' -Function AcceptSuggestion
+	Set-PSReadlineKeyHandler -Chord 'Ctrl+q' -Function TabCompleteNext
 	Set-PSReadlineKeyHandler -Key 'Shift+Tab' -Function TabCompletePrevious
 	Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 	Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
@@ -477,7 +484,7 @@ Import-Module oh-my-posh
 #https://github.com/WantStuff/AudioDeviceCmdlets
 Import-Module AudioDeviceCmdlets
 # Set-PoshPrompt microverse-power
-
+# Install-Module -Name GuiCompletion -Scope CurrentUser
 function global:qprint {
 	param($rg)
 	return [string]($rg -join ',')
