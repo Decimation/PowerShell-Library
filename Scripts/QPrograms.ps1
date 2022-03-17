@@ -5,9 +5,6 @@ param(
 	[parameter(Mandatory = $false)]$n = '.' 
 )
 
-qprint $args
-qprint $PSBoundParameters
-
 
 <#	
 	.NOTES
@@ -33,8 +30,6 @@ class PackageManager : BackupSource {
 	[string]$uninstall = 'uninstall'
 	[string]$update = 'update'
 	[string]$list = 'list'
-	
-	
 }
 # endregion
 
@@ -170,16 +165,19 @@ $Index = @(
 $IndexSelected = $Index | Where-Object { $_.name -match $n }
 $OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
 
+if (-not (Test-Path $OutputFolder)) {
+	mkdir $OutputFolder
+}
+
 Write-Host "$($IndexSelected|Select-Object -ExpandProperty name)"
-Write-Host "$op | $query|$n"
+Write-Debug "$op | $query |$n"
+
 Read-Host 
 
 switch ($op) {
 	'export' {
 		
-		if (-not (Test-Path $OutputFolder)) {
-			mkdir $OutputFolder
-		}
+		
 
 		$l = $IndexSelected.Length
 		

@@ -130,8 +130,6 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 # endregion
 
-
-
 #region Keys
 
 Set-PSReadLineOption `
@@ -139,44 +137,29 @@ Set-PSReadLineOption `
 	-HistorySearchCursorMovesToEnd `
 	-ShowToolTips `
 	-MaximumHistoryCount 10000 `
-	-ContinuationPrompt "*"
-
-Set-PSReadLineOption -AddToHistoryHandler {
-	<# param([string]$line)
-
-	$sensitive = password | asplaintext | token | key | secret
-	return ($line -notmatch $sensitive) #>
+	-ContinuationPrompt "*" `
+	-AddToHistoryHandler {
 	param([string]$line)
 	return $line;
 }
 
 Set-PSReadLineOption -Colors @{
 	Command                = "$([char]0x1b)[93;1m"
-	# Command                = '#d6c956'
 	Comment                = "$([char]0x1b)[32m"
 	ContinuationPrompt     = "$([char]0x1b)[37m"
 	Emphasis               = "`e[38;5;166m"
 	Error                  = "$([char]0x1b)[91m"
 	InlinePrediction       = "$([char]0x1b)[0;90m"
-	# Keyword                = "$([char]0x1b)[38;5;204m"
 	Keyword                = "$([char]0x1b)[38;5;33;1m"
 	ListPrediction         = "$([char]0x1b)[33m"
 	ListPredictionSelected = "$([char]0x1b)[48;5;234;4m"
-	# Member                 = '#BEB7FF'
-	# Member                 = '#ff3690'
 	Member                 = "$([char]0x1b)[38;5;170m"
-	# Number                 = '#dad27e'
 	Number                 = '#73fff6'
-	# Number                 = "$([char]0x1b)[38;5;136m"
-	# Operator               = "$([char]0x1b)[38;5;254m"
 	Operator               = "$([char]0x1b)[38;5;166m"
 	Parameter              = "$([char]0x1b)[38;2;255;165;0;3m"
-	# Selection              = "$([char]0x1b)[48;5;250;38;5;0m"
 	Selection              = "$([char]0x1b)[7m"
-
 	String                 = "$([char]0x1b)[38;5;45m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
-	# Type                   = '#9CDCFE'
 	Type                   = "$([char]0x1b)[38;5;81;1m"
 }
 
