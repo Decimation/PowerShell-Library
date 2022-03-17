@@ -1393,10 +1393,9 @@ function New-AdminWT {
 function QGit {
 	# .\Update.ps1; git add .; git commit -m "$(Get-Date -Format 'HH:mm:ss')"; git push
 	$f = $args[0]
-	if (-not $f) {
-		Write-Debug "Not running arg 0"
+	if ($f) {
+		&$f
 	}
-	&$f
 	git add .
 	git commit -m "$(Get-Date -Format 'HH:mm:ss')"
 	git push
