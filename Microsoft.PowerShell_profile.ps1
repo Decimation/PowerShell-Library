@@ -300,7 +300,6 @@ $global:KeyMappings = @(
 			Write-Host
 			Write-Host 'Pushed:' -ForegroundColor DarkYellow
 			Push-Location -PassThru | Out-Host 
-	
 			[PSConsoleReadLine]::AcceptLine()
 			# $Host.ui.WriteLine()
 		}
@@ -313,7 +312,6 @@ $global:KeyMappings = @(
 			Write-Host 'Reloaded profile' -ForegroundColor DarkGreen
 			[PSConsoleReadLine]::Ding()
 		}
-
 	},
 	@{
 		Key         = 'Ctrl+F5' 
@@ -556,10 +554,10 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 # Install-Module -Name Terminal-Icons -Repository PSGallery
 # Install-Module oh-my-posh -Scope CurrentUser
 
-Import-Module ZLocation
+<# Import-Module ZLocation
 Import-Module oh-my-posh
+Import-Module AudioDeviceCmdlets #>
 
 #https://github.com/WantStuff/AudioDeviceCmdlets
-Import-Module AudioDeviceCmdlets
 # Set-PoshPrompt microverse-power
 # Install-Module -Name GuiCompletion -Scope CurrentUser
