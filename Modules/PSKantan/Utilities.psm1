@@ -1388,3 +1388,16 @@ public static class $className
 function New-AdminWT {
 	sudo wt -w 0 nt
 }
+
+
+function QGit {
+	# .\Update.ps1; git add .; git commit -m "$(Get-Date -Format 'HH:mm:ss')"; git push
+	$f = $args[0]
+	if (-not $f) {
+		Write-Debug "Not running arg 0"
+	}
+	&$f
+	git add .
+	git commit -m "$(Get-Date -Format 'HH:mm:ss')"
+	git push
+}
