@@ -208,11 +208,11 @@ $global:KeyMappings = @(
 		Function = 'TabCompletePrevious'
 	}, 
 	@{
-		Key      = 'Alt+UpArrow'
+		Key      = 'Ctrl+UpArrow'
 		Function = 'HistorySearchBackward'
 	},
 	@{
-		Key      = 'Alt+DownArrow'
+		Key      = 'Ctrl+DownArrow'
 		Function = 'HistorySearchForward'
 	},
 	@{

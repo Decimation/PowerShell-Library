@@ -146,15 +146,14 @@ $Index = @(
 		export = {
 			$dir = $args[0]
 			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" `
-				"$dir\$($name)_settings.json"
+				"$dir\wt_settings.json"
 		}
 	}, [BackupSource]@{
 		name   = "vscode"
 		export = {
 			$dir = $args[0]
-			
 			Copy-Item "C:\Users\Deci\AppData\Roaming\Code\User\settings.json" `
-				"$dir\$($name)_settings.json"
+				"$dir\vs_settings.json"
 		}
 	}
 )
@@ -172,7 +171,6 @@ if (-not (Test-Path $OutputFolder)) {
 Write-Host "$($IndexSelected|Select-Object -ExpandProperty name)"
 Write-Debug "$op | $query |$n"
 
-Read-Host 
 
 switch ($op) {
 	'export' {
@@ -181,8 +179,10 @@ switch ($op) {
 		
 		for ($i = 0; $i -lt $l; $i++) {
 			$val = $IndexSelected[$i]
-			# Write-Debug "$($val.name)"
-			& $val.export $OutputFolder
+			
+			# Write-Host "$($val.name)"
+			$pa = @($OutputFolder, $val.name)
+			& $val.export @pa
 			
 			$sz = [string]::Format('{0:00}/{1:00}', $i + 1, $l)
 			Write-Host "`r$sz" -NoNewline
