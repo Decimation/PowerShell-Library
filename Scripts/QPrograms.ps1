@@ -5,6 +5,9 @@ param(
 	[parameter(Mandatory = $false)]$n = '.' 
 )
 
+qprint $args
+qprint $PSBoundParameters
+
 
 <#	
 	.NOTES
@@ -146,12 +149,17 @@ $Index = @(
 	}, [BackupSource]@{
 		name   = 'wt'
 		export = {
-			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" "$dir\$($name)_settings.json"
+			$dir = $args[0]
+			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" `
+				"$dir\$($name)_settings.json"
 		}
 	}, [BackupSource]@{
 		name   = "vscode"
 		export = {
-			Copy-Item "C:\Users\Deci\AppData\Roaming\Code\User\settings.json" "$dir\$($name)_settings.json"
+			$dir = $args[0]
+			
+			Copy-Item "C:\Users\Deci\AppData\Roaming\Code\User\settings.json" `
+				"$dir\$($name)_settings.json"
 		}
 	}
 )
@@ -163,6 +171,8 @@ $IndexSelected = $Index | Where-Object { $_.name -match $n }
 $OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
 
 Write-Host "$($IndexSelected|Select-Object -ExpandProperty name)"
+Write-Host "$op | $query|$n"
+Read-Host 
 
 switch ($op) {
 	'export' {
@@ -175,8 +185,9 @@ switch ($op) {
 		
 		for ($i = 0; $i -lt $l; $i++) {
 			$val = $IndexSelected[$i]
+			Write-Debug "$($val.name)"
 			& $val.export $OutputFolder
-			$i++
+			
 			$sz = [string]::Format('{0:00}/{1:00}', $i + 1, $l)
 			Write-Host "`r$sz" -NoNewline
 			
