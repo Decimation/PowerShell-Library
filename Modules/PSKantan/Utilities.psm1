@@ -331,11 +331,10 @@ function U {
 	throw "Invalid character code $Code"
 }
 
-
-function PathJoin($x, $useCmd) {
-	return [string]::Join($useCmd, $x).TrimEnd($useCmd)
+function Wrap {
+	param($i, $n) 
+	return (($i % $n) + $n) % $n 
 }
-
 
 function Search-InFiles {
 	param (

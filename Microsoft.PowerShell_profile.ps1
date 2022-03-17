@@ -1,22 +1,15 @@
 using namespace System.Management.Automation.Language
 using namespace Microsoft.PowerShell
 
+
+
 <#
 # Profile
 #>
 
-
 $global:PSROOT = "$HOME\Documents\PowerShell\"
-
-$global:PSModules = "$global:PSROOT\Modules\"
-$global:PSScripts = "$global:PSROOT\Scripts\"
-
-function tbutt {
-	param (
-		$a
-	)
-	return $a
-}
+$global:PSModules = Join-Path $global:PSROOT "\Modules\"
+$global:PSScripts = Join-Path "$global:PSROOT" "\Scripts\"
 
 function Reload-Module {
 	param ($x)
@@ -56,20 +49,22 @@ function Prompt {
 	$c3 = "`e[38;5;13;1m"
 	$c4 = "`e[38;5;220;4m"
 	$c5 = "`e[1m"
+	$c6 = "`e[38;5;209;1m"
 	$ANSI_END = "`e[0m"
 	
 	# $currentDate = $(Get-Date -Format 'HH:mm:ss')
 	
 	$cd = Get-Location
-	$p2 = "$"
-	$k1 = "PS "
+	$p1 = "$"
+	$ps = "PS "
 
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
 
 	$u = "$c1$user$ANSI_END"
 	$c = "$c2$cname$ANSI_END"
-	$p = "$c3$k1$ANSI_END"
+	$p = "$c3$ps$ANSI_END"
+	$p2 = "$c6$p1$ANSI_END"
 	$f = " $c4$cd$ANSI_END`n$c5$p2$ANSI_END"
 
 	# Write-Host "$p" -NoNewline
@@ -116,8 +111,6 @@ $private:ReloadThis = [string] {
 $script:qr = ".`$PROFILE; $ImportThis"
 $script:qr2 = ".`$PROFILE; $ReloadThis"
 
-$global:Downloads = "$env:USERPROFILE\Downloads\"
-
 # region 
 
 $InformationPreference = 'Continue'
@@ -137,7 +130,7 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 # endregion
 
-function Wrap { param($i, $n) return (($i % $n) + $n) % $n }
+
 
 #region Keys
 
@@ -145,7 +138,8 @@ Set-PSReadLineOption `
 	-PredictionSource HistoryAndPlugin `
 	-HistorySearchCursorMovesToEnd `
 	-ShowToolTips `
-	-MaximumHistoryCount 10000
+	-MaximumHistoryCount 10000 `
+	-ContinuationPrompt "*"
 
 Set-PSReadLineOption -AddToHistoryHandler {
 	<# param([string]$line)
@@ -186,41 +180,18 @@ Set-PSReadLineOption -Colors @{
 	Type                   = "$([char]0x1b)[38;5;81;1m"
 }
 
-function Get-PSConsoleReadlineOptions {
-	return [Microsoft.PowerShell.PSConsoleReadLine]::GetOptions()
-}
 
-function script:Clear-PSLine {
-	<# $a = ''
-	$b = 0
-	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$a, [ref]$b)
-	[Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
-	[Microsoft.PowerShell.PSConsoleReadLine]::Insert($a) #>
-	[Microsoft.PowerShell.PSConsoleReadLine]::DeleteLine()
-
-}
 
 $global:KeyMappings = @(
 	@{
 		Key         = 'F2'
 		ScriptBlock = {
-			Clear-PSLine
+			[Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 			[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
+			$pvs = (Get-PSReadLineOption).PredictionViewStyle
 	
-			$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
-	
-			if ($pvs -eq 'ListView') {
-				& $ListViewHandler
-			}
-			else {
-				& $InlineViewHandler
-			}
-			& $OtherKeyHandlers
-			$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
-	
-	
-			[PSConsoleReadLine]::AcceptLine()
-			Write-Host 'Prediction view: ' -NoNewline
+			# [PSConsoleReadLine]::AcceptLine() 
+			Write-Host "`nPrediction view: " -NoNewline
 			Write-Host "$pvs" -ForegroundColor DarkCyan
 		}
 	},
@@ -244,6 +215,10 @@ $global:KeyMappings = @(
 	@{
 		Key      = 'Ctrl+q'
 		Function = 'TabCompleteNext'
+	}, 
+	@{
+		Key      = 'Ctrl+y'
+		Function = 'Yank'
 	},
 	@{
 		Key      = 'Shift+Tab' 
@@ -347,15 +322,7 @@ $global:KeyMappings = @(
 ) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
 
 
-$global:ListViewHandler = {
-	Set-PSReadLineKeyHandler -Key 'UpArrow' -Function PreviousSuggestion
-	Set-PSReadLineKeyHandler -Key 'DownArrow' -Function NextSuggestion
-}
 
-$global:InlineViewHandler = {
-	Set-PSReadlineKeyHandler -Key 'Tab' -Function AcceptNextSuggestionWord
-	Set-PSReadlineKeyHandler -Chord 'Ctrl+Tab' -Function AcceptSuggestion
-}
 
 
 #region Smart Insert/Delete
