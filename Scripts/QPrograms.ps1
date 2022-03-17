@@ -177,13 +177,11 @@ Read-Host
 switch ($op) {
 	'export' {
 		
-		
-
 		$l = $IndexSelected.Length
 		
 		for ($i = 0; $i -lt $l; $i++) {
 			$val = $IndexSelected[$i]
-			Write-Debug "$($val.name)"
+			# Write-Debug "$($val.name)"
 			& $val.export $OutputFolder
 			
 			$sz = [string]::Format('{0:00}/{1:00}', $i + 1, $l)

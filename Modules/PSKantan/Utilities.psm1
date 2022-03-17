@@ -652,42 +652,42 @@ function Search-History {
 function Get-Bytes {
 	[outputtype([byte[]])]
 	param (
-		[Parameter(Mandatory = $true)]
+		[Parameter(Mandatory = $true, ValueFromPipeline)]
 		$x,
 		[Parameter(Mandatory = $false)]
-		[System.Text.Encoding]$encoding
+		$encoding
 	)
-	
-	$isStr = $x -is [string]
-	#$typeX = $x.GetType()
-	$info1 = @()
-	$rg = @()
-	
-	if ($isStr) {
-		#$typeX = [string]
+
+	process {
+
+		$isStr = $x -is [string]
+		$info1 = @()
+		$rg = @()
 		
-		if (!($encoding)) {
-			$encoding = [System.Text.Encoding]::Default
+		if ($isStr) {
+			if (!($encoding)) {
+				$encoding = [System.Text.Encoding]::Default
+			}
+			
+			$info1 += $encoding.EncodingName
+			$rg = $encoding.GetBytes($x)
+		}
+		else {
+			$rg = [System.BitConverter]::GetBytes($x)
 		}
 		
-		$info1 += $encoding.EncodingName
-		$rg = $encoding.GetBytes($x)
-	}
-	else {
-		$rg = [System.BitConverter]::GetBytes($x)
-	}
-	
-	<# Write-Host "[$($typeX.Name)]" -NoNewline -ForegroundColor Yellow
-	
-	if ($info1.Length -ne 0) {
+		<# Write-Host "[$($typeX.Name)]" -NoNewline -ForegroundColor Yellow
+		
+		if ($info1.Length -ne 0) {
+			Write-Host ' | ' -NoNewline
+			Write-Host "$($info1 -join ' | ')" -NoNewline
+		}
+		
 		Write-Host ' | ' -NoNewline
-		Write-Host "$($info1 -join ' | ')" -NoNewline
+		Write-Host "$x" -ForegroundColor Cyan #>
+		
+		return $rg
 	}
-	
-	Write-Host ' | ' -NoNewline
-	Write-Host "$x" -ForegroundColor Cyan #>
-	
-	return $rg
 }
 
 

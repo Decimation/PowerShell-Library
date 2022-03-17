@@ -240,6 +240,10 @@ $global:KeyMappings = @(
 		Function = 'Paste'
 	},
 	@{
+		Key      = 'Ctrl+x'
+		Function = 'KillRegion'
+	},
+	@{
 		Key      = 'Ctrl+c'
 		Function = 'CopyOrCancelLine'
 	}
