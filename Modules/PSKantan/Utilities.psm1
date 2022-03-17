@@ -7,17 +7,15 @@ $global:ZERO_WIDTH_SPACE = $([char]"`u{200b}")
 $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 
 $global:ANSI_START = "$([char]0x001b)"
-$global:ANSI_STOP = "$ANSI_START[0m"
-
-$global:ANSI_UNDERLINE = "$ANSI_START[4m"
-$global:ANSI_ITALIC = "$ANSI_START[3m"
-$global:ANSI_BOLD = "$ANSI_START[1m"
 
 # endregion
 
 
 
-
+function global:qprint {
+	param($rg)
+	return [string]($rg -join ',')
+}
 function Get-SubstringBetween {
 	param ([string]$value,
 		[string]$a,
@@ -148,10 +146,13 @@ function typename {
 		[Parameter(ValueFromPipeline)]
 		$x
 	)
+
+	process {
+
+		$y = ($x | Get-Member)[0].TypeName
+		return $y
+	}
 	
-	$y = ($x | Get-Member)[0].TypeName
-	
-	return $y
 }
 
 function typeof {
@@ -160,9 +161,11 @@ function typeof {
 		[Parameter(ValueFromPipeline)]
 		$x
 	)
-	
-	#return [type]::GetType((typename $x))
-	return $x.GetType()
+	process {
+
+		#return [type]::GetType((typename $x))
+		return $x.GetType()
+	}
 }
 
 function typecodeof {

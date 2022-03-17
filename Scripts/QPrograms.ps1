@@ -144,9 +144,14 @@ $Index = @(
 			Get-ChildItem ${env:ProgramFiles(x86)} | Out-File "$dir\programs (x86).txt"
 		}
 	}, [BackupSource]@{
-		name   = 'winterm'
+		name   = 'wt'
 		export = {
-			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" "$dir\wt_settings.json"
+			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" "$dir\$($name)_settings.json"
+		}
+	}, [BackupSource]@{
+		name   = "vscode"
+		export = {
+			Copy-Item "C:\Users\Deci\AppData\Roaming\Code\User\settings.json" "$dir\$($name)_settings.json"
 		}
 	}
 )

@@ -11,7 +11,12 @@ $global:PSROOT = "$HOME\Documents\PowerShell\"
 $global:PSModules = "$global:PSROOT\Modules\"
 $global:PSScripts = "$global:PSROOT\Scripts\"
 
-$PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
+function tbutt {
+	param (
+		$a
+	)
+	return $a
+}
 
 function Reload-Module {
 	param ($x)
@@ -46,34 +51,31 @@ New-Module {
 
 
 function Prompt {
+	$c1 = "`e[38;5;196;1m"
+	$c2 = "`e[38;5;40;3m"
+	$c3 = "`e[38;5;13;1m"
+	$c4 = "`e[38;5;220;4m"
+	$c5 = "`e[1m"
+	$ANSI_END = "`e[0m"
 	
-	$fg2 = [System.ConsoleColor]::Yellow
-	$fg1 = [System.ConsoleColor]::Blue
+	# $currentDate = $(Get-Date -Format 'HH:mm:ss')
 	
-	$currentDate = $(Get-Date -Format 'HH:mm:ss')
 	$cd = Get-Location
-	#$cd2 = ([string]($cd)).Replace("$HOME", "~")
+	$p2 = "$"
+	$k1 = "PS "
 
-	# Write-Host ("[$currentDate] ") -NoNewline -ForegroundColor $fg2
-	$u = "`e[38;5;36;1m$($env:USERNAME)`e[0m"
-	$c = "`e[38;5;25;1m$($env:COMPUTERNAME)`e[0m"
+	$user = $env:USERNAME
+	$cname = $env:COMPUTERNAME
 
-	Write-Host "`e[1m$u@$c`e[0m " -NoNewline `
-		-ForegroundColor Green
-	$p = "PS "
-	Write-Host "`e[38;5;13m$($p)`e[0m" -NoNewline
+	$u = "$c1$user$ANSI_END"
+	$c = "$c2$cname$ANSI_END"
+	$p = "$c3$k1$ANSI_END"
+	$f = " $c4$cd$ANSI_END`n$c5$p2$ANSI_END"
 
-	Write-Host "`e[38;5;220;3m$cd`e[0m"
-	Write-Host '$' -NoNewline
+	# Write-Host "$p" -NoNewline
+	Write-Host "$p$u@$c$f" -NoNewline
+	# Write-Host $f -NoNewline
 	
-	<# 
-	
-	[System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-	$env:USERNAME
-	$env:USERDOMAIN
-	$env:COMPUTERNAME
-	#>
-
 	<# 
 	Deci@TESSERACT MSYS ~
 	$
@@ -103,16 +105,16 @@ Set-Alias ~ Select-String
 
 # endregion
 
-$script:rmpsk = [string] {
+$private:ImportThis = [string] {
 	Import-Module PSKantan -Force -DisableNameChecking
 }
 
-$script:rmpsk2 = [string] {
+$private:ReloadThis = [string] {
 	Reload-Module PSKantan
 }
 
-$script:qr = ".`$PROFILE; $rmpsk"
-$script:qr2 = ".`$PROFILE; $rmpsk2"
+$script:qr = ".`$PROFILE; $ImportThis"
+$script:qr2 = ".`$PROFILE; $ReloadThis"
 
 $global:Downloads = "$env:USERPROFILE\Downloads\"
 
@@ -123,22 +125,27 @@ $ErrorActionPreference = 'Continue'
 $DebugPreference = 'Continue'
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+$PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
+$PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-$script:ap = [System.Enum]::GetValues([System.Management.Automation.ActionPreference]) `
+$script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automation.ActionPreference]) `
 	-notmatch 'Suspend'
 
-$PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
+[Net.ServicePointManager]::SecurityProtocol = `
+	[Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
 # endregion
 
 function Wrap { param($i, $n) return (($i % $n) + $n) % $n }
 
 #region Keys
 
-Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-Set-PSReadlineOption -ShowToolTips
-Set-PSReadLineOption -MaximumHistoryCount 10000
+Set-PSReadLineOption `
+	-PredictionSource HistoryAndPlugin `
+	-HistorySearchCursorMovesToEnd `
+	-ShowToolTips `
+	-MaximumHistoryCount 10000
 
 Set-PSReadLineOption -AddToHistoryHandler {
 	<# param([string]$line)
@@ -173,7 +180,7 @@ Set-PSReadLineOption -Colors @{
 	# Selection              = "$([char]0x1b)[48;5;250;38;5;0m"
 	Selection              = "$([char]0x1b)[7m"
 
-	String                 = "$([char]0x1b)[38;5;215m"
+	String                 = "$([char]0x1b)[38;5;45m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	# Type                   = '#9CDCFE'
 	Type                   = "$([char]0x1b)[38;5;81;1m"
@@ -193,115 +200,163 @@ function script:Clear-PSLine {
 
 }
 
+$global:KeyMappings = @(
+	@{
+		Key         = 'F2'
+		ScriptBlock = {
+			Clear-PSLine
+			[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
+	
+			$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
+	
+			if ($pvs -eq 'ListView') {
+				& $ListViewHandler
+			}
+			else {
+				& $InlineViewHandler
+			}
+			& $OtherKeyHandlers
+			$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
+	
+	
+			[PSConsoleReadLine]::AcceptLine()
+			Write-Host 'Prediction view: ' -NoNewline
+			Write-Host "$pvs" -ForegroundColor DarkCyan
+		}
+	},
+	@{
+		Key         = 'F3'
+		ScriptBlock = {
+			Write-Host
+			Write-Host 'Popped:' -ForegroundColor DarkYellow
+			Pop-Location -PassThru | Out-Host
+			[PSConsoleReadLine]::AcceptLine()
+		}
+	},
+	@{
+		Key      = 'Tab'
+		Function = 'MenuComplete'
+	}, 
+	@{
+		Key      = 'Ctrl+Tab'
+		Function = 'AcceptSuggestion'
+	}, 
+	@{
+		Key      = 'Ctrl+q'
+		Function = 'TabCompleteNext'
+	},
+	@{
+		Key      = 'Shift+Tab' 
+		Function = 'TabCompletePrevious'
+	}, 
+	@{
+		Key      = 'Alt+UpArrow'
+		Function = 'HistorySearchBackward'
+	},
+	@{
+		Key      = 'Alt+DownArrow'
+		Function = 'HistorySearchForward'
+	},
+	@{
+		Key      = 'DownArrow'
+		Function = 'NextHistory'
+	}, 
+	@{
+		Key      = 'UpArrow'
+		Function = 'PreviousHistory'
+	},
+	@{
+		Key      = 'F1'
+		Function = 'ShowCommandHelp'
+	}, 
+	@{
+		Key      = 'Ctrl+p'
+		Function = 'ShowParameterHelp'
+	}, 
+	@{
+		Key      = 'Ctrl+d'
+		Function = 'ForwardWord'
+	},
+	@{
+		Key      = 'Ctrl+v'
+		Function = 'Paste'
+	},
+	@{
+		Key      = 'Ctrl+c'
+		Function = 'CopyOrCancelLine'
+	}
+	@{
+		Key         = 'F3'
+		ScriptBlock = {
+			Write-Host
+			Write-Host 'Popped:' -ForegroundColor DarkYellow
+			Pop-Location -PassThru | Out-Host
+			[PSConsoleReadLine]::AcceptLine()
+		}
+	},
+	@{
+		Key         = 'F4'
+		ScriptBlock = {
+			Write-Host
+			Write-Host 'Pushed:' -ForegroundColor DarkYellow
+			Push-Location -PassThru | Out-Host 
+	
+			[PSConsoleReadLine]::AcceptLine()
+			# $Host.ui.WriteLine()
+		}
+	},
+	@{
+		Key         = 'F5'
+		ScriptBlock = {
+			ie $qr
+			[PSConsoleReadLine]::AcceptLine()
+			Write-Host 'Reloaded profile' -ForegroundColor DarkGreen
+			[PSConsoleReadLine]::Ding()
+		}
 
-$TogglePredictionView = {
-	Clear-PSLine
-	[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
-	
-	$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
-	
-	if ($pvs -eq 'ListView') {
-		& $ListViewHandler
+	},
+	@{
+		Key         = 'Ctrl+F5' 
+		ScriptBlock = {
+			ie $qr2
+			[PSConsoleReadLine]::AcceptLine()
+			Write-Host 'Reloaded profile full' -ForegroundColor DarkGreen
+			[PSConsoleReadLine]::Ding()
+		}
+	},
+	@{
+		Key         = 'F6'
+		ScriptBlock = {
+			$idx = Wrap ($script:ActionPreferences.IndexOf($global:DebugPreference) + 1) ($script:ActionPreferences.Count)
+			$global:DebugPreference = $script:ActionPreferences[$idx]
+			[PSConsoleReadLine]::AcceptLine()
+			Write-Host 'Debug preference: ' -NoNewline -ForegroundColor Yellow
+			Write-Host "$global:DebugPreference" -ForegroundColor Green
+			[PSConsoleReadLine]::Ding()
+		}
+	},
+	@{
+		Key         = 'F7'
+		ScriptBlock = {
+			$idx = Wrap ($script:ActionPreferences.IndexOf($global:ErrorActionPreference) + 1) ($script:ActionPreferences.Count)
+			$global:ErrorActionPreference = $script:ActionPreferences[$idx]
+			[PSConsoleReadLine]::AcceptLine()
+			Write-Host 'Error action preference: ' -NoNewline -ForegroundColor Yellow
+			Write-Host "$global:ErrorActionPReference" -ForegroundColor Green
+			[PSConsoleReadLine]::Ding()
+		}
 	}
-	else {
-		& $InlineViewHandler
-	}
-	& $OtherKeyHandlers
-	$pvs = (Get-PSConsoleReadlineOptions).PredictionViewStyle
-	
-	
-	[PSConsoleReadLine]::AcceptLine()
-	Write-Host 'Prediction view: ' -NoNewline
-	Write-Host "$pvs" -ForegroundColor DarkCyan
+) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
+
+
+$global:ListViewHandler = {
+	Set-PSReadLineKeyHandler -Key 'UpArrow' -Function PreviousSuggestion
+	Set-PSReadLineKeyHandler -Key 'DownArrow' -Function NextSuggestion
 }
 
-Set-PSReadlineKeyHandler -Key F2 -ScriptBlock $TogglePredictionView
-
-
-$ListViewHandler = {
-	Set-PSReadLineKeyHandler -Key 'Ctrl+UpArrow' -Function PreviousSuggestion
-	Set-PSReadLineKeyHandler -Key 'Ctrl+DownArrow' -Function NextSuggestion
-}
-
-$InlineViewHandler = {
+$global:InlineViewHandler = {
 	Set-PSReadlineKeyHandler -Key 'Tab' -Function AcceptNextSuggestionWord
 	Set-PSReadlineKeyHandler -Chord 'Ctrl+Tab' -Function AcceptSuggestion
-}
-
-& $InlineViewHandler
-
-$OtherKeyHandlers = {
-	<# Set-PSReadLineKeyHandler -Key 'Tab' -Function TabCompleteNext
-	Set-PSReadlineKeyHandler -Chord 'Ctrl+Tab' -Function AcceptSuggestion
-	Set-PSReadlineKeyHandler -Chord 'Ctrl+q' -Function MenuComplete
-	Set-PSReadlineKeyHandler -Key 'Shift+Tab' -Function TabCompletePrevious #>
-	Set-PSReadLineKeyHandler -Key 'Tab' -Function MenuComplete
-	Set-PSReadlineKeyHandler -Chord 'Ctrl+Tab' -Function AcceptSuggestion
-	Set-PSReadlineKeyHandler -Chord 'Ctrl+q' -Function TabCompleteNext
-	Set-PSReadlineKeyHandler -Key 'Shift+Tab' -Function TabCompletePrevious
-	Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-	Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
-	Set-PSReadLineKeyHandler -Key 'Ctrl+UpArrow' -Function PreviousHistory
-	Set-PSReadLineKeyHandler -Key 'Ctrl+DownArrow' -Function NextHistory
-	Set-PSReadLineKeyHandler -Key F1 -Function ShowCommandHelp
-	Set-PSReadLineKeyHandler -Key 'Ctrl+p' -Function ShowParameterHelp
-	Set-PSReadLineKeyHandler -Chord 'Ctrl+d' -Function ForwardWord
-}
-
-
-Set-PSReadLineKeyHandler -Key F3 -ScriptBlock {
-	Write-Host
-	Write-Host 'Popped:' -ForegroundColor DarkYellow
-	Pop-Location -PassThru | Out-Host
-	[PSConsoleReadLine]::AcceptLine()
-}
-
-Set-PSReadLineKeyHandler -Key F4 -ScriptBlock {
-	Write-Host
-	Write-Host 'Pushed:' -ForegroundColor DarkYellow
-	Push-Location -PassThru | Out-Host 
-	
-	[PSConsoleReadLine]::AcceptLine()
-	# $Host.ui.WriteLine()
-}
-
-
-Set-PSReadLineKeyHandler -Key F5 -ScriptBlock {
-	ie $qr
-	[PSConsoleReadLine]::AcceptLine()
-	Write-Host 'Reloaded profile' -ForegroundColor DarkGreen
-	[PSConsoleReadLine]::Ding()
-}
-
-Set-PSReadLineKeyHandler -Key 'Ctrl+F5' -ScriptBlock {
-	ie $qr2
-	[PSConsoleReadLine]::AcceptLine()
-	Write-Host 'Reloaded profile full' -ForegroundColor DarkGreen
-	[PSConsoleReadLine]::Ding()
-}
-
-& $OtherKeyHandlers
-
-
-Set-PSReadLineKeyHandler -Key F6 -ScriptBlock {
-	$idx = Wrap ($script:ap.IndexOf($global:DebugPreference) + 1) ($script:ap.Count)
-	$global:DebugPreference = $script:ap[$idx]
-	[PSConsoleReadLine]::AcceptLine()
-	Write-Host 'Debug preference: ' -NoNewline -ForegroundColor Yellow
-	Write-Host "$global:DebugPreference" -ForegroundColor Green
-	[PSConsoleReadLine]::Ding()
-
-}
-
-
-Set-PSReadLineKeyHandler -Key F7 -ScriptBlock {
-	$idx = Wrap ($script:ap.IndexOf($global:ErrorActionPreference) + 1) ($script:ap.Count)
-	$global:ErrorActionPreference = $script:ap[$idx]
-	[PSConsoleReadLine]::AcceptLine()
-	Write-Host 'Error action preference: ' -NoNewline -ForegroundColor Yellow
-	Write-Host "$global:ErrorActionPReference" -ForegroundColor Green
-	[PSConsoleReadLine]::Ding()
-
 }
 
 
@@ -487,8 +542,6 @@ Set-PSReadLineKeyHandler -Key Backspace `
 
 #endregion
 
-[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-
 $script:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
 # PowerShell parameter completion shim for the dotnet CLI
@@ -505,11 +558,8 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 
 Import-Module ZLocation
 Import-Module oh-my-posh
+
 #https://github.com/WantStuff/AudioDeviceCmdlets
 Import-Module AudioDeviceCmdlets
 # Set-PoshPrompt microverse-power
 # Install-Module -Name GuiCompletion -Scope CurrentUser
-function global:qprint {
-	param($rg)
-	return [string]($rg -join ',')
-}
