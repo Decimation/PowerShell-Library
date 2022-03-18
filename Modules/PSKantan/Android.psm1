@@ -5,16 +5,6 @@
 
 
 $global:RD_SD = 'sdcard/'
-$global:RD_PIC = $RD_SD + 'Pictures/'
-$global:RD_VID = $RD_SD + 'Videos/'
-$global:RD_DL = $RD_SD + 'Download/'
-$global:RD_DOC = $RD_SD + 'Documents/'
-
-$global:AdbRemoteOutputDefault = $RD_SD
-
-
-
-
 
 #region ADB completion
 
@@ -26,9 +16,11 @@ $script:AdbCommands = @(
 )
 
 Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
-	param ($wordToComplete,
+	param (
+		$wordToComplete,
 		$commandAst,
-		$fakeBoundParameters)
+		$fakeBoundParameters
+	)
 	
 	$script:AdbCommands | Where-Object {
 		$_ -like "$wordToComplete*"
@@ -41,26 +33,6 @@ Register-ArgumentCompleter -Native -CommandName adb -ScriptBlock {
 #endregion
 
 #region [IO]
-
-function script:EnsureRemoteOutput($dest) {
-	
-	#to-do: private
-	
-	if (!($dest)) {
-		$dest = $global:AdbRemoteOutputDefault
-	}
-	
-	$usingDefault = $dest -eq $global:AdbRemoteOutputDefault
-	
-	#Write-Debug "Output: $dest | Default: $global:AdbRemoteOutputDefault"
-	
-	if ($usingDefault) {
-		Write-Debug "Using default remote output ($global:AdbRemoteOutputDefault)"
-	}
-	
-	return $dest
-}
-
 
 enum AdbDestination {
 	Remote
@@ -156,44 +128,6 @@ function Adb-RemoveItem {
 	(adb shell rm "$src")
 }
 
-
-<#
-.Description
-Lists directory content
-#>
-<#function Adb-GetItems {
-	param (
-		[Parameter(Mandatory = $true)]
-		[string]$src,
-		[Parameter(Mandatory = $false)]
-		[string]$filter,
-		[switch]$relative,
-		[switch]$recurse
-	)
-	
-	
-	$lsArgs = @()
-	
-	if ($recurse) {
-		$lsArgs += '-R'
-	}
-	
-	$src = Adb-Escape $src Shell
-	$x = (adb shell ls $lsArgs $src)
-	
-	$files = ($x) -Split "`n"
-	
-	if (!$relative) {
-		for ($i = 0; $i -lt $files.Count; $i++) {
-			$files[$i] = [System.IO.Path]::Combine($src, $files[$i]).Replace('\ ', ' ').Replace('\', '/')
-		}
-	}
-	if ($filter) {
-		$files = $files | Select-String -Pattern $filter
-	}
-	return $files
-}#>
-
 <#
 .Description
 ADB enhanced passthru
@@ -230,21 +164,22 @@ function Adb-QPush {
 	
 	if ($f -is [array]) {
 		$f | Invoke-Parallel -ImportVariables -Quiet -ScriptBlock {
-			adb.exe push "$_" $using:d
+			adb push "$_" $using:d
 		}
 	}
 	
 }
 
 function Adb-QPull {
+	param($d = $(Get-Location))
 	
-	$d = Get-Location
+
 	Write-Host "$d"
 	Read-Host
-	$r = Adb-GetItems @args
+	$r = Adb-GetItems @args -t 'f'
 	
 	$r | Invoke-Parallel -ImportVariables -Quiet -ScriptBlock {
-		adb.exe pull $_ "$d"
+		adb pull $_ "$d"
 
 		<# Write-Progress -Activity g -PercentComplete (($i / $l) * 100.0) #>
 	}
