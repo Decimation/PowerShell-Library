@@ -165,7 +165,7 @@ $Selected = $Index + $Sources `
 | Where-Object { $_.name -match $n }
 
 
-Write-Host "$($Selected|Select-Object -ExpandProperty name)"
+Write-Host "$($Selected | Select-Object -ExpandProperty name)"
 Write-Debug "$op | $query |$n"
 
 
