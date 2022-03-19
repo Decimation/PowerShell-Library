@@ -24,7 +24,6 @@ class BackupSource {
 }
 
 class PackageManager : BackupSource {
-	
 	[string]$search = 'search'
 	[string]$install = 'install'
 	[string]$uninstall = 'uninstall'
@@ -88,7 +87,10 @@ $Index = @(
 
 			winget export "$dir\winget.json" --include-versions | Out-Null
 		}
-	},
+	}
+	
+)
+$Sources = @(
 	[BackupSource]@{
 		name   = 'appx'
 		export = {
@@ -142,7 +144,7 @@ $Index = @(
 			Get-ChildItem ${env:ProgramFiles(x86)} | Out-File "$dir\programs (x86).txt"
 		}
 	}, [BackupSource]@{
-		name   = 'wt'
+		name   = 'winterm'
 		export = {
 			$dir = $args[0]
 			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" `
@@ -157,28 +159,28 @@ $Index = @(
 		}
 	}
 )
-
 # endregion
 
+$Selected = $Index + $Sources `
+| Where-Object { $_.name -match $n }
 
-$IndexSelected = $Index | Where-Object { $_.name -match $n }
-$OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
 
-if (-not (Test-Path $OutputFolder)) {
-	mkdir $OutputFolder
-}
-
-Write-Host "$($IndexSelected|Select-Object -ExpandProperty name)"
+Write-Host "$($Selected|Select-Object -ExpandProperty name)"
 Write-Debug "$op | $query |$n"
 
 
 switch ($op) {
 	'export' {
-		
-		$l = $IndexSelected.Length
+		$OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
+
+		if (-not (Test-Path $OutputFolder)) {
+			mkdir $OutputFolder
+		}
+
+		$l = $Selected.Length
 		
 		for ($i = 0; $i -lt $l; $i++) {
-			$val = $IndexSelected[$i]
+			$val = $Selected[$i]
 			
 			# Write-Host "$($val.name)"
 			$pa = @($OutputFolder, $val.name)
@@ -190,9 +192,15 @@ switch ($op) {
 			# Write-Progress -Id 1 -Activity Updating -Status 'Progress' -PercentComplete (($i / $l) * 100.0)
 		}
 	}
+	'' {
+		
+	}
+	$null {
+
+	}
 	Default {
 		$f = $op
-		foreach ($e in $IndexSelected) {
+		foreach ($e in $Selected) {
 			$v = @($e.$f, $query)
 			
 			if (-not (Test-Command $e.name)) {
