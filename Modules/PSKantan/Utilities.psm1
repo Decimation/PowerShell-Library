@@ -238,44 +238,48 @@ $STD_IN = 0
 $STD_OUT = 1
 $STD_ERR = 2
 
-function QCommand {
-	#todo: use Invoke-Command
+
+function Invoke-CommandProcess {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]
-		[string]$s,
+		$s,
 		[Parameter(Mandatory = $false)]
-		[int]$std,
-		[switch]$useCmd
+		[int]$std = $STD_OUT
 	)
-	
-	if ($useCmd) {
-		return (cmd.exe /c $s)
-	}
-	
+
 	$p = Get-CommandProcess $s
 	
 	$p.Start() | Out-Null
 	$p.WaitForExit()
 	
-	if (!($std)) {
-		$std = $STD_OUT
-	}
-	
-	if ($std -eq $STD_IN) {
-		$outStr = $p.StandardInput.ReadToEnd()
-	}
-	elseif ($std -eq $STD_OUT) {
-		$outStr = $p.StandardOutput.ReadToEnd()
-	}
-	elseif ($std -eq $STD_ERR) {
-		$outStr = $p.StandardError.ReadToEnd()
+	switch ($std) {
+		$STD_IN {
+			$outStr = $p.StandardInput.ReadToEnd()
+		}
+		$STD_OUT {
+			$outStr = $p.StandardOutput.ReadToEnd()
+		}
+		$STD_ERR {
+			$outStr = $p.StandardError.ReadToEnd()
+		}
+		Default {}
 	}
 	
 	
 	$outStr = $outStr.Trim()
 	
 	return $outStr
+}
+
+function QCommand {
+	#todo: use Invoke-Command
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $true)]$s
+	)
+
+	return (& cmd.exe /c @s)
 }
 
 
