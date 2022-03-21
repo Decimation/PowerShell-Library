@@ -100,7 +100,6 @@ $Sources = @(
 		export = {
 			$dir = $args[0]
 			Import-Module Appx -UseWindowsPowerShell
-
 			Get-AppxPackage | Out-File "$dir\apps.txt"
 			Export-StartLayout "$dir\start layout.xml"
 		}
@@ -157,8 +156,7 @@ $Sources = @(
 
 
 
-$Selected = $Index + $Sources `
-| Where-Object { $_.name -match $n }
+$Selected = $Index + $Sources | Where-Object { $_.name -match $n }
 
 
 Write-Host "$($Selected | Select-Object -ExpandProperty name)"
@@ -206,7 +204,6 @@ switch ($op) {
 			& $e.name @v
 		}
 	}
-
 	'help' {
 		$Index | ForEach-Object { 
 			$_.name
