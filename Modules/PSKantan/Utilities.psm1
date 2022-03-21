@@ -1399,8 +1399,9 @@ function QGit {
 	if ($f) {
 		& $f
 	}
+	#[datetime]::Now.ToString("yyyy-MM-dd @ HH:mm:ss")
 
 	git add .
-	git commit -m "$(Get-Date -Format 'HH:mm:ss')"
+	git commit -m "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 	git push
 }
