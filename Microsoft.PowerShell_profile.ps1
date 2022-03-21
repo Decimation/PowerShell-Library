@@ -50,7 +50,6 @@ function Prompt {
 	$c4 = "`e[38;5;33;4m"
 	$c5 = "`e[1m"
 	$c6 = "`e[38;5;209;1m"
-	$ANSI_END = "`e[0m"
 	
 	# $currentDate = $(Get-Date -Format 'HH:mm:ss')
 	
@@ -132,12 +131,17 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 #region Keys
 
+$script:contchar = "•"
+$script:ANSI_END = "`e[0m"
+$cx = "`e[38;5;226m"
+$script:cont = "$cx$contchar$ANSI_END"
+
 Set-PSReadLineOption `
 	-PredictionSource HistoryAndPlugin `
 	-HistorySearchCursorMovesToEnd `
 	-ShowToolTips `
 	-MaximumHistoryCount 10000 `
-	-ContinuationPrompt "*" `
+	-ContinuationPrompt $script:cont `
 	-AddToHistoryHandler {
 	param([string]$line)
 	return $line;
@@ -508,6 +512,12 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 # Install-Module -Name Terminal-Icons -Repository PSGallery
 # Install-Module oh-my-posh -Scope CurrentUser
 # Install-Module Pansies -AllowClobber
+
+#Install-Module WslInterop
+#Import-WslCommand
+
+#Install-Module WindowsCompatibility -Scope CurrentUser
+#Import-Module WindowsCompatability
 
 <# Import-Module ZLocation
 Import-Module oh-my-posh

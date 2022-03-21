@@ -5,7 +5,7 @@ using namespace System.Management.Automation
 $global:UNI_ARROW = $([char]0x2192)
 $global:ZERO_WIDTH_SPACE = $([char]"`u{200b}")
 $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
-
+$script:UNI_BULLET = '•'
 $global:ANSI_START = "$([char]0x001b)"
 
 # endregion
