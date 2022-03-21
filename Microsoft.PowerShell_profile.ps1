@@ -507,6 +507,7 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 #Invoke-Expression "$(thefuck --alias)"
 # Install-Module -Name Terminal-Icons -Repository PSGallery
 # Install-Module oh-my-posh -Scope CurrentUser
+# Install-Module Pansies -AllowClobber
 
 <# Import-Module ZLocation
 Import-Module oh-my-posh

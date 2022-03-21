@@ -30,6 +30,7 @@ class PackageManager : BackupSource {
 	[string]$update = 'update'
 	[string]$list = 'list'
 }
+
 # endregion
 
 # region 
@@ -47,7 +48,7 @@ $Index = @(
 		name    = 'pacman'
 		search  = '-Q'
 		install = '-S'
-		list    = $this.search
+		list    = '-S'
 		export  = {
 			$dir = $args[0]
 
@@ -90,6 +91,9 @@ $Index = @(
 	}
 	
 )
+
+#Todo: exename; ...
+
 $Sources = @(
 	[BackupSource]@{
 		name   = 'appx'
@@ -161,13 +165,14 @@ $Sources = @(
 )
 # endregion
 
+
+
 $Selected = $Index + $Sources `
 | Where-Object { $_.name -match $n }
 
 
 Write-Host "$($Selected | Select-Object -ExpandProperty name)"
 Write-Debug "$op | $query |$n"
-
 
 switch ($op) {
 	'export' {
