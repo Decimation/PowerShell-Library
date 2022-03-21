@@ -99,20 +99,10 @@ $Sources = @(
 		name   = 'appx'
 		export = {
 			$dir = $args[0]
+			Import-Module Appx -UseWindowsPowerShell
 
-			if ((Get-Command -Name Invoke-WinCommand)) {
-				Invoke-WinCommand {
-					param ($arg0)
-					Get-AppxPackage | Out-File "$dir\apps.txt"
-				} -ArgumentList $OutputFolder
-		
-		
-				Invoke-WinCommand {
-					param ($arg0)
-					
-					Export-StartLayout "$dir\start layout.xml"
-				} -ArgumentList $OutputFolder
-			}
+			Get-AppxPackage | Out-File "$dir\apps.txt"
+			Export-StartLayout "$dir\start layout.xml"
 		}
 	},
 	[BackupSource]@{
