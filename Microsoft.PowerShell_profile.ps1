@@ -133,8 +133,7 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 $script:contchar = "•"
 $script:ANSI_END = "`e[0m"
-$cx = "`e[38;5;226m"
-$script:cont = "$cx$contchar$ANSI_END"
+$script:cont = "`e[38;5;226m$contchar$ANSI_END"
 
 Set-PSReadLineOption `
 	-PredictionSource HistoryAndPlugin `
