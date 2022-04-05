@@ -39,14 +39,17 @@ function Write-Quick {
 
 function Write-Pretty {
 	param($myInv, $rg, $psCmd)
+
 	$name = $myInv.MyCommand
-	$name2 = Text $name -ForegroundColor 'pink'
+	$name2 = New-Text $name -ForegroundColor 'pink'
+
 	$sz = [string]($rg -join ',')
-	$sz2 = Text $sz -ForegroundColor 'orange'
+	$sz2 = New-Text $sz -ForegroundColor 'orange'
+
 	$psStr = $psCmd -as [string]
-	$psStr2 = Text $psStr -ForegroundColor 'magenta'
+	$psStr2 = New-Text $psStr -ForegroundColor 'magenta'
 	
-	Write-Host "Name: $name | args: $sz2 | $psStr2"
+	Write-Host "Name: $name2 | args: $sz2 | PSCmdlet: $psStr2"
 }
 
 # region Passthrus
