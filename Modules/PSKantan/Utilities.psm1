@@ -468,52 +468,52 @@ function Linq-Where {
 	
 	param (
 		[Parameter(ValueFromPipeline)]
-		$rg,
+		$Value,
 		[Parameter()]
-		$predicate
+		$Predicate
 	)
 	process {
-		$predicate = [func[object, bool]]$predicate
-		return Invoke-Linq -name "Where" $rg ([System.Func[object, bool]] $predicate)
+		$Predicate = [func[object, bool]]$Predicate
+		return Invoke-Linq -Name "Where" $Value ([System.Func[object, bool]] $Predicate)
 	}
 }
 
 function Linq-First {
 	param (
 		[Parameter(ValueFromPipeline)]
-		$rg,
+		$Value,
 		[Parameter()]
-		$predicate
+		$Predicate
 	)
 	process {
-		return Invoke-Linq -name "First" $rg ([System.Func[object, bool]] $predicate)
+		return Invoke-Linq -Name "First" $Value ([System.Func[object, bool]] $Predicate)
 	}
 }
 
 function Linq-Select {
 	param (
 		[Parameter(ValueFromPipeline)]
-		$rg,
+		$Value,
 		[Parameter()]
-		$predicate
+		$Predicate
 	)
 	process {
-		$predicate = [func[object, object]]$predicate
-		return Invoke-Linq -name "Select" $rg ([System.Func[object, bool]] $predicate)
+		$Predicate = [func[object, object]]$Predicate
+		return Invoke-Linq -Name "Select" $Value ([System.Func[object, bool]] $Predicate)
 
 	}
 }
 
 function Linq-TakeLast {
-	param($rg, $c)
-	return Invoke-Linq -name "TakeLast" -rg $rg -c $c
+	param($Value, $Count)
+	return Invoke-Linq -Name "TakeLast" -Value $Value -Arg1 $Count
 }
 
 function Invoke-Linq {
 	param (
-		$rg, $name, $c
+		$Value, $Name, $Arg1
 	)
-	[System.Linq.Enumerable]::$name($rg, $c)
+	[System.Linq.Enumerable]::$Name($Value, $Arg1)
 }
 
 function New-RandomArray {
