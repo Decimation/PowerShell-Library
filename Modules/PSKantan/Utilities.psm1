@@ -618,16 +618,21 @@ function Search-History {
 		[Parameter(Mandatory, ValueFromPipeline)]
 		$x,
 		# Start index
-		[Parameter]
+		[Parameter(Mandatory = $false)]
 		$s = 0,
 		# End index
-		[Parameter]
-		$e = $x.Length
+		[Parameter(Mandatory = $false)]
+		$e = $null
 	)
 	process {
+
+
 		$p = (Get-PSReadLineOption).HistorySavePath
 		$c = Get-Content -Path $p
 		$c = $c -as [string[]]
+		if ($null -eq $e) {
+			$e = $c.Length
+		}
 		$c = $c[$s..$e]
 
 		return $c | Select-String -Pattern $x
