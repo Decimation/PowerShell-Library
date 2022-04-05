@@ -22,10 +22,6 @@ $global:STD_OUT = 1
 $global:STD_ERR = 2
 
 # endregion
-function Get-CommandDefinition { 
-	$c = Get-Command $args
-	return $c.Definition 
-} 
 
 function Write-Quick {
 
@@ -41,6 +37,18 @@ function Write-Quick {
 }
 
 
+function Write-Pretty {
+	param($myInv, $rg, $psCmd)
+	$name = $myInv.MyCommand
+	$name2 = Text $name -ForegroundColor 'pink'
+	$sz = [string]($rg -join ',')
+	$sz2 = Text $sz -ForegroundColor 'orange'
+	$psStr = $psCmd -as [string]
+	$psStr2 = Text $psStr -ForegroundColor 'magenta'
+	
+	Write-Host "Name: $name | args: $sz2 | $psStr2"
+}
+
 # region Passthrus
 
 <#
@@ -48,8 +56,7 @@ function Write-Quick {
 ffmpeg enhanced passthru
 #>
 function ffmpeg {
-
-	Write-Verbose "$(Write-Quick $args)"
+	Write-Pretty $MyInvocation $args $PSCmdlet
 	ffmpeg.exe -hide_banner @args
 }
 
@@ -58,7 +65,7 @@ function ffmpeg {
 ffprobe enhanced passthru
 #>
 function ffprobe {
-	Write-Verbose "$(Write-Quick $args)"
+	Write-Pretty $MyInvocation $args $PSCmdlet
 	ffprobe.exe -hide_banner @args
 }
 
@@ -67,7 +74,7 @@ function ffprobe {
 ytmdl enhanced passthru
 #>
 function ytmdl {
-	Write-Verbose "$(Write-Quick $args)"
+	Write-Pretty $MyInvocation $args $PSCmdlet
 	py.exe (Find-Item ytmdl) @args
 }
 

@@ -107,8 +107,12 @@ $private:ReloadThis = [string] {
 	Reload-Module PSKantan
 }
 
+#Note: ie $qr	|
+#Note: ie $qr2	|
+
 $script:qr = ".`$PROFILE; $ImportThis"
 $script:qr2 = ".`$PROFILE; $ReloadThis"
+
 
 # region 
 
