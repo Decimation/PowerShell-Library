@@ -131,9 +131,10 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 #region Keys
 
-$script:contchar = "•"
+$script:contchar = "~"
 $script:ANSI_END = "`e[0m"
-$script:cont = "`e[38;5;226m$contchar$ANSI_END"
+$script:cont = "$contchar"
+# $script:cont = "`e[38;5;226m$contchar$ANSI_END"
 
 Set-PSReadLineOption `
 	-PredictionSource HistoryAndPlugin `

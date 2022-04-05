@@ -1,4 +1,5 @@
 using namespace System.Management.Automation
+using namespace System.Linq.Enumerable
 
 # region 
 
@@ -473,9 +474,10 @@ function Linq-Where {
 	)
 	process {
 		$predicate = [func[object, bool]]$predicate
-		return [System.Linq.Enumerable]::Where($rg, $predicate)
-	}	
+		return Invoke-Linq -name "Where" $rg ([System.Func[object, bool]] $predicate)
+	}
 }
+
 function Linq-First {
 	param (
 		[Parameter(ValueFromPipeline)]
@@ -484,8 +486,7 @@ function Linq-First {
 		$predicate
 	)
 	process {
-
-		[System.Linq.Enumerable]::First($rg, [System.Func[object, bool]] $predicate)
+		return Invoke-Linq -name "First" $rg ([System.Func[object, bool]] $predicate)
 	}
 }
 
@@ -498,9 +499,21 @@ function Linq-Select {
 	)
 	process {
 		$predicate = [func[object, object]]$predicate
+		return Invoke-Linq -name "Select" $rg ([System.Func[object, bool]] $predicate)
 
-		return [System.Linq.Enumerable]::Select($rg, $predicate)
 	}
+}
+
+function Linq-TakeLast {
+	param($rg, $c)
+	return Invoke-Linq -name "TakeLast" -rg $rg -c $c
+}
+
+function Invoke-Linq {
+	param (
+		$rg, $name, $c
+	)
+	[System.Linq.Enumerable]::$name($rg, $c)
 }
 
 function New-RandomArray {
@@ -601,20 +614,25 @@ Set-Alias time Measure-CommandEx
 
 function Search-History {
 	param (
+		# Query
 		[Parameter(Mandatory, ValueFromPipeline)]
-		$x
+		$x,
+		# Start index
+		[Parameter]
+		$s = 0,
+		# End index
+		[Parameter]
+		$e = $x.Length
 	)
 	process {
 		$p = (Get-PSReadLineOption).HistorySavePath
 		$c = Get-Content -Path $p
-		
-		#return $c | Where-Object $x
+		$c = $c -as [string[]]
+		$c = $c[$s..$e]
+
 		return $c | Select-String -Pattern $x
-		
-		
 	}
 }
-
 
 
 function Format-Binary {
