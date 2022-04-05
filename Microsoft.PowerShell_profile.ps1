@@ -170,27 +170,6 @@ Set-PSReadLineOption -Colors @{
 
 $global:KeyMappings = @(
 	@{
-		Key         = 'F2'
-		ScriptBlock = {
-			[Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
-			[Microsoft.PowerShell.PSConsoleReadLine]::SwitchPredictionView()
-			$pvs = (Get-PSReadLineOption).PredictionViewStyle
-	
-			# [PSConsoleReadLine]::AcceptLine() 
-			Write-Host "`nPrediction view: " -NoNewline
-			Write-Host "$pvs" -ForegroundColor DarkCyan
-		}
-	},
-	@{
-		Key         = 'F3'
-		ScriptBlock = {
-			Write-Host
-			Write-Host 'Popped:' -ForegroundColor DarkYellow
-			Pop-Location -PassThru | Out-Host
-			[PSConsoleReadLine]::AcceptLine()
-		}
-	},
-	@{
 		Key      = 'Tab'
 		Function = 'MenuComplete'
 	}, 
@@ -305,7 +284,18 @@ $global:KeyMappings = @(
 			$global:ErrorActionPreference = $script:ActionPreferences[$idx]
 			[PSConsoleReadLine]::AcceptLine()
 			Write-Host 'Error action preference: ' -NoNewline -ForegroundColor Yellow
-			Write-Host "$global:ErrorActionPReference" -ForegroundColor Green
+			Write-Host "$global:ErrorActionPreference" -ForegroundColor Green
+			[PSConsoleReadLine]::Ding()
+		}
+	},
+	@{
+		Key         = 'F8'
+		ScriptBlock = {
+			$idx = Wrap ($script:ActionPreferences.IndexOf($global:VerbosePreference) + 1) ($script:ActionPreferences.Count)
+			$global:VerbosePreference = $script:ActionPreferences[$idx]
+			[PSConsoleReadLine]::AcceptLine()
+			Write-Host 'Verbose preference: ' -NoNewline -ForegroundColor Yellow
+			Write-Host "$global:VerbosePreference" -ForegroundColor Green
 			[PSConsoleReadLine]::Ding()
 		}
 	}

@@ -16,6 +16,10 @@ function global:qprint {
 	param($rg)
 	return [string]($rg -join ',')
 }
+
+
+# region Objects
+
 function Get-SubstringBetween {
 	param ([string]$value,
 		[string]$a,
@@ -65,16 +69,6 @@ function Convert-Obj {
 		$a,
 		$t
 	)
-	<# Write-Debug "$( $t)"
-	if ($t -is [string]) {
-		$t = $t.Substring(1, $t.Length - 2)
-		Write-Debug "$( $t)"
-
-		$t2 = [type]::GetType($t)
-	}
-	else {
-		$t2 = $t
-	} #>
 	return [System.Management.Automation.LanguagePrimitives]::ConvertTo($a, ($t2))
 }
 
@@ -98,45 +92,85 @@ function Convert-ObjFromHashTable {
 	
 	return $o
 }
-function Get-PublicIP {
-	return (Invoke-WebRequest ifconfig.me/ip).Content.Trim()
-	
+
+
+
+function Get-Bytes {
+	[outputtype([byte[]])]
+	param (
+		[Parameter(Mandatory = $true, ValueFromPipeline)]
+		$x,
+		[Parameter(Mandatory = $false)]
+		$encoding
+	)
+
+	process {
+
+		$isStr = $x -is [string]
+		$info1 = @()
+		$rg = @()
+		
+		if ($isStr) {
+			if (!($encoding)) {
+				$encoding = [System.Text.Encoding]::Default
+			}
+			
+			$info1 += $encoding.EncodingName
+			$rg = $encoding.GetBytes($x)
+		}
+		else {
+			$rg = [System.BitConverter]::GetBytes($x)
+		}
+		
+		<# Write-Host "[$($typeX.Name)]" -NoNewline -ForegroundColor Yellow
+		
+		if ($info1.Length -ne 0) {
+			Write-Host ' | ' -NoNewline
+			Write-Host "$($info1 -join ' | ')" -NoNewline
+		}
+		
+		Write-Host ' | ' -NoNewline
+		Write-Host "$x" -ForegroundColor Cyan #>
+		
+		return $rg
+	}
 }
 
 
-function XRemove {
-	param ($x)
-	#todo
+
+function IsReal {
+	param (
+		$x
+	)
+	$c = typecodeof $x
 	
-	takeown /F $x /R
-	sudo rm -Force $x
+	return IsInRange $c ([System.TypeCode]::Decimal) ([System.TypeCode]::Single)
 }
 
-Set-Alias xrm XRemove
+function IsInteger {
+	param (
+		$x
+	)
+	$c = typecodeof $x
+	
+	return IsInRange $c ([System.TypeCode]::UInt64) ([System.TypeCode]::SByte)
+}
 
+function IsInRange {
+	param (
+		$a,
+		$min,
+		$max
+	)
+	
+	return $a -le $min -and $c -ge $max
+}
 
-<#
-.Description
-ffmpeg enhanced passthru
-#>
-<# function ffmpeg {
-	ffmpeg.exe -hide_banner $args
-} #>
-
-<#
-.Description
-ffprobe enhanced passthru
-#>
-<# function ffprobe {
-	ffprobe.exe -hide_banner $args
-} #>
-
-<#
-.Description
-ytmdl enhanced passthru
-#>
-function ytmdl {
-	py.exe (Find-Item ytmdl) $args
+function IsNumeric {
+	param (
+		$x
+	)
+	return (IsInteger $x) -or (IsReal $x)
 }
 
 
@@ -175,18 +209,47 @@ function typecodeof {
 	return $c
 }
 
-<# function ElevateTerminal {
-	Start-Process -Verb RunAs wt.exe
-} #>
+# endregion
 
-function OpenLocation {
-	param ($p)
-	Start-Process $p
+
+function Get-PublicIP {
+	return (Invoke-WebRequest ifconfig.me/ip).Content.Trim()
+	
 }
 
-function OpenHere {
-	OpenLocation $(Get-Location)
+# region Passthrus
+
+<#
+.Description
+ffmpeg enhanced passthru
+#>
+function ffmpeg {
+
+	Write-Verbose "$(qprint $args)"
+	ffmpeg.exe -hide_banner @args
 }
+
+<#
+.Description
+ffprobe enhanced passthru
+#>
+function ffprobe {
+	Write-Verbose "$(qprint $args)"
+	ffprobe.exe -hide_banner @args
+}
+
+<#
+.Description
+ytmdl enhanced passthru
+#>
+function ytmdl {
+	Write-Verbose "$(qprint $args)"
+	py.exe (Find-Item ytmdl) @args
+}
+# endregion
+
+
+# region Functions
 
 function Get-CommandProcess {
 	[CmdletBinding()]
@@ -291,6 +354,29 @@ function QInvoke($x) {
 	$buf2 = (Invoke-Expression -OutVariable $buf ("$x 2>&1"))
 	return $buf2
 }
+# endregion
+
+# region Filesystem IO
+
+
+function XRemove {
+	param ($x)
+	#todo
+	
+	takeown /F $x /R
+	sudo rm -Force $x
+}
+
+Set-Alias xrm XRemove
+
+function OpenLocation {
+	param ($p)
+	Start-Process $p
+}
+
+function OpenHere {
+	OpenLocation $(Get-Location)
+}
 
 function Find-Item {
 	[CmdletBinding()]
@@ -311,6 +397,29 @@ function Find-Item {
 	
 
 Set-Alias whereitem Find-Item
+
+
+function Search-InFiles {
+	param (
+		[parameter(Mandatory = $true)]
+		$filter,
+		[parameter(Mandatory = $false)]
+		$path,
+		[switch]$strict
+	)
+	
+	if (-not $strict) {
+		$filter = "*$filter*"
+	}
+	if (-not ($path)) {
+		$path = '.'
+	}
+	
+	return Get-ChildItem -Path $path -Filter "$filter" -Recurse -ErrorAction SilentlyContinue
+}
+
+Set-Alias search Search-InFiles
+# endregion
 
 function IsAdmin {
 	$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -340,26 +449,9 @@ function Wrap {
 	return (($i % $n) + $n) % $n 
 }
 
-function Search-InFiles {
-	param (
-		[parameter(Mandatory = $true)]
-		$filter,
-		[parameter(Mandatory = $false)]
-		$path,
-		[switch]$strict
-	)
-	
-	if (-not $strict) {
-		$filter = "*$filter*"
-	}
-	if (-not ($path)) {
-		$path = '.'
-	}
-	
-	return Get-ChildItem -Path $path -Filter "$filter" -Recurse -ErrorAction SilentlyContinue
-}
 
-Set-Alias search Search-InFiles
+
+# region Collection operations
 
 function Flatten($a) {
 	, @($a | ForEach-Object { $_ })
@@ -406,6 +498,47 @@ function New-List {
 	return New-Object "System.Collections.Generic.List[$x]"
 }
 
+
+function Linq-Where {
+	
+	param (
+		[Parameter(ValueFromPipeline)]
+		$rg,
+		[Parameter()]
+		$predicate
+	)
+	process {
+		$predicate = [func[object, bool]]$predicate
+		return [System.Linq.Enumerable]::Where($rg, $predicate)
+	}	
+}
+function Linq-First {
+	param (
+		[Parameter(ValueFromPipeline)]
+		$rg,
+		[Parameter()]
+		$predicate
+	)
+	process {
+
+		[System.Linq.Enumerable]::First($rg, [System.Func[object, bool]] $predicate)
+	}
+}
+
+function Linq-Select {
+	param (
+		[Parameter(ValueFromPipeline)]
+		$rg,
+		[Parameter()]
+		$predicate
+	)
+	process {
+		$predicate = [func[object, object]]$predicate
+
+		return [System.Linq.Enumerable]::Select($rg, $predicate)
+	}
+}
+
 function New-RandomArray {
 	param (
 		[Parameter(Mandatory = $true)]
@@ -417,6 +550,7 @@ function New-RandomArray {
 	return $rg
 }
 
+# endregion
 
 function New-TempFile {
 	return [System.IO.Path]::GetTempFileName()
@@ -472,10 +606,10 @@ function Get-FileBytes {
 function Get-RegistryFileType {
 	param (
 		[Parameter(Mandatory = $true)]
-		[string]$f
+		[string]$Update
 	)
 	
-	$s = ".$($f.Split('.')[-1])"
+	$s = ".$($Update.Split('.')[-1])"
 	$r = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$s"
 	$p = $r | Select-Object -ExpandProperty '(Default)'
 	$r2 = Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$p"
@@ -653,83 +787,6 @@ function Search-History {
 	}
 }
 
-function Get-Bytes {
-	[outputtype([byte[]])]
-	param (
-		[Parameter(Mandatory = $true, ValueFromPipeline)]
-		$x,
-		[Parameter(Mandatory = $false)]
-		$encoding
-	)
-
-	process {
-
-		$isStr = $x -is [string]
-		$info1 = @()
-		$rg = @()
-		
-		if ($isStr) {
-			if (!($encoding)) {
-				$encoding = [System.Text.Encoding]::Default
-			}
-			
-			$info1 += $encoding.EncodingName
-			$rg = $encoding.GetBytes($x)
-		}
-		else {
-			$rg = [System.BitConverter]::GetBytes($x)
-		}
-		
-		<# Write-Host "[$($typeX.Name)]" -NoNewline -ForegroundColor Yellow
-		
-		if ($info1.Length -ne 0) {
-			Write-Host ' | ' -NoNewline
-			Write-Host "$($info1 -join ' | ')" -NoNewline
-		}
-		
-		Write-Host ' | ' -NoNewline
-		Write-Host "$x" -ForegroundColor Cyan #>
-		
-		return $rg
-	}
-}
-
-
-
-function IsReal {
-	param (
-		$x
-	)
-	$c = typecodeof $x
-	
-	return IsInRange $c ([System.TypeCode]::Decimal) ([System.TypeCode]::Single)
-}
-
-function IsInteger {
-	param (
-		$x
-	)
-	$c = typecodeof $x
-	
-	return IsInRange $c ([System.TypeCode]::UInt64) ([System.TypeCode]::SByte)
-}
-
-function IsInRange {
-	param (
-		$a,
-		$min,
-		$max
-	)
-	
-	return $a -le $min -and $c -ge $max
-}
-
-function IsNumeric {
-	param (
-		$x
-	)
-	return (IsInteger $x) -or (IsReal $x)
-}
 
 
 function Format-Binary {
@@ -750,45 +807,6 @@ function Format-Binary {
 	}
 }
 
-function Linq-Where {
-	
-	param (
-		[Parameter(ValueFromPipeline)]
-		$rg,
-		[Parameter()]
-		$predicate
-	)
-	process {
-		$predicate = [func[object, bool]]$predicate
-		return [System.Linq.Enumerable]::Where($rg, $predicate)
-	}	
-}
-function Linq-First {
-	param (
-		[Parameter(ValueFromPipeline)]
-		$rg,
-		[Parameter()]
-		$predicate
-	)
-	process {
-
-		[System.Linq.Enumerable]::First($rg, [System.Func[object, bool]] $predicate)
-	}
-}
-
-function Linq-Select {
-	param (
-		[Parameter(ValueFromPipeline)]
-		$rg,
-		[Parameter()]
-		$predicate
-	)
-	process {
-		$predicate = [func[object, object]]$predicate
-
-		return [System.Linq.Enumerable]::Select($rg, $predicate)
-	}
-}
 
 
 function Test-Command {
@@ -1362,6 +1380,7 @@ function Invoke-Parallel {
 		}
 	}
 }
+
 function New-PInvoke {
 	param (
 		$imports,
@@ -1393,11 +1412,21 @@ function New-AdminWT {
 }
 
 
+<#
+.DESCRIPTION
+Runs git add, commit, and push
+.PARAMETER Update
+Update script
+#>
 function QGit {
-	$f = $args[0]
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $false)]
+		$Update
+	)
 	
-	if ($f) {
-		& $f
+	if ($Update) {
+		& $Update
 	}
 	#[datetime]::Now.ToString("yyyy-MM-dd @ HH:mm:ss")
 
