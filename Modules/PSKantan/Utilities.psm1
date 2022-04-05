@@ -14,6 +14,7 @@ $script:UNI_BULLET = '•'
 $script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 
 $global:ANSI_START = "$([char]0x001b)"
+$global:ANSI_END = "`e[0m"
 
 $global:QDateFormat = "yyyy-mm-dd @ HH:mm:ss"
 

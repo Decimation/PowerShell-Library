@@ -107,8 +107,8 @@ $private:ReloadThis = [string] {
 	Reload-Module PSKantan
 }
 
-#Note: ie $qr	|
-#Note: ie $qr2	|
+#Note: ie $qr	| Re-imports profile and PSKantan
+#Note: ie $qr2	| Re-imports profile, removes PSKantan and then re-imports it
 
 $script:qr = ".`$PROFILE; $ImportThis"
 $script:qr2 = ".`$PROFILE; $ReloadThis"
@@ -116,9 +116,14 @@ $script:qr2 = ".`$PROFILE; $ReloadThis"
 
 # region 
 
+# region Preferences
+
 $InformationPreference = 'Continue'
 $ErrorActionPreference = 'Continue'
 $DebugPreference = 'Continue'
+$VerbosePreference = 'SilentlyContinue'
+
+# endregion
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
@@ -136,8 +141,8 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 #region Keys
 
 $script:contchar = "~"
-$script:ANSI_END = "`e[0m"
 $script:cont = "$contchar"
+
 # $script:cont = "`e[38;5;226m$contchar$ANSI_END"
 
 Set-PSReadLineOption `
@@ -496,7 +501,7 @@ Set-PSReadLineKeyHandler -Key Backspace `
 
 #endregion
 
-$script:LoadTime = (Get-Date -Format 'HH:mm:ss')
+$global:LoadTime = (Get-Date -Format 'HH:mm:ss')
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
