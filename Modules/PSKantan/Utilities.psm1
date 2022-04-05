@@ -3,19 +3,41 @@ using namespace System.Linq.Enumerable
 
 # region 
 
-$global:UNI_ARROW = $([char]0x2192)
-$global:ZERO_WIDTH_SPACE = $([char]"`u{200b}")
-$script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
-$script:UNI_BULLET = '•'
-$global:ANSI_START = "$([char]0x001b)"
 
+# region Unicode
+$global:UNI_ARROW = $([char]0x2192)
+$global:UNI_ZWS = $([char]"`u{200b}")
+$script:UNI_BULLET = '•'
 # endregion
 
 
+$script:SEPARATOR = $([string]::new('-', $Host.UI.RawUI.WindowSize.Width))
 
-function global:Write-Quick {
-	param($rg)
-	return [string]($rg -join ',')
+$global:ANSI_START = "$([char]0x001b)"
+
+$global:QDateFormat = "yyyy-mm-dd @ HH:mm:ss"
+
+$global:STD_IN = 0
+$global:STD_OUT = 1
+$global:STD_ERR = 2
+
+# endregion
+function Get-CommandDefinition { 
+	$c = Get-Command $args
+	return $c.Definition 
+} 
+
+function Write-Quick {
+
+	$t = typeof $args
+	Write-Debug "$t"
+	switch ($t) {
+		[array] {
+
+		}
+		Default {}
+	}
+	return [string]($args -join ',')
 }
 
 
@@ -101,35 +123,6 @@ function Get-CommandProcess {
 	return $p
 }
 
-function New-QVar {
-	param (
-		[Parameter(Mandatory = $true)]
-		[string]$name,
-		[Parameter(Mandatory = $true)]
-		$val,
-		[Parameter(Mandatory = $false)]
-		[string]$scope = 'Global', 
-		[Parameter(Mandatory = $false)]
-		[System.Management.Automation.ScopedItemOptions]
-		$opt = [System.Management.Automation.ScopedItemOptions]::None
-	)
-	
-
-	$sp = @{
-		'Scope'  = $scope
-		'Name'   = $name
-		'Value'  = $val
-		'Option' = $opt
-		
-	}
-	
-	Set-Variable @sp -ErrorAction Ignore
-}
-
-$STD_IN = 0
-$STD_OUT = 1
-$STD_ERR = 2
-
 
 function Invoke-CommandProcess {
 	[CmdletBinding()]
@@ -163,6 +156,8 @@ function Invoke-CommandProcess {
 	
 	return $outStr
 }
+
+
 
 function QCommand {
 	#todo: use Invoke-Command
@@ -313,7 +308,6 @@ function Search-History {
 		$e = $null
 	)
 	process {
-
 
 		$p = (Get-PSReadLineOption).HistorySavePath
 		$c = Get-Content -Path $p
@@ -920,34 +914,9 @@ function Invoke-Parallel {
 	}
 }
 
-function New-PInvoke {
-	param (
-		$imports,
-		$className,
-		$dll,
-		$returnType,
-		$funcName,
-		$funcParams
-	)
-	
-	Add-Type @"
-using System;
-using System.Text;
-using System.Runtime.InteropServices;
-
-$imports
-
-public static class $className
-{
-	[DllImport("$dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	public static extern $returnType $funcName($funcParams);
-}
-"@
-}
-
 
 function New-AdminWT {
-	sudo wt -w 0 nt
+	sudo.exe wt.exe -w 0 nt
 }
 
 function Get-PublicIP {

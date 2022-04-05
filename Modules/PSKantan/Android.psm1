@@ -137,7 +137,7 @@ function adb {
 	$argBuf = [System.Collections.Generic.List[string]]::new()
 	$argBuf.AddRange([string[]]$args)
 	
-	Write-Debug "Original args: $(qprint $argBuf)`n"
+	Write-Debug "Original args: $(Write-Quick $argBuf)`n"
 	
 	switch ($argBuf[0]) {
 		'push' {
@@ -149,7 +149,7 @@ function adb {
 		}
 	}
 	
-	Write-Debug "Final args: $(qprint $argBuf)"
+	Write-Debug "Final args: $(Write-Quick $argBuf)"
 	
 	adb.exe @argBuf
 }

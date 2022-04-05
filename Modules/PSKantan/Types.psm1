@@ -312,3 +312,138 @@ function New-RandomArray {
 }
 
 # endregion
+
+
+
+function New-QVar {
+	param (
+		[Parameter(Mandatory = $true)]
+		[string]$name,
+		[Parameter(Mandatory = $true)]
+		$val,
+		[Parameter(Mandatory = $false)]
+		[string]$scope = 'Global', 
+		[Parameter(Mandatory = $false)]
+		[System.Management.Automation.ScopedItemOptions]
+		$opt = [System.Management.Automation.ScopedItemOptions]::None
+	)
+	
+
+	$sp = @{
+		'Scope'  = $scope
+		'Name'   = $name
+		'Value'  = $val
+		'Option' = $opt
+		
+	}
+	
+	Set-Variable @sp -ErrorAction Ignore
+}
+
+function Set-SpecialVar {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $true)]
+		[string][ValidateNotNullOrEmpty()]$n,
+
+		[Parameter(Mandatory = $true)]
+		[string][ValidateNotNullOrEmpty()]$v,
+		
+		[Parameter(Mandatory = $true)]
+		[System.Management.Automation.ScopedItemOptions]$o,
+
+		[Parameter(Mandatory = $false)]
+		[string]$s
+	)
+
+	if (!($s)) {
+		$s = 'global'
+	}
+
+	$errPref = $ErrorActionPreference
+  
+	$ErrorActionPreference = 'SilentlyContinue'
+
+	try {
+		Set-Variable -Name $n -Value $v -Scope $s -Option $o
+	}
+	catch {
+		Write-Error "Constant value $name not written"
+	
+	}
+	finally {
+		$ErrorActionPreference = $errPref
+		Write-Verbose "$name = $value"
+	}
+	
+}
+
+function Set-Constant {
+	<#
+	.SYNOPSIS
+		Creates constants.
+	.DESCRIPTION
+		This function can help you to create constants so easy as it possible.
+		It works as keyword 'const' as such as in C#.
+	.EXAMPLE
+		PS C:\> Set-Constant a = 10
+		PS C:\> $a += 13
+
+		There is a integer constant declaration, so the second line return
+		error.
+	.EXAMPLE
+		PS C:\> const str = "this is a constant string"
+
+		You also can use word 'const' for constant declaration. There is a
+		string constant named '$str' in this example.
+	.LINK
+		Set-Variable
+		About_Functions_Advanced_Parameters
+	#>
+	[CmdletBinding()]
+	param(
+		[Parameter(Mandatory = $true, Position = 0)]
+		[string][ValidateNotNullOrEmpty()]$name,
+  
+		[Parameter(Mandatory = $true, Position = 1)]
+		[char][ValidateSet('=')]$link,
+  
+		[Parameter(Mandatory = $true, Position = 2)]
+		[object][ValidateNotNullOrEmpty()]$value
+  
+		#[Parameter(Mandatory=$false, Position=3)]
+		#[ValidateSet("r")]
+		#[object][ValidateNotNullOrEmpty()]$arg,
+	)
+
+	Set-SpecialVar -n $name -v $value -o ([System.Management.Automation.ScopedItemOptions]::Constant)
+}
+
+Set-Alias const Set-Constant
+
+
+
+function New-PInvoke {
+	param (
+		$imports,
+		$className,
+		$dll,
+		$returnType,
+		$funcName,
+		$funcParams
+	)
+	
+	Add-Type @"
+using System;
+using System.Text;
+using System.Runtime.InteropServices;
+
+$imports
+
+public static class $className
+{
+	[DllImport("$dll", SetLastError = true, CharSet = CharSet.Unicode)]
+	public static extern $returnType $funcName($funcParams);
+}
+"@
+}
