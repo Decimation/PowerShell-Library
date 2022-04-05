@@ -12,7 +12,7 @@ $global:ANSI_START = "$([char]0x001b)"
 
 
 
-function global:qprint {
+function global:Write-Quick {
 	param($rg)
 	return [string]($rg -join ',')
 }
@@ -144,7 +144,7 @@ function IsReal {
 	)
 	$c = typecodeof $x
 	
-	return IsInRange $c ([System.TypeCode]::Decimal) ([System.TypeCode]::Single)
+	return IsInRange -a $c -max ([System.TypeCode]::Decimal) -min ([System.TypeCode]::Single)
 }
 
 function IsInteger {
@@ -153,17 +153,22 @@ function IsInteger {
 	)
 	$c = typecodeof $x
 	
-	return IsInRange $c ([System.TypeCode]::UInt64) ([System.TypeCode]::SByte)
+	return IsInRange -a $c -max ([System.TypeCode]::UInt64) -min ([System.TypeCode]::SByte)
 }
 
 function IsInRange {
 	param (
 		$a,
 		$min,
-		$max
+		$max,
+		[switch]$noninc
 	)
+
 	
-	return $a -le $min -and $c -ge $max
+	if ($noninc) {
+		return $a -gt $min -and $a -lt $max
+	}
+	return $a -ge $min -and $a -le $max
 }
 
 function IsNumeric {
@@ -212,11 +217,6 @@ function typecodeof {
 # endregion
 
 
-function Get-PublicIP {
-	return (Invoke-WebRequest ifconfig.me/ip).Content.Trim()
-	
-}
-
 # region Passthrus
 
 <#
@@ -225,7 +225,7 @@ ffmpeg enhanced passthru
 #>
 function ffmpeg {
 
-	Write-Verbose "$(qprint $args)"
+	Write-Verbose "$(Write-Quick $args)"
 	ffmpeg.exe -hide_banner @args
 }
 
@@ -234,7 +234,7 @@ function ffmpeg {
 ffprobe enhanced passthru
 #>
 function ffprobe {
-	Write-Verbose "$(qprint $args)"
+	Write-Verbose "$(Write-Quick $args)"
 	ffprobe.exe -hide_banner @args
 }
 
@@ -243,9 +243,35 @@ function ffprobe {
 ytmdl enhanced passthru
 #>
 function ytmdl {
-	Write-Verbose "$(qprint $args)"
+	Write-Verbose "$(Write-Quick $args)"
 	py.exe (Find-Item ytmdl) @args
 }
+
+
+<#
+.DESCRIPTION
+Runs git add, commit, and push
+.PARAMETER Update
+Update script
+#>
+function QGit {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $false)]
+		$Update
+	)
+	
+	if ($Update) {
+		& $Update
+	}
+
+	#[datetime]::Now.ToString("yyyy-MM-dd @ HH:mm:ss")
+
+	git.exe add .
+	git.exe commit -m "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+	git.exe push
+}
+
 # endregion
 
 
@@ -272,6 +298,7 @@ function Get-CommandProcess {
 	
 	return $p
 }
+
 function New-QVar {
 	param (
 		[Parameter(Mandatory = $true)]
@@ -381,6 +408,7 @@ function OpenHere {
 function Find-Item {
 	[CmdletBinding()]
 	param (
+		
 		[Parameter(Mandatory = $true)]
 		[string]$s,
 		[Parameter(Mandatory = $false)]
@@ -389,7 +417,7 @@ function Find-Item {
 	)
 		
 	if ((Test-Command 'whereis' Application) -and $pw) {
-		return (whereis $s)
+		return (whereis.exe $s)
 	}
 		
 	return (Get-Command $s -CommandType $c).Path
@@ -401,24 +429,41 @@ Set-Alias whereitem Find-Item
 
 function Search-InFiles {
 	param (
-		[parameter(Mandatory = $true)]
-		$filter,
+		# Content filter
+		[Parameter(Mandatory)]
+		$ContentFilter,
+
+		# Path filter
 		[parameter(Mandatory = $false)]
-		$path,
-		[switch]$strict
+		$PathFilter,
+
+		# Path
+		[parameter(Mandatory = $false)]
+		$Path = '.',
+
+		# Depth
+		[Parameter(Mandatory = $false)]
+		$Depth = 1,
+		
+		[switch]$Strict
 	)
 	
-	if (-not $strict) {
-		$filter = "*$filter*"
-	}
-	if (-not ($path)) {
-		$path = '.'
+	if (-not $Strict) {
+		$PathFilter = "*$PathFilter*"
 	}
 	
-	return Get-ChildItem -Path $path -Filter "$filter" -Recurse -ErrorAction SilentlyContinue
+	$r = Get-ChildItem -Path $Path -File -Filter "$PathFilter" `
+		-Recurse -Depth $Depth -ErrorAction SilentlyContinue
+
+	$r2 = $r | ForEach-Object {
+		Get-Content $_ | Select-String $ContentFilter
+	}
+
+	return $r2
 }
 
 Set-Alias search Search-InFiles
+
 # endregion
 
 function IsAdmin {
@@ -646,7 +691,7 @@ function ConvertFrom-Base64 {
 		[Parameter(Mandatory = $true)]
 		[string]$folder,
 		[Parameter(Mandatory = $false)]
-		[string]$filter
+		[string]$PathFilter
 		
 	)
 	
@@ -657,9 +702,9 @@ function ConvertFrom-Base64 {
 	
 	$items = $objFolder.items()
 	
-	if (($filter)) {
+	if (($PathFilter)) {
 		$items = $items | Where-Object {
-			$_.Name -contains $filter
+			$_.Name -contains $PathFilter
 		}
 	}
 	
@@ -848,7 +893,7 @@ function Invoke-Parallel {
         Run script against these specified objects.
 
     .PARAMETER Parameter
-        This object is passed to every script block.  You can use it to pass information to the script block; for example, the path to a logging folder
+        This object is passed to every script block.  You can use it to pass information to the script block; for example, the Path to a logging folder
 
             Reference this object as $parameter if using the scriptblock parameterset.
 
@@ -1411,26 +1456,7 @@ function New-AdminWT {
 	sudo wt -w 0 nt
 }
 
-
-<#
-.DESCRIPTION
-Runs git add, commit, and push
-.PARAMETER Update
-Update script
-#>
-function QGit {
-	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory = $false)]
-		$Update
-	)
-	
-	if ($Update) {
-		& $Update
-	}
-	#[datetime]::Now.ToString("yyyy-MM-dd @ HH:mm:ss")
-
-	git add .
-	git commit -m "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-	git push
+function Get-PublicIP {
+	return (Invoke-WebRequest ifconfig.me/ip).Content.Trim()
 }
+

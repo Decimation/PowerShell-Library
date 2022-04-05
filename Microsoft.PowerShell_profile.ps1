@@ -184,6 +184,10 @@ $global:KeyMappings = @(
 	@{
 		Key      = 'Ctrl+y'
 		Function = 'Yank'
+	}, 
+	@{
+		Key      = 'Ctrl+x'
+		Function = 'Cut'
 	},
 	@{
 		Key      = 'Shift+Tab' 
