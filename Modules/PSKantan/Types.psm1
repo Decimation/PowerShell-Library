@@ -50,7 +50,16 @@ function Convert-Obj {
 		$a,
 		$t
 	)
-	return [System.Management.Automation.LanguagePrimitives]::ConvertTo($a, ($t2))
+	$a2 = $null
+	try {
+		
+		$a2 = [System.Management.Automation.LanguagePrimitives]::ConvertTo($a, ($t2))
+	}
+	catch {
+		$a2 = $a -as $t
+	}
+	return $a2
+
 }
 
 Set-Alias cast Convert-Obj
@@ -70,8 +79,14 @@ function Convert-ObjFromHashTable {
 	if ($t) {
 		$o = Convert-Obj $o $t
 	}
+	try {
+		return $o -as $t
+	}
+	catch {
+		
+		return $o
+	}
 	
-	return $o
 }
 
 

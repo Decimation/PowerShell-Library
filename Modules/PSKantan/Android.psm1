@@ -154,6 +154,12 @@ function adb {
 	adb.exe @argBuf
 }
 
+function Adb-GetDevices {
+	$d = (adb devices) -as [string[]]
+	$d = $d[1..($d.Length)]
+	return $d
+}
+
 function Adb-QPush {
 	
 	param (

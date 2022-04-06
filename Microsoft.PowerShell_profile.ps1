@@ -120,7 +120,7 @@ $script:qr2 = ".`$PROFILE; $ReloadThis"
 
 $InformationPreference = 'Continue'
 $ErrorActionPreference = 'Continue'
-$DebugPreference = 'Continue'
+$DebugPreference = 'SilentlyContinue'
 $VerbosePreference = 'SilentlyContinue'
 
 # endregion
@@ -285,7 +285,7 @@ $global:KeyMappings = @(
 		Key         = 'Alt+Ctrl+b'
 		ScriptBlock = {
 			$c = '-'
-			
+
 			$line = $null
 			$cursor = $null
 			[Microsoft.PowerShell.PSConsoleReadLine]::BeginningOfLine($null, $null)  

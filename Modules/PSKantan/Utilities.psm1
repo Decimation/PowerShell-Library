@@ -316,7 +316,9 @@ function Search-History {
 		$s = 0,
 		# End index
 		[Parameter(Mandatory = $false)]
-		$e = $null
+		$e = $null,
+		[parameter(Mandatory = $false)]
+		$context = 1
 	)
 	process {
 
@@ -328,7 +330,7 @@ function Search-History {
 		}
 		$c = $c[$s..$e]
 
-		return $c | Select-String -Pattern $x
+		return $c | Select-String -Pattern $x -Context $context
 	}
 }
 
