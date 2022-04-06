@@ -137,7 +137,7 @@ function adb {
 	$argBuf = [System.Collections.Generic.List[string]]::new()
 	$argBuf.AddRange([string[]]$args)
 	
-	Write-Debug "Original args: $(Write-Quick $argBuf)`n"
+	Write-Verbose "Original args: $(Write-Quick $argBuf)`n"
 	
 	switch ($argBuf[0]) {
 		'push' {
@@ -149,7 +149,7 @@ function adb {
 		}
 	}
 	
-	Write-Debug "Final args: $(Write-Quick $argBuf)"
+	Write-Verbose "Final args: $(Write-Quick $argBuf)"
 	
 	adb.exe @argBuf
 }
@@ -326,7 +326,7 @@ function Adb-HandleSettings {
 	return adb shell settings $Operation $Scope $Name @args
 }
 
-function Adb-GetAccessibility {
+<# function Adb-GetAccessibility {
 	[outputtype([string[]])]
 	$s = Adb-HandleSettings 'get' 'secure' 'enabled_accessibility_services'
 
@@ -351,7 +351,7 @@ function Adb-RemoveAccessibility {
 	param($n)
 	$s2 = (Adb-GetAccessibility | Where-Object { $_ -ne $n })
 	Adb-SetAccessibility $s2
-}
+} #>
 
 
 # region Bluetooth

@@ -260,9 +260,10 @@ $global:KeyMappings = @(
 		Moves cursor to beginning of line, inserts template for declaring/modifying
 		a variable, and selects its name
 		#>
-		Key         = 'Alt+Ctrl+v'
+		Key         = 'Alt+Ctrl+x'
 		ScriptBlock = {
-			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
+			# [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
+			[PSConsoleReadLine]::BeginningOfLine()
 			[Microsoft.PowerShell.PSConsoleReadLine]::Insert('$x = ')
 			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(1)
 			[Microsoft.PowerShell.PSConsoleReadLine]::SelectShellForwardWord($null, $null)
@@ -275,6 +276,27 @@ $global:KeyMappings = @(
 			Write-Host 'Popped:' -ForegroundColor DarkYellow
 			Pop-Location -PassThru | Out-Host
 			[PSConsoleReadLine]::AcceptLine()
+		}
+	},
+	@{
+		<#
+		Moves to index of character in the buffer
+		#>
+		Key         = 'Alt+Ctrl+b'
+		ScriptBlock = {
+			$c = '-'
+			
+			$line = $null
+			$cursor = $null
+			[Microsoft.PowerShell.PSConsoleReadLine]::BeginningOfLine($null, $null)  
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+			$global:CharBufferIndex = $line.IndexOf($c, $global:CharBufferIndex)
+			#[Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+			# Write-Host
+			# Write-Host "$global:CharBufferIndex | $cursor | $line"
+			$global:CharBufferIndex++
+			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
+
 		}
 	},
 	@{
