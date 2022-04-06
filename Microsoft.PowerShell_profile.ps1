@@ -242,7 +242,32 @@ $global:KeyMappings = @(
 	@{
 		Key      = 'Ctrl+c'
 		Function = 'CopyOrCancelLine'
-	}
+	},
+	@{
+		Key      = 'Alt+w'
+		Function = 'SelectNextWord'
+	},
+	@{
+		Key      = 'Alt+Ctrl+w'
+		Function = 'SelectBackwardWord'
+	},
+	@{
+		Key      = 'Alt+a'
+		Function = 'SelectCommandArgument'
+	},
+	@{
+		<#
+		Moves cursor to beginning of line, inserts template for declaring/modifying
+		a variable, and selects its name
+		#>
+		Key         = 'Alt+Ctrl+v'
+		ScriptBlock = {
+			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
+			[Microsoft.PowerShell.PSConsoleReadLine]::Insert('$x = ')
+			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(1)
+			[Microsoft.PowerShell.PSConsoleReadLine]::SelectShellForwardWord($null, $null)
+		}
+	},
 	@{
 		Key         = 'F3'
 		ScriptBlock = {
@@ -441,7 +466,7 @@ Set-PSReadLineKeyHandler -Key '(', '{', '[' `
 		[Microsoft.PowerShell.PSConsoleReadLine]::Replace($selectionStart, $selectionLength, $key.KeyChar + $line.SubString($selectionStart, $selectionLength) + $closeChar)
 		[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($selectionStart + $selectionLength + 2)
 	}
- else {
+	else {
 		# No text is selected, insert a pair
 		[Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)$closeChar")
 		[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)

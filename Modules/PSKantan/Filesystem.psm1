@@ -27,15 +27,17 @@ function Find-Item {
 		[Parameter(Mandatory = $true)]
 		[string]$s,
 		[Parameter(Mandatory = $false)]
-		[CommandTypes]$c = [CommandTypes]::All, 
+		[System.Management.Automation.CommandTypes]$c = 'All', 
 		[switch]$pw = $false
 	)
-		
-	if ((Test-Command 'whereis' Application) -and $pw) {
+	
+	$a = (Get-Command $s -CommandType $c).Path
+
+	if ((Test-Command 'whereis' Application) -and (-not $a)) {
 		return (whereis.exe $s)
 	}
 		
-	return (Get-Command $s -CommandType $c).Path
+	return $a
 }
 	
 

@@ -317,3 +317,51 @@ function Adb-Escape {
 		}
 	}
 }
+
+function Adb-HandleSettings {
+	param (
+		$Operation,	$Scope, $Name
+	)
+
+	return adb shell settings $Operation $Scope $Name @args
+}
+
+function Adb-GetAccessibility {
+	[outputtype([string[]])]
+	$s = Adb-HandleSettings 'get' 'secure' 'enabled_accessibility_services'
+
+	$s2 = ($s -split '/') -as [string[]]
+	return $s2
+}
+
+function Adb-AddAccessibility {
+	param($n)
+	$s2 = Adb-GetAccessibility
+	$s2 += $n
+	Adb-SetAccessibility $s2
+}
+
+function Adb-SetAccessibility {
+	param($s2)
+	$v = $s2 -join '/'
+	Adb-HandleSettings 'put' 'secure' 'enabled_accessibility_services' $v
+}
+
+function Adb-RemoveAccessibility {
+	param($n)
+	$s2 = (Adb-GetAccessibility | Where-Object { $_ -ne $n })
+	Adb-SetAccessibility $s2
+}
+
+
+# region Bluetooth
+
+function Blt-Send {
+	param($name, $f)
+
+	return Start-Job -Name 'Blt' -ScriptBlock { 
+		btobex.exe -n $using:name $using:f
+	}
+}
+
+# endregion

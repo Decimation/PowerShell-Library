@@ -292,7 +292,10 @@ function Linq-TakeLast {
 	param($Value, $Count)
 	return Invoke-Linq -Name "TakeLast" -Value $Value -Arg1 $Count
 }
-
+function Linq-Skip {
+	param($Value, $Count)
+	return Invoke-Linq -Name "Skip" -Value $Value -Arg1 $Count
+}
 function Invoke-Linq {
 	param (
 		$Value, $Name, $Arg1
