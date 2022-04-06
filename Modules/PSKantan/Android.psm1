@@ -181,11 +181,11 @@ function Adb-QPull {
 	
 
 	Write-Host "$d"
-	Read-Host
+	Read-Host -Prompt "..."
 	$r = Adb-GetItems @args -t 'f'
 	
-	$r | Invoke-Parallel -ImportVariables -Quiet -ScriptBlock {
-		adb pull $_ "$d"
+	$r | Invoke-Parallel -Parameter $d -ImportVariables -Quiet -ScriptBlock {
+		adb pull $_ "$parameter"
 
 		<# Write-Progress -Activity g -PercentComplete (($i / $l) * 100.0) #>
 	}
