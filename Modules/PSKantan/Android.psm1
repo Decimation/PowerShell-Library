@@ -179,6 +179,18 @@ function Adb-QPush {
 	
 }
 
+
+$global:SyncState = [PSCustomObject]@{
+	SyncTable = [hashtable]::Synchronized(
+		@{
+			c  = 0 
+			l  = 0
+			fc = 0
+		}
+	)
+	d         = $null
+}
+
 function Adb-QPull {
 	param(
 		$r, 
@@ -193,24 +205,60 @@ function Adb-QPull {
 	$r = Adb-GetItems $r -t 'f'
 	
 	
-	$x2 = [PSCustomObject]@{
-		$sh = [hashtable]::Synchronized(@{
-				c = 0 
-				l = $r.Length 
-			}
-		)
-		$d  = $d
-	}
 
 	$r | Invoke-Parallel -Parameter $d -ImportVariables -Quiet -ScriptBlock {
 		
-		adb pull $_ "$parameter"
-		# $sh.c++
-		# Write-Host "`r $($sh.c)/$($sh.l)" -NoNewline
+		$vx = adb pull $_ "$parameter"
+		
+		# $ss = Get-SubstringBetween -value $vx -a '(' -b ')'
+		# $bc = $ss.Split(' ')[0] -as [int]
+
+		# $sec = $s2.Split(' ')[3]
+
+		# $sz = (Get-ChildItem $parameter).count
+		$global:SyncState.SyncTable.fc++
+		Write-Host "`r$($global:SyncState.SyncTable.fc)" -NoNewline
+
+		# $SyncTable.c++
+		# Write-Host "`r $($SyncTable.c)/$($SyncTable.l)" -NoNewline
 
 		<# Write-Progress -Activity g -PercentComplete (($i / $l) * 100.0) #>
 	}
+
+	#todo
 	
+	Clear-SyncState
+}
+
+$global:SyncState = [PSCustomObject]@{
+	SyncTable = [hashtable]::Synchronized(
+		@{
+			c  = 0 
+			l  = 0
+			fc = 0
+		}
+	)
+
+	Output    = $null
+}
+
+function Clear-SyncState {
+	
+	$global:SyncState.SyncTable.fc = 0
+	$global:SyncState.SyncTable.l = 0
+	$global:SyncState.SyncTable.c = 0
+	$global:SyncState.d = $null
+
+	<# $global:SyncState = [PSCustomObject]@{
+		SyncTable = [hashtable]::Synchronized(
+			@{
+				c  = 0 
+				l  = 0
+				fc = 0
+			}
+		)
+		d  = $null
+	} #>
 }
 
 function Adb-GetItems {
@@ -264,7 +312,7 @@ function Adb-FindItems {
 
 function Adb-GetItem {
 	param ($x,
-		[Parameter(Mandatory = $false)]$x2
+		[Parameter(Mandatory = $false)]$SyncState
 	)
 	
 	
@@ -326,10 +374,10 @@ function Adb-Escape {
 			return $x
 		}
 		Exchange {
-			$x2 = $x.Split('/')
+			$SyncState = $x.Split('/')
 			$x3 = New-List 'string'
 			
-			foreach ($b in $x2) {
+			foreach ($b in $SyncState) {
 				if ($b.Contains(' ')) {
 					$b2 = "`"$b/`""
 				}
