@@ -167,7 +167,7 @@ function Adb-QPush {
 		[parameter(Mandatory = $false)]
 		$d = 'sdcard/'
 	)
-	
+
 	if ($f -is [array]) {
 		$f | Invoke-Parallel -Parameter $d -ImportVariables -Quiet -ScriptBlock {
 			adb push "$_" $parameter
@@ -180,15 +180,33 @@ function Adb-QPush {
 }
 
 function Adb-QPull {
-	param($d = $(Get-Location))
+	param(
+		$r, 
+		[parameter(Mandatory = $false)] 
+		$d = $(Get-Location), 
+		[switch]$retain
+	)
 	
-
+	$d = Resolve-Path $d
 	Write-Host "$d"
 	Read-Host -Prompt "..."
-	$r = Adb-GetItems @args -t 'f'
+	$r = Adb-GetItems $r -t 'f'
 	
+	
+	$x2 = [PSCustomObject]@{
+		$sh = [hashtable]::Synchronized(@{
+				c = 0 
+				l = $r.Length 
+			}
+		)
+		$d  = $d
+	}
+
 	$r | Invoke-Parallel -Parameter $d -ImportVariables -Quiet -ScriptBlock {
+		
 		adb pull $_ "$parameter"
+		# $sh.c++
+		# Write-Host "`r $($sh.c)/$($sh.l)" -NoNewline
 
 		<# Write-Progress -Activity g -PercentComplete (($i / $l) * 100.0) #>
 	}
