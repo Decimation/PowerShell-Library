@@ -154,7 +154,7 @@ $Sources = @(
 )
 # endregion
 
-
+#TODO: parallel
 
 $Selected = $Index + $Sources | Where-Object { $_.name -match $n }
 

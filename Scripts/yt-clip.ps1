@@ -4,7 +4,6 @@ param (
 	$other
 )
 
-
 function Get-TimeDuration {
 	param (
 		[Parameter(Mandatory = $true)][timespan]$a,

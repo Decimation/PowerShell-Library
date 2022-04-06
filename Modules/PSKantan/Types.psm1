@@ -193,14 +193,11 @@ function typename {
 function typeof {
 	[CmdletBinding()]
 	param (
-		[Parameter(ValueFromPipeline)]
+		[Parameter()]
 		$x
 	)
-	process {
-
-		#return [type]::GetType((typename $x))
-		return $x.GetType()
-	}
+	#return [type]::GetType((typename $x))
+	return $x.GetType()
 }
 
 function typecodeof {
@@ -307,10 +304,12 @@ function Linq-TakeLast {
 	param($Value, $Count)
 	return Invoke-Linq -Name "TakeLast" -Value $Value -Arg1 $Count
 }
+
 function Linq-Skip {
 	param($Value, $Count)
 	return Invoke-Linq -Name "Skip" -Value $Value -Arg1 $Count
 }
+
 function Invoke-Linq {
 	param (
 		$Value, $Name, $Arg1
@@ -438,8 +437,6 @@ function Set-Constant {
 }
 
 Set-Alias const Set-Constant
-
-
 
 function New-PInvoke {
 	param (

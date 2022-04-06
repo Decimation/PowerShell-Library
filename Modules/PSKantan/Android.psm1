@@ -169,9 +169,12 @@ function Adb-QPush {
 	)
 	
 	if ($f -is [array]) {
-		$f | Invoke-Parallel -ImportVariables -Quiet -ScriptBlock {
-			adb push "$_" $using:d
+		$f | Invoke-Parallel -Parameter $d -ImportVariables -Quiet -ScriptBlock {
+			adb push "$_" $parameter
 		}
+	}
+	else {
+		adb push $f $d
 	}
 	
 }

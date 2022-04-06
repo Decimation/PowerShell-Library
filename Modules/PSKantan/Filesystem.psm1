@@ -11,13 +11,9 @@ function XRemove {
 
 Set-Alias xrm XRemove
 
-function OpenLocation {
-	param ($p)
-	Start-Process $p
-}
 
 function OpenHere {
-	OpenLocation $(Get-Location)
+	Start-Process $(Get-Location)
 }
 
 function Find-Item {
@@ -42,7 +38,6 @@ function Find-Item {
 	
 
 Set-Alias whereitem Find-Item
-
 
 function Search-InFiles {
 	param (
