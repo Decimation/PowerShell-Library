@@ -1,3 +1,10 @@
+
+<#
+.DESCRIPTION
+Downloads a YouTube clip with yt-dlp and ffmpeg
+.LINK
+https://gist.github.com/lostfictions/5700848187b8edfb6e45270b462a4534
+#>
 param (
 	$Url, 
 	$Start, 
@@ -10,7 +17,7 @@ param (
 )
 
 if (Test-Path $Output) {
-	$yn = Read-Host -Prompt "$Output already exists. Remove? [y/n/x]"
+	$yn = Read-Host -Prompt "$Output already exists. Remove? [y/n/a]"
 	switch ($yn) {
 		'y' {
 			Remove-Item $Output
@@ -18,7 +25,7 @@ if (Test-Path $Output) {
 		'n' {
 			
 		}
-		'x' {
+		'a' {
 			return
 		}
 	}
@@ -37,10 +44,10 @@ catch {
 
 
 $arg1 = @('-g', $Other, '--youtube-skip-dash-manifest', $Url)
-$x = yt-dlp @arg1
+$x1 = yt-dlp @arg1
 
-$video = $x[0]
-$audio = $x[1]
+$video = $x1[0]
+$audio = $x1[1]
 $duration = $End - $Start
 
 $ffArgs = @('-ss', $Start, '-i', $video)

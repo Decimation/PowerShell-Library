@@ -199,6 +199,7 @@ function Adb-QPull {
 	$r | Invoke-Parallel -Parameter $d -ImportVariables -Quiet -ScriptBlock {
 		
 		$vx = adb pull $_ "$parameter"
+		Write-Verbose "adb >>> $vx"
 		
 
 		# $sz = (Get-ChildItem $parameter).count
