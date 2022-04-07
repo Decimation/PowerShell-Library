@@ -7,14 +7,19 @@ https://gist.github.com/lostfictions/5700848187b8edfb6e45270b462a4534
 #>
 param (
 	$Url, 
-	$Start, 
+	$Start = '0:0:0', 
 	$End, 
-	$Output,
+	[Parameter(Mandatory = $false)]
+	$Output = $null,
 	[Parameter(Mandatory = $false)]
 	$Other, 
 	[Parameter(Mandatory = $false)]
 	$Other2 = @('-y')
 )
+
+$arg2 = @($Url, '--print', 'id')
+$Output ??= "out_$(yt-dlp @arg2).mp4"
+Write-Host "Automatic output filename: $Output"
 
 if (Test-Path $Output) {
 	$yn = Read-Host -Prompt "$Output already exists. Remove? [y/n/a]"
@@ -59,7 +64,7 @@ if ($audio) {
 $ffArgs += @('-t', $duration, `
 		"-map", "0:v", "-map", "1:a", `
 		"-c:v", "libx264", "-c:a", "aac") `
-	+ $Other2 + $Output
+	+ $Other2 + "`"$Output`""
 
 
 Write-Host "$Start - $End ($duration)"
