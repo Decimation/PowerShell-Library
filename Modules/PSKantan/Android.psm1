@@ -210,6 +210,7 @@ function Adb-QPull {
 
 		<# Write-Progress -Activity g -PercentComplete (($i / $l) * 100.0) #>
 	}
+	
 	Write-Host
 	$st2 = Get-Date
 	$delta = $st2 - $st1
