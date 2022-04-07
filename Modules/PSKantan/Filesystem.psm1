@@ -204,7 +204,6 @@ function Get-RegistryFileType {
 }#>
 
 
-
 function Get-SanitizedFilename {
 	param (
 		$origFileName
