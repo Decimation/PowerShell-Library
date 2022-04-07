@@ -180,17 +180,6 @@ function Adb-QPush {
 }
 
 
-$global:SyncState = [PSCustomObject]@{
-	SyncTable = [hashtable]::Synchronized(
-		@{
-			c  = 0 
-			l  = 0
-			fc = 0
-		}
-	)
-	d         = $null
-}
-
 function Adb-QPull {
 	param(
 		$r, 
@@ -203,62 +192,48 @@ function Adb-QPull {
 	Write-Host "$d"
 	Read-Host -Prompt "..."
 	$r = Adb-GetItems $r -t 'f'
-	
-	
+
+
+	$st1 = Get-Date
 
 	$r | Invoke-Parallel -Parameter $d -ImportVariables -Quiet -ScriptBlock {
 		
 		$vx = adb pull $_ "$parameter"
 		
-		# $ss = Get-SubstringBetween -value $vx -a '(' -b ')'
-		# $bc = $ss.Split(' ')[0] -as [int]
-
-		# $sec = $s2.Split(' ')[3]
 
 		# $sz = (Get-ChildItem $parameter).count
-		$global:SyncState.SyncTable.fc++
-		Write-Host "`r$($global:SyncState.SyncTable.fc)" -NoNewline
+		$global:SyncState.fc++
+		Write-Host "`r$($global:SyncState.fc)" -NoNewline
 
 		# $SyncTable.c++
 		# Write-Host "`r $($SyncTable.c)/$($SyncTable.l)" -NoNewline
 
 		<# Write-Progress -Activity g -PercentComplete (($i / $l) * 100.0) #>
 	}
-
+	Write-Host
+	$st2 = Get-Date
+	$delta = $st2 - $st1
+	Write-Host "$($delta.totalseconds)"
 	#todo
 	
-	Clear-SyncState
+	$global:SyncState = $global:SyncStateEmpty.psobject.copy()
 }
 
-$global:SyncState = [PSCustomObject]@{
-	SyncTable = [hashtable]::Synchronized(
-		@{
-			c  = 0 
-			l  = 0
-			fc = 0
-		}
+$global:SyncStateEmpty = [hashtable]::Synchronized(
+	@{
+		c  = 0 
+		l  = 0
+		fc = 0
+	}
+)
+
+$global:SyncState = $global:SyncStateEmpty.psobject.copy()
+
+function Adb-LoadItems {
+	param (
+		$x
 	)
-
-	Output    = $null
-}
-
-function Clear-SyncState {
 	
-	$global:SyncState.SyncTable.fc = 0
-	$global:SyncState.SyncTable.l = 0
-	$global:SyncState.SyncTable.c = 0
-	$global:SyncState.d = $null
-
-	<# $global:SyncState = [PSCustomObject]@{
-		SyncTable = [hashtable]::Synchronized(
-			@{
-				c  = 0 
-				l  = 0
-				fc = 0
-			}
-		)
-		d  = $null
-	} #>
 }
 
 function Adb-GetItems {
@@ -304,6 +279,8 @@ function Adb-FindItems {
 	
 	$r = adb @a
 	
+	#TODO
+	$r = $r[1..$r.Length]
 	
 	return $r
 }
