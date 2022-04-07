@@ -1,45 +1,64 @@
 param (
-	$url, $s, $e, $outFile,
+	$Url, 
+	$Start, 
+	$End, 
+	$Output,
 	[Parameter(Mandatory = $false)]
-	$other
+	$Other, 
+	[Parameter(Mandatory = $false)]
+	$Other2 = @('-y')
 )
 
-function Get-TimeDuration {
-	param (
-		[Parameter(Mandatory = $true)][timespan]$a,
-		[Parameter(Mandatory = $true)][timespan]$b
-	)
-
-	$a = [timespan]::Parse($a)
-	$b = [timespan]::Parse($b)
-	$c = ($a - $b)
-	$c = [timespan]::FromTicks([System.Math]::Abs($c.Ticks))
-
-	return $c;
+if (Test-Path $Output) {
+	$yn = Read-Host -Prompt "$Output already exists. Remove? [y/n/x]"
+	switch ($yn) {
+		'y' {
+			Remove-Item $Output
+		}
+		'n' {
+			
+		}
+		'x' {
+			return
+		}
+	}
 }
 
-$arg1 = @('-g', '--youtube-skip-dash-manifest', $url)
+#todo: same result?
+try {
+
+	$Start = [timespan]::ParseExact($Start, "g", [cultureinfo]::CurrentCulture)
+	$End = [timespan]::ParseExact($End, "g", [cultureinfo]::CurrentCulture)
+}
+catch {
+	$Start = ([timespan]::Parse($Start))
+	$End = ([timespan]::Parse($End)) 
+}
+
+
+$arg1 = @('-g', $Other, '--youtube-skip-dash-manifest', $Url)
 $x = yt-dlp @arg1
 
-$v = $x[0]
-$a = $x[1]
-$d = Get-TimeDuration ([timespan]::Parse($s)) ([timespan]::Parse($e))
+$video = $x[0]
+$audio = $x[1]
+$duration = $End - $Start
 
-$ffArgs = @('-ss', $s, '-i', $v)
+$ffArgs = @('-ss', $Start, '-i', $video)
 
-
-if ($a) {
-	$ffArgs += @('-ss', $s, '-i', $a)
+if ($audio) {
+	$ffArgs += @('-ss', $Start, '-i', $audio)
 }
 
-$ffArgs += @('-t', $d, "-map", "0:v", "-map", "1:a", `
-		"-c:v", "libx264", "-c:a", "aac", $outFile)
+$ffArgs += @('-t', $duration, `
+		"-map", "0:v", "-map", "1:a", `
+		"-c:v", "libx264", "-c:a", "aac") `
+	+ $Other2 + $Output
 
-Write-Host "$d"
-Write-Host "$($ffArgs -join ' ')"
-Read-Host -Prompt "..."
+
+Write-Host "$Start - $End ($duration)"
+Write-Debug "$($ffArgs -join ' ')"
 
 $p = Start-Process -FilePath 'ffmpeg.exe' -RedirectStandardOutput:$true `
-	-ArgumentList $ffArgs -NoNewWindow
+	-ArgumentList $ffArgs -NoNewWindow -PassThru
 
 return $p

@@ -173,3 +173,22 @@ function Get-Fraktur {
 
 	return $x1
 }
+
+
+<# function tparse {
+	param (
+		$s
+	)
+
+	$a1 = [System.Linq.Enumerable]::TakeWhile($s, [System.Func[char, bool]] { 
+			return [char]::IsDigit($args[0]) 
+		}) -join ''
+	$s = $s[$a1.Length..$s.Length]
+	$t = [timespan]::new()
+	$b = $true
+	for ($i = 0; $i -lt $s.Length; $i++) {
+		$c = $s[$i]
+		$s2 = $null
+		
+	}
+} #>
