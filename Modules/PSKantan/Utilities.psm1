@@ -369,154 +369,154 @@ function Test-Command {
 #https://github.com/RamblingCookieMonster/PowerShell/blob/master/Invoke-Parallel.ps1
 function Invoke-Parallel {
 	<#
-    .SYNOPSIS
-        Function to control parallel processing using runspaces
+	.SYNOPSIS
+		Function to control parallel processing using runspaces
 
-    .DESCRIPTION
-        Function to control parallel processing using runspaces
+	.DESCRIPTION
+		Function to control parallel processing using runspaces
 
-            Note that each runspace will not have access to variables and commands loaded in your session or in other runspaces by default.
-            This behaviour can be changed with parameters.
+			Note that each runspace will not have access to variables and commands loaded in your session or in other runspaces by default.
+			This behaviour can be changed with parameters.
 
-    .PARAMETER ScriptFile
-        File to run against all input objects.  Must include parameter to take in the input object, or use $args.  Optionally, include parameter to take in parameter.  Example: C:\script.ps1
+	.PARAMETER ScriptFile
+		File to run against all input objects.  Must include parameter to take in the input object, or use $args.  Optionally, include parameter to take in parameter.  Example: C:\script.ps1
 
-    .PARAMETER ScriptBlock
-        Scriptblock to run against all computers.
+	.PARAMETER ScriptBlock
+		Scriptblock to run against all computers.
 
-        You may use $Using:<Variable> language in PowerShell 3 and later.
+		You may use $Using:<Variable> language in PowerShell 3 and later.
 
-            The parameter block is added for you, allowing behaviour similar to foreach-object:
-                Refer to the input object as $_.
-                Refer to the parameter parameter as $parameter
+			The parameter block is added for you, allowing behaviour similar to foreach-object:
+				Refer to the input object as $_.
+				Refer to the parameter parameter as $parameter
 
-    .PARAMETER InputObject
-        Run script against these specified objects.
+	.PARAMETER InputObject
+		Run script against these specified objects.
 
-    .PARAMETER Parameter
-        This object is passed to every script block.  You can use it to pass information to the script block; for example, the Path to a logging folder
+	.PARAMETER Parameter
+		This object is passed to every script block.  You can use it to pass information to the script block; for example, the Path to a logging folder
 
-            Reference this object as $parameter if using the scriptblock parameterset.
+			Reference this object as $parameter if using the scriptblock parameterset.
 
-    .PARAMETER ImportVariables
-        If specified, get user session variables and add them to the initial session state
+	.PARAMETER ImportVariables
+		If specified, get user session variables and add them to the initial session state
 
-    .PARAMETER ImportModules
-        If specified, get loaded modules and pssnapins, add them to the initial session state
+	.PARAMETER ImportModules
+		If specified, get loaded modules and pssnapins, add them to the initial session state
 
-    .PARAMETER Throttle
-        Maximum number of threads to run at a single time.
+	.PARAMETER Throttle
+		Maximum number of threads to run at a single time.
 
-    .PARAMETER SleepTimer
-        Milliseconds to sleep after checking for completed runspaces and in a few other spots.  I would not recommend dropping below 200 or increasing above 500
+	.PARAMETER SleepTimer
+		Milliseconds to sleep after checking for completed runspaces and in a few other spots.  I would not recommend dropping below 200 or increasing above 500
 
-    .PARAMETER RunspaceTimeout
-        Maximum time in seconds a single thread can run.  If execution of your code takes longer than this, it is disposed.  Default: 0 (seconds)
+	.PARAMETER RunspaceTimeout
+		Maximum time in seconds a single thread can run.  If execution of your code takes longer than this, it is disposed.  Default: 0 (seconds)
 
-        WARNING:  Using this parameter requires that maxQueue be set to throttle (it will be by default) for accurate timing.  Details here:
-        http://gallery.technet.microsoft.com/Run-Parallel-Parallel-377fd430
+		WARNING:  Using this parameter requires that maxQueue be set to throttle (it will be by default) for accurate timing.  Details here:
+		http://gallery.technet.microsoft.com/Run-Parallel-Parallel-377fd430
 
-    .PARAMETER NoCloseOnTimeout
-        Do not dispose of timed out tasks or attempt to close the runspace if threads have timed out. This will prevent the script from hanging in certain situations where threads become non-responsive, at the expense of leaking memory within the PowerShell host.
+	.PARAMETER NoCloseOnTimeout
+		Do not dispose of timed out tasks or attempt to close the runspace if threads have timed out. This will prevent the script from hanging in certain situations where threads become non-responsive, at the expense of leaking memory within the PowerShell host.
 
-    .PARAMETER MaxQueue
-        Maximum number of powershell instances to add to runspace pool.  If this is higher than $throttle, $timeout will be inaccurate
+	.PARAMETER MaxQueue
+		Maximum number of powershell instances to add to runspace pool.  If this is higher than $throttle, $timeout will be inaccurate
 
-        If this is equal or less than throttle, there will be a performance impact
+		If this is equal or less than throttle, there will be a performance impact
 
-        The default value is $throttle times 3, if $runspaceTimeout is not specified
-        The default value is $throttle, if $runspaceTimeout is specified
+		The default value is $throttle times 3, if $runspaceTimeout is not specified
+		The default value is $throttle, if $runspaceTimeout is specified
 
-    .PARAMETER LogFile
-        Path to a file where we can log results, including run time for each thread, whether it completes, completes with errors, or times out.
+	.PARAMETER LogFile
+		Path to a file where we can log results, including run time for each thread, whether it completes, completes with errors, or times out.
 
-    .PARAMETER AppendLog
-        Append to existing log
+	.PARAMETER AppendLog
+		Append to existing log
 
-    .PARAMETER Quiet
-        Disable progress bar
+	.PARAMETER Quiet
+		Disable progress bar
 
-    .EXAMPLE
-        Each example uses Test-ForPacs.ps1 which includes the following code:
-            param($computer)
+	.EXAMPLE
+		Each example uses Test-ForPacs.ps1 which includes the following code:
+			param($computer)
 
-            if(test-connection $computer -count 1 -quiet -BufferSize 16){
-                $object = [pscustomobject] @{
-                    Computer=$computer;
-                    Available=1;
-                    Kodak=$(
-                        if((test-path "\\$computer\c$\users\public\desktop\Kodak Direct View Pacs.url") -or (test-path "\\$computer\c$\documents and settings\all users\desktop\Kodak Direct View Pacs.url") ){"1"}else{"0"}
-                    )
-                }
-            }
-            else{
-                $object = [pscustomobject] @{
-                    Computer=$computer;
-                    Available=0;
-                    Kodak="NA"
-                }
-            }
+			if(test-connection $computer -count 1 -quiet -BufferSize 16){
+				$object = [pscustomobject] @{
+					Computer=$computer;
+					Available=1;
+					Kodak=$(
+						if((test-path "\\$computer\c$\users\public\desktop\Kodak Direct View Pacs.url") -or (test-path "\\$computer\c$\documents and settings\all users\desktop\Kodak Direct View Pacs.url") ){"1"}else{"0"}
+					)
+				}
+			}
+			else{
+				$object = [pscustomobject] @{
+					Computer=$computer;
+					Available=0;
+					Kodak="NA"
+				}
+			}
 
-            $object
+			$object
 
-    .EXAMPLE
-        Invoke-Parallel -scriptfile C:\public\Test-ForPacs.ps1 -inputobject $(get-content C:\pcs.txt) -runspaceTimeout 10 -throttle 10
+	.EXAMPLE
+		Invoke-Parallel -scriptfile C:\public\Test-ForPacs.ps1 -inputobject $(get-content C:\pcs.txt) -runspaceTimeout 10 -throttle 10
 
-            Pulls list of PCs from C:\pcs.txt,
-            Runs Test-ForPacs against each
-            If any query takes longer than 10 seconds, it is disposed
-            Only run 10 threads at a time
+			Pulls list of PCs from C:\pcs.txt,
+			Runs Test-ForPacs against each
+			If any query takes longer than 10 seconds, it is disposed
+			Only run 10 threads at a time
 
-    .EXAMPLE
-        Invoke-Parallel -scriptfile C:\public\Test-ForPacs.ps1 -inputobject c-is-ts-91, c-is-ts-95
+	.EXAMPLE
+		Invoke-Parallel -scriptfile C:\public\Test-ForPacs.ps1 -inputobject c-is-ts-91, c-is-ts-95
 
-            Runs against c-is-ts-91, c-is-ts-95 (-computername)
-            Runs Test-ForPacs against each
+			Runs against c-is-ts-91, c-is-ts-95 (-computername)
+			Runs Test-ForPacs against each
 
-    .EXAMPLE
-        $stuff = [pscustomobject] @{
-            ContentFile = "windows\system32\drivers\etc\hosts"
-            Logfile = "C:\temp\log.txt"
-        }
+	.EXAMPLE
+		$stuff = [pscustomobject] @{
+			ContentFile = "windows\system32\drivers\etc\hosts"
+			Logfile = "C:\temp\log.txt"
+		}
 
-        $computers | Invoke-Parallel -parameter $stuff {
-            $contentFile = join-path "\\$_\c$" $parameter.contentfile
-            Get-Content $contentFile |
-                set-content $parameter.logfile
-        }
+		$computers | Invoke-Parallel -parameter $stuff {
+			$contentFile = join-path "\\$_\c$" $parameter.contentfile
+			Get-Content $contentFile |
+				set-content $parameter.logfile
+		}
 
-        This example uses the parameter argument.  This parameter is a single object.  To pass multiple items into the script block, we create a custom object (using a PowerShell v3 language) with properties we want to pass in.
+		This example uses the parameter argument.  This parameter is a single object.  To pass multiple items into the script block, we create a custom object (using a PowerShell v3 language) with properties we want to pass in.
 
-        Inside the script block, $parameter is used to reference this parameter object.  This example sets a content file, gets content from that file, and sets it to a predefined log file.
+		Inside the script block, $parameter is used to reference this parameter object.  This example sets a content file, gets content from that file, and sets it to a predefined log file.
 
-    .EXAMPLE
-        $test = 5
-        1..2 | Invoke-Parallel -ImportVariables {$_ * $test}
+	.EXAMPLE
+		$test = 5
+		1..2 | Invoke-Parallel -ImportVariables {$_ * $test}
 
-        Add variables from the current session to the session state.  Without -ImportVariables $Test would not be accessible
+		Add variables from the current session to the session state.  Without -ImportVariables $Test would not be accessible
 
-    .EXAMPLE
-        $test = 5
-        1..2 | Invoke-Parallel {$_ * $Using:test}
+	.EXAMPLE
+		$test = 5
+		1..2 | Invoke-Parallel {$_ * $Using:test}
 
-        Reference a variable from the current session with the $Using:<Variable> syntax.  Requires PowerShell 3 or later. Note that -ImportVariables parameter is no longer necessary.
+		Reference a variable from the current session with the $Using:<Variable> syntax.  Requires PowerShell 3 or later. Note that -ImportVariables parameter is no longer necessary.
 
-    .FUNCTIONALITY
-        PowerShell Language
+	.FUNCTIONALITY
+		PowerShell Language
 
-    .NOTES
-        Credit to Boe Prox for the base runspace code and $Using implementation
-            http://learn-powershell.net/2012/05/10/speedy-network-information-query-using-powershell/
-            http://gallery.technet.microsoft.com/scriptcenter/Speedy-Network-Information-5b1406fb#content
-            https://github.com/proxb/PoshRSJob/
+	.NOTES
+		Credit to Boe Prox for the base runspace code and $Using implementation
+			http://learn-powershell.net/2012/05/10/speedy-network-information-query-using-powershell/
+			http://gallery.technet.microsoft.com/scriptcenter/Speedy-Network-Information-5b1406fb#content
+			https://github.com/proxb/PoshRSJob/
 
-        Credit to T Bryce Yehl for the Quiet and NoCloseOnTimeout implementations
+		Credit to T Bryce Yehl for the Quiet and NoCloseOnTimeout implementations
 
-        Credit to Sergei Vorobev for the many ideas and contributions that have improved functionality, reliability, and ease of use
+		Credit to Sergei Vorobev for the many ideas and contributions that have improved functionality, reliability, and ease of use
 
-    .LINK
-        https://github.com/RamblingCookieMonster/Invoke-Parallel
-    #>
+	.LINK
+		https://github.com/RamblingCookieMonster/Invoke-Parallel
+	#>
 	[cmdletbinding(DefaultParameterSetName = 'ScriptBlock')]
 	Param (
 		[Parameter(Mandatory = $false, position = 0, ParameterSetName = 'ScriptBlock')]
@@ -688,7 +688,7 @@ function Invoke-Parallel {
 
 					#log the results if a log file was indicated
 					if ($logFile -and $log) {
-                            ($log | ConvertTo-Csv -Delimiter ';' -NoTypeInformation)[1] | Out-File $LogFile -Append
+							($log | ConvertTo-Csv -Delimiter ';' -NoTypeInformation)[1] | Out-File $LogFile -Append
 					}
 				}
 
@@ -817,7 +817,7 @@ function Invoke-Parallel {
 		#Set up log file if specified
 		if ( $LogFile -and (-not (Test-Path $LogFile) -or $AppendLog -eq $false)) {
 			New-Item -ItemType file -Path $logFile -Force | Out-Null
-                ('' | Select-Object -Property Date, Action, Runtime, Status, Details | ConvertTo-Csv -NoTypeInformation -Delimiter ';')[0] | Out-File $LogFile
+				('' | Select-Object -Property Date, Action, Runtime, Status, Details | ConvertTo-Csv -NoTypeInformation -Delimiter ';')[0] | Out-File $LogFile
 		}
 
 		#write initial log entry
@@ -828,7 +828,7 @@ function Invoke-Parallel {
 		$log.Status = 'Started'
 		$log.Details = $null
 		if ($logFile) {
-                    ($log | ConvertTo-Csv -Delimiter ';' -NoTypeInformation)[1] | Out-File $LogFile -Append
+					($log | ConvertTo-Csv -Delimiter ';' -NoTypeInformation)[1] | Out-File $LogFile -Append
 		}
 		$timedOutTasks = $false
 		#endregion INIT
@@ -936,3 +936,19 @@ function Get-PublicIP {
 	return (Invoke-WebRequest ifconfig.me/ip).Content.Trim()
 }
 
+
+function Get-Focus {
+	Add-Type @"
+	using System;
+	using System.Runtime.InteropServices;
+	
+	public class Tricks {
+		[DllImport("user32.dll")]
+		public static extern IntPtr GetForegroundWindow();
+	}
+"@
+
+	$a = [tricks]::GetForegroundWindow()
+
+	return	Get-Process | Where-Object { $_.mainwindowhandle -eq $a }
+}
