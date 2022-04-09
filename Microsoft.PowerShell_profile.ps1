@@ -45,23 +45,36 @@ New-Module {
 function QText {
 
 	param (
-		
+		[Parameter(Mandatory, Position = 0)]
+		$Value,
 		[Parameter(Mandatory = $false)]
-		[ArgumentCompletions('bold', 'italic', 'underline')]
-		$styles,
-		[Parameter(ValueFromRemainingArguments)]
+		[ArgumentCompletions('bold', 'italic', 'underline', '')]
+		$styles = '',
+		[Parameter(ValueFromRemainingArguments, Mandatory = $false)]
 		$d
 	)
+	$global:ANSI_END = "`e[0m"
+
 	$ht = @{
 		bold      = 1
 		italic    = 3
 		underline = 4
 	}
-	
-	$sb = "`e[" + `
-		$styles -split ',' | ForEach-Object { $sb += $ht.$_ -as 'string' }
+	if ($styles -eq '') {
+		$sb = $Value
+	}
+	else {
+		$sb = "`e[" 
+		$rg = @()
+		$styles -split ',' | ForEach-Object { 
+			$rg += $ht.$_
+		}
+		
+		$sb += "$($rg -join ';')m"
+		
+	}
 	Write-Debug "$sb"
-	return New-Text "$sb" @d
+	return New-Text "$sb$Value$ANSI_END" @d
 }
 function Prompt {
 	$c1 = "`e[38;5;220;1m"
