@@ -236,7 +236,6 @@ $global:SyncStateEmpty = [hashtable]::Synchronized(
 
 $global:SyncState = $global:SyncStateEmpty.psobject.copy()
 
-
 function Adb-GetItems {
 	[CmdletBinding()]
 	[outputtype([string[]])]
@@ -258,6 +257,9 @@ function Adb-GetItems {
 	}
 	
 	return $r
+
+
+	
 }
 
 
@@ -272,18 +274,20 @@ function Adb-FindItems {
 		[parameter(Mandatory = $false)]
 		$type
 	)
-	$a = @('shell', "find $x")
+	$fa = "%s %p\\n"
+	$a = @('shell', "find $x -printf $fa")
+	
 	if ($name) {
 		$a += '-name', $name
 	}
 	if ($type) {
-		
 		$a += '-type', $type
 	}
 	
 	$r = adb @a
 	
 	#TODO
+	
 	$r = $r[1..$r.Length]
 	
 	return $r
