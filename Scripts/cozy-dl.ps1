@@ -16,7 +16,9 @@ param (
 	$Name,
 	# Downloader
 	[Parameter()]
-	$Downloader = 'native'
+	$Downloader = 'native',
+	[Parameter(Mandatory = $false)]
+	$extra
 )
 
 function Get-CozyVod {
@@ -40,7 +42,7 @@ function Get-CozyVod {
 
 	yt-dlp.exe -i --prefer-ffmpeg --merge-output-format mp4 --verbose --force-ipv4 --ignore-errors --no-continue `
 		--no-overwrites -o "Cozy_$Name`_$Date.mp4" --downloader $Downloader -N 8 `
-		--no-check-certificate --force-generic-extractor $uri
+		--no-check-certificate --force-generic-extractor $uri @extra
 }
 
 
@@ -71,3 +73,29 @@ if (($Name -and $Date)) {
 else {
 	Write-Error 'Insufficient arguments'
 }
+
+
+# <#
+# .Description
+# Downloads replay from cozy.tv
+# #>
+# function Get-CozyVOD {
+# 	param (
+# 		[Parameter(Mandatory = $true)][string]$url,
+# 		[Parameter(Mandatory = $false)][string]$outFile
+
+# 	)
+
+# 	$s = $url.Split('/')
+# 	$name = $s[-3]
+# 	$date = $s[-1]
+
+# 	if (!($outFile)) {
+# 		$outFile = "$date.mp4"
+# 	}
+
+# 	#see cozy-dl ...
+# 	#ffmpeg -i "https://cozycdn.foxtrotstream.xyz/replays/$name/$date/index.m3u8" -c copy -bsf:a aac_adtstoasc -movflags +faststart $outFile
+	
+# 	ffmpeg -i "https://cozycdn.foxtrotstream.xyz/replays/$name/$date/index.m3u8" -c copy -movflags +faststart $outFile
+# }

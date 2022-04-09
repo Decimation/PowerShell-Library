@@ -48,26 +48,30 @@ function Prompt {
 	$c2 = "`e[38;5;40;3m"
 	$c3 = "`e[38;5;13;1m"
 	$c4 = "`e[38;5;33;4m"
-	$c5 = "`e[1m"
-	$c6 = "`e[38;5;209;1m"
-	
+	$c5 = "`e[1;6m"
+	$c6 = "`e[38;5;1m"
+
 	# $currentDate = $(Get-Date -Format 'HH:mm:ss')
 	
 	$cd = Get-Location
-	$p1 = "$"
+	$p1 = $(Text "" -ForegroundColor 'yellow')
 	$ps = "PS "
-
+	$ul2 = "`e[1;0m"
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
-
+	
 	$u = "$c1$user$ANSI_END"
 	$c = "$c2$cname$ANSI_END"
-	$p = "$c3$ps$ANSI_END"
+	$p = "$c3$ps$sym$ANSI_END"
 	$p2 = "$c6$p1$ANSI_END"
-	$f = " $c4$cd$ANSI_END`n$c5$p2$ANSI_END"
+	$f = Text "$c4$cd$ANSI_END" -ForegroundColor ([PoshCode.Pansies.RgbColor]::FromXTermIndex(110))
+	$f2 = "$c5$p2$ANSI_END"
+	$sb = Text " $(Get-Date -Format "HH:mm:ss") " -ForegroundColor 'pink'
 
 	# Write-Host "$p" -NoNewline
-	Write-Host "$p$u@$c$f" -NoNewline
+	# Write-Host "$p$u@$c$f$sb" -NoNewline
+	Write-Host $($p, $u, "@", $c, $sb, $f, "`n", "$f2" ) -NoNewline -Separator ''
+	
 	# Write-Host $f -NoNewline
 	
 	<# 

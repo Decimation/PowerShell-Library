@@ -55,23 +55,6 @@ function Write-Pretty {
 
 # region Passthrus
 
-<#
-.Description
-ffmpeg enhanced passthru
-#>
-function ffmpeg {
-	Write-Pretty $MyInvocation $args $PSCmdlet
-	ffmpeg.exe -hide_banner @args
-}
-
-<#
-.Description
-ffprobe enhanced passthru
-#>
-function ffprobe {
-	Write-Pretty $MyInvocation $args $PSCmdlet
-	ffprobe.exe -hide_banner @args
-}
 
 <#
 .Description

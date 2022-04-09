@@ -188,7 +188,12 @@ function Adb-QPull {
 		[switch]$retain
 	)
 	
+	
+	if (-not (Test-Path $d)) {
+		mkdir $d
+	}
 	$d = Resolve-Path $d
+
 	Write-Host "$d"
 	Read-Host -Prompt "..."
 	$r = Adb-GetItems $r -t 'f'
