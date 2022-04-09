@@ -935,3 +935,42 @@ function Get-Focus {
 
 	return	Get-Process | Where-Object { $_.mainwindowhandle -eq $a }
 }
+
+
+
+function QText {
+
+	param (
+		[Parameter(Mandatory, Position = 0)]
+		$Value,
+		[Parameter(Mandatory = $false)]
+		[ArgumentCompletions('bold', 'italic', 'underline', '')]
+		$styles = '',
+		[Parameter(ValueFromRemainingArguments, Mandatory = $false)]
+		$d
+	)
+	$global:ANSI_END = "`e[0m"
+
+	$ht = @{
+		bold      = 1
+		italic    = 3
+		underline = 4
+	}
+
+	if ($styles -eq '') {
+		$sb = $Value
+	}
+
+	else {
+		$sb = "`e[" 
+		$rg = @()
+		
+		$styles -split ',' | ForEach-Object { 
+			$rg += $ht.$_
+		}
+		
+		$sb += "$($rg -join ';')m"
+		
+	}
+	return New-Text "$sb$Value$ANSI_END" @d
+}

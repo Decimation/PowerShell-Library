@@ -263,13 +263,14 @@ function New-List {
 function Linq-Where {
 	
 	param (
-		[Parameter(ValueFromPipeline)]
+		[Parameter(Mandatory, Position = 0)]
 		$Value,
-		[Parameter()]
+		[Parameter(ValueFromRemainingArguments, Position = 1)]
 		$Predicate
 	)
 	process {
 		$Predicate = [func[object, bool]]$Predicate
+
 		return Invoke-Linq -Name "Where" $Value ([System.Func[object, bool]] $Predicate)
 	}
 }

@@ -236,12 +236,6 @@ $global:SyncStateEmpty = [hashtable]::Synchronized(
 
 $global:SyncState = $global:SyncStateEmpty.psobject.copy()
 
-function Adb-LoadItems {
-	param (
-		$x
-	)
-	
-}
 
 function Adb-GetItems {
 	[CmdletBinding()]
@@ -293,17 +287,44 @@ function Adb-FindItems {
 }
 #endregion
 
+function Adb-Stat {
+	param (
+		$x,
+		[switch]$t
+	)
+	
+	$d = "   "
+	$a = "%n", "%w", "%x", "%y", "%z", "%s" -join $d
+
+	$cmd = @('shell', "stat -c '$a' $x")
+	$out = [string] (adb @cmd)
+	$rg = $out -split $d
+
+	$obj = [PSCustomObject]@{
+		Name             = $rg[0]
+		TimeOfBirth      = $rg[1]
+		LastAccess       = $rg[2]
+		LastModification = $rg[3]
+		LastStatusChange = $rg[4]
+		Size             = $rg[5]
+		Raw              = $out
+	
+	}
+	return $obj
+}
 
 function Adb-GetItem {
-	param ($x,
-		[Parameter(Mandatory = $false)]$SyncState
+	param (
+		$x,
+		[Parameter(Mandatory = $false)]
+		$x2
 	)
 	
 	
 	$a = @('shell', "wc -c $x", '2>&1')
 	$x = adb @a
 	$x = [string]$x
-	Write-Debug "$x|$(typeof $x)"
+	Write-Debug "$x| $(typeof $x)"
 
 	if ($x -match 'Is a directory') {
 		$isDir = $true

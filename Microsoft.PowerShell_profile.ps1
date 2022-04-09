@@ -42,40 +42,6 @@ New-Module {
 	}
 } | Import-Module
 
-function QText {
-
-	param (
-		[Parameter(Mandatory, Position = 0)]
-		$Value,
-		[Parameter(Mandatory = $false)]
-		[ArgumentCompletions('bold', 'italic', 'underline', '')]
-		$styles = '',
-		[Parameter(ValueFromRemainingArguments, Mandatory = $false)]
-		$d
-	)
-	$global:ANSI_END = "`e[0m"
-
-	$ht = @{
-		bold      = 1
-		italic    = 3
-		underline = 4
-	}
-	if ($styles -eq '') {
-		$sb = $Value
-	}
-	else {
-		$sb = "`e[" 
-		$rg = @()
-		$styles -split ',' | ForEach-Object { 
-			$rg += $ht.$_
-		}
-		
-		$sb += "$($rg -join ';')m"
-		
-	}
-	return New-Text "$sb$Value$ANSI_END" @d
-}
-
 function Prompt {
 	
 	$cd = Get-Location
@@ -195,8 +161,6 @@ Set-PSReadLineOption -Colors @{
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	Type                   = "$([char]0x1b)[38;5;81;1m"
 }
-
-
 
 $global:KeyMappings = @(
 	@{
@@ -389,10 +353,6 @@ $global:KeyMappings = @(
 		}
 	}
 ) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
-
-
-
-
 
 #region Smart Insert/Delete
 #https://megamorf.gitlab.io/cheat-sheets/powershell-psreadline/

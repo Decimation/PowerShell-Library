@@ -1,15 +1,6 @@
 # region Filesystem IO
 
 
-function XRemove {
-	param ($x)
-	#todo
-	
-	takeown /F $x /R
-	sudo rm -Force $x
-}
-
-Set-Alias xrm XRemove
 
 
 function OpenHere {
