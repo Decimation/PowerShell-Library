@@ -289,27 +289,38 @@ function Adb-FindItems {
 
 function Adb-Stat {
 	param (
-		$x,
-		[switch]$t
+		$x
 	)
 	
+	
 	$d = "   "
-	$a = "%n", "%w", "%x", "%y", "%z", "%s" -join $d
-
+	$a = "%n", "%N", "%F", "%w", "%x", "%y", "%z", "%s" -join $d
 	$cmd = @('shell', "stat -c '$a' $x")
 	$out = [string] (adb @cmd)
 	$rg = $out -split $d
-
+	$i = 0
 	$obj = [PSCustomObject]@{
-		Name             = $rg[0]
-		TimeOfBirth      = $rg[1]
-		LastAccess       = $rg[2]
-		LastModification = $rg[3]
-		LastStatusChange = $rg[4]
-		Size             = $rg[5]
+		Name             = $rg[$i++]
+		FullName         = $rg[$i++]
+		Type             = $rg[$i++]
+		TimeOfBirth      = $rg[$i++]
+		LastAccess       = $rg[$i++]
+		LastModification = $rg[$i++]
+		LastStatusChange = $rg[$i++]
+		Size             = $rg[$i++]
 		Raw              = $out
-	
+		IsDirectory      = $null
+		IsFile           = $null
 	}
+
+	$obj.IsDirectory = $obj.Type -match 'directory'
+	$obj.IsFile = $obj.Type -match 'file'
+	
+	<# $cmd = @('shell', "stat $x")
+	$out = [string] (adb @cmd)
+	$rg = $out -split "`n" | ForEach-Object { $_.Trim() } #>
+
+	
 	return $obj
 }
 
