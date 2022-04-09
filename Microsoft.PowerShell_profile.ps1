@@ -75,35 +75,27 @@ function QText {
 	}
 	return New-Text "$sb$Value$ANSI_END" @d
 }
+
 function Prompt {
-	$c1 = "`e[38;5;220;1m"
-	$c2 = "`e[38;5;40;3m"
-	$c3 = "`e[38;5;13;1m"
-	$c4 = "`e[38;5;33;4m"
-	$c5 = "`e[1;6m"
-	# $c6 = "`e[38;5;1m"
-	# $currentDate = $(Get-Date -Format 'HH:mm:ss')
 	
 	$cd = Get-Location
 	# $p1 = ""
 	$p1 = ""
 	$ps = "PS "
-	$ul2 = "`e[1;0m"
+
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
 	
 	$u = Text "`e[1m$user$ANSI_END" -ForegroundColor 220
 	$c = Text "`e[3m$cname$ANSI_END" -ForegroundColor 40
 	$p = Text "`e[1m$ps$ANSI_END" -ForegroundColor 'orange'
-	$p2 = Text "$p1"
 	$f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
-	# $f2 = "$c5$p2$ANSI_END"
-	$f2 = Text "$p2" -ForegroundColor 'yellow'
+	$l1 = Text "$p1" -ForegroundColor 'yellow'
 	$sb = Text " $(Get-Date -Format "HH:mm:ss") " -ForegroundColor 'pink'
 
 	# Write-Host "$p" -NoNewline
 	# Write-Host "$p$u@$c$f$sb" -NoNewline
-	Write-Host $($p, $u, "@", $c, $sb, $f, "`n", "$f2" ) -NoNewline -Separator ''
+	Write-Host $($p, $u, "@", $c, $sb, $f, "`n", "$l1" ) -NoNewline -Separator ''
 	
 	# Write-Host $f -NoNewline
 	
