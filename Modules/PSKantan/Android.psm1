@@ -259,6 +259,9 @@ function Adb-GetItems {
 	
 	return $r
 }
+
+
+
 function Adb-FindItems {
 	[CmdletBinding()]
 	[outputtype([string[]])]
@@ -299,6 +302,7 @@ function Adb-Stat {
 	$out = [string] (adb @cmd)
 	$rg = $out -split $d
 	$i = 0
+
 	$obj = [PSCustomObject]@{
 		Name             = $rg[$i++]
 		FullName         = $rg[$i++]
@@ -308,7 +312,9 @@ function Adb-Stat {
 		LastModification = $rg[$i++]
 		LastStatusChange = $rg[$i++]
 		Size             = $rg[$i++]
+		
 		Raw              = $out
+		
 		IsDirectory      = $null
 		IsFile           = $null
 	}
@@ -325,13 +331,16 @@ function Adb-Stat {
 }
 
 function Adb-GetItem {
-	param (
+	
+	param($x)
+	return Adb-Stat $x
+
+	<# param (
 		$x,
 		[Parameter(Mandatory = $false)]
 		$x2
 	)
-	
-	
+		
 	$a = @('shell', "wc -c $x", '2>&1')
 	$x = adb @a
 	$x = [string]$x
@@ -359,8 +368,7 @@ function Adb-GetItem {
 	}
 	
 	
-
-	return $buf
+	return $buf #>
 }
 
 function Adb-GetPackages {
