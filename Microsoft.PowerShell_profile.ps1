@@ -73,7 +73,6 @@ function QText {
 		$sb += "$($rg -join ';')m"
 		
 	}
-	Write-Debug "$sb"
 	return New-Text "$sb$Value$ANSI_END" @d
 }
 function Prompt {
