@@ -42,30 +42,51 @@ New-Module {
 	}
 } | Import-Module
 
+function QText {
 
+	param (
+		
+		[Parameter(Mandatory = $false)]
+		[ArgumentCompletions('bold', 'italic', 'underline')]
+		$styles,
+		[Parameter(ValueFromRemainingArguments)]
+		$d
+	)
+	$ht = @{
+		bold      = 1
+		italic    = 3
+		underline = 4
+	}
+	
+	$sb = "`e[" + `
+		$styles -split ',' | ForEach-Object { $sb += $ht.$_ -as 'string' }
+	Write-Debug "$sb"
+	return New-Text "$sb" @d
+}
 function Prompt {
 	$c1 = "`e[38;5;220;1m"
 	$c2 = "`e[38;5;40;3m"
 	$c3 = "`e[38;5;13;1m"
 	$c4 = "`e[38;5;33;4m"
 	$c5 = "`e[1;6m"
-	$c6 = "`e[38;5;1m"
-
+	# $c6 = "`e[38;5;1m"
 	# $currentDate = $(Get-Date -Format 'HH:mm:ss')
 	
 	$cd = Get-Location
-	$p1 = $(Text "" -ForegroundColor 'yellow')
+	# $p1 = ""
+	$p1 = ""
 	$ps = "PS "
 	$ul2 = "`e[1;0m"
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
 	
-	$u = "$c1$user$ANSI_END"
-	$c = "$c2$cname$ANSI_END"
-	$p = "$c3$ps$sym$ANSI_END"
-	$p2 = "$c6$p1$ANSI_END"
-	$f = Text "$c4$cd$ANSI_END" -ForegroundColor ([PoshCode.Pansies.RgbColor]::FromXTermIndex(110))
-	$f2 = "$c5$p2$ANSI_END"
+	$u = Text "`e[1m$user$ANSI_END" -ForegroundColor 220
+	$c = Text "`e[3m$cname$ANSI_END" -ForegroundColor 40
+	$p = Text "`e[1m$ps$ANSI_END" -ForegroundColor 'orange'
+	$p2 = Text "$p1"
+	$f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
+	# $f2 = "$c5$p2$ANSI_END"
+	$f2 = Text "$p2" -ForegroundColor 'yellow'
 	$sb = Text " $(Get-Date -Format "HH:mm:ss") " -ForegroundColor 'pink'
 
 	# Write-Host "$p" -NoNewline
