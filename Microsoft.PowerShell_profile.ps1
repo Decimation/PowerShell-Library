@@ -257,6 +257,14 @@ $global:KeyMappings = @(
 	},
 	@{
 		Key      = 'Ctrl+x'
+		Function = 'Cut'
+	},
+	@{
+		Key      = 'Ctrl+t'
+		Function = 'SwapCharacters'
+	}, 
+	@{
+		Key      = 'Ctrl+shift+x'
 		Function = 'KillRegion'
 	},
 	@{
@@ -264,11 +272,11 @@ $global:KeyMappings = @(
 		Function = 'CopyOrCancelLine'
 	},
 	@{
-		Key      = 'Alt+w'
+		Key      = 'Alt+s'
 		Function = 'SelectNextWord'
 	},
 	@{
-		Key      = 'Alt+Ctrl+w'
+		Key      = 'Alt+Ctrl+s'
 		Function = 'SelectBackwardWord'
 	},
 	@{
@@ -290,12 +298,22 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
-		Key         = 'F3'
+		Key         = 'Alt+q'
 		ScriptBlock = {
 			Write-Host
 			Write-Host 'Popped:' -ForegroundColor DarkYellow
 			Pop-Location -PassThru | Out-Host
 			[PSConsoleReadLine]::AcceptLine()
+		}
+	},
+	@{
+		Key         = 'Alt+Ctrl+q'
+		ScriptBlock = {
+			Write-Host
+			Write-Host 'Pushed:' -ForegroundColor DarkYellow
+			Push-Location -PassThru | Out-Host 
+			[PSConsoleReadLine]::AcceptLine()
+			# $Host.ui.WriteLine()
 		}
 	},
 	@{
@@ -317,16 +335,6 @@ $global:KeyMappings = @(
 			$global:CharBufferIndex++
 			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
 
-		}
-	},
-	@{
-		Key         = 'F4'
-		ScriptBlock = {
-			Write-Host
-			Write-Host 'Pushed:' -ForegroundColor DarkYellow
-			Push-Location -PassThru | Out-Host 
-			[PSConsoleReadLine]::AcceptLine()
-			# $Host.ui.WriteLine()
 		}
 	},
 	@{
@@ -564,11 +572,10 @@ Set-PSReadLineKeyHandler -Key Backspace `
 	}
 }
 
-#endregion Smart Insert/Delete
 
 #endregion
 
-$global:LoadTime = (Get-Date -Format 'HH:mm:ss')
+$global:LoadTime = (Get-Date -Format $QDateFormat)
 
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
@@ -596,3 +603,7 @@ Import-Module AudioDeviceCmdlets #>
 #https://github.com/WantStuff/AudioDeviceCmdlets
 # Set-PoshPrompt microverse-power
 # Install-Module -Name GuiCompletion -Scope CurrentUser
+
+if ($env:TERM_PROGRAM -eq 'vscode') {
+	Write-Information "In VSCode terminal"
+}
