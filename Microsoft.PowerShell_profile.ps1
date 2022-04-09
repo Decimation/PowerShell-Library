@@ -90,19 +90,10 @@ function Prompt {
 	$c = Text "`e[3m$cname$ANSI_END" -ForegroundColor 40
 	$p = Text "`e[1m$ps$ANSI_END" -ForegroundColor 'orange'
 	$f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
-	$l1 = Text "$p1" -ForegroundColor 'yellow'
-	$sb = Text " $(Get-Date -Format "HH:mm:ss") " -ForegroundColor 'pink'
+	$l = Text "$p1" -ForegroundColor 'yellow'
+	$d = Text " $(Get-Date -Format "HH:mm:ss") " -ForegroundColor 'pink'
 
-	# Write-Host "$p" -NoNewline
-	# Write-Host "$p$u@$c$f$sb" -NoNewline
-	Write-Host $($p, $u, "@", $c, $sb, $f, "`n", "$l1" ) -NoNewline -Separator ''
-	
-	# Write-Host $f -NoNewline
-	
-	<# 
-	Deci@TESSERACT MSYS ~
-	$
-	#>
+	Write-Host $($p, $u, "@", $c, $d, $f, "`n", "$l" ) -NoNewline -Separator ''
 
 	return ' '
 }
