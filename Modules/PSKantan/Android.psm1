@@ -247,7 +247,6 @@ function Adb-GetItems {
 	)
 	
 	$r = Adb-FindItems -x $x -type $t
-	
 	$r = [string[]] ($r | Sort-Object)
 
 	if ($pattern) {
@@ -257,9 +256,6 @@ function Adb-GetItems {
 	}
 	
 	return $r
-
-
-	
 }
 
 
