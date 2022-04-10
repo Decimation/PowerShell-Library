@@ -54,7 +54,7 @@ function Prompt {
 	
 	$u = Text "`e[1m$user$ANSI_END" -ForegroundColor 220
 	$c = Text "`e[3m$cname$ANSI_END" -ForegroundColor 40
-	$p = Text "`e[1m$ps$ANSI_END" -ForegroundColor 'orange'
+	$p = Text "`e[1m$ps$ANSI_END" -ForegroundColor 'magenta'
 	$f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
 	$l = Text "$p1" -ForegroundColor 'yellow'
 	$d = Text " $(Get-Date -Format "HH:mm:ss") " -ForegroundColor 'pink'
@@ -309,6 +309,10 @@ $global:KeyMappings = @(
 			Write-Host 'Reloaded profile' -ForegroundColor DarkGreen
 			[PSConsoleReadLine]::Ding()
 		}
+	}, 
+	@{
+		Key      = 'F4'
+		Function = 'SwitchPredictionView'
 	},
 	@{
 		Key         = 'Ctrl+F5' 

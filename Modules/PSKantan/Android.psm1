@@ -243,10 +243,10 @@ function Adb-GetItems {
 		[Parameter()]
 		$x,
 		[Parameter(Mandatory = $false)]
-		$t
+		$t = 'f'
 	)
 	
-	$r = Adb-FindItems $x -type $t
+	$r = Adb-FindItems -x $x -type $t
 	
 	$r = [string[]] ($r | Sort-Object)
 
@@ -274,7 +274,7 @@ function Adb-FindItems {
 		[parameter(Mandatory = $false)]
 		$type
 	)
-	$fa = "%s %p\\n"
+	$fa = "%p\\n"
 	$a = @('shell', "find $x -printf $fa")
 	
 	if ($name) {
@@ -287,7 +287,7 @@ function Adb-FindItems {
 	$r = adb @a
 	
 	#TODO
-	
+
 	$r = $r[1..$r.Length]
 	
 	return $r
