@@ -270,6 +270,7 @@ function Adb-FindItems {
 		[parameter(Mandatory = $false)]
 		$type
 	)
+
 	$fa = "%p\\n"
 	$a = @('shell', "find $x -printf $fa")
 	
@@ -288,6 +289,7 @@ function Adb-FindItems {
 	
 	return $r
 }
+
 #endregion
 
 function Adb-Stat {
