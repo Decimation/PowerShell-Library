@@ -977,20 +977,18 @@ function QText {
 
 
 function New-QSession {
+	
+	<#
+	Based off of Initialize-WinSession
+	#>
+	
 	[CmdletBinding()]
 	[OutputType([System.Management.Automation.Runspaces.PSSession])]
 	Param (
-		
-		# If you don't want to use the default compatibility session, use
-		# this parameter to specify the name of the computer on which to create
-		# the compatibility session.
+
 		[Parameter(Mandatory = $false, Position = 0)]
 		[String][Alias("Cn")]
 		$ComputerName = $env:COMPUTERNAME,
-		# Specifies the configuration to connect to when creating the compatibility session
-		# (Defaults to 'Microsoft.PowerShell')
-		[Parameter()]
-		[String]$ConfigurationName,
 		# The credential to use when connecting to the target machine/configuration
 		[Parameter()]
 		[PSCredential]$Credential,
@@ -1006,14 +1004,17 @@ function New-QSession {
 		ConfigurationName = $configurationName
 		ErrorAction       = "Stop"
 	}
+
 	if ($Credential) {
 		$newPSSessionParameters.Credential = $Credential
 	}
+
 	if ($ComputerName -eq "localhost" -or $ComputerName -eq [environment]::MachineName) {
 		$newPSSessionParameters.EnableNetworkAccess = $true
 	}
-		
-	Write-Verbose -Verbose:$verboseFlag "Created new compatibiilty session on host '$computername'"
+
+	Write-Verbose "Created new session on host '$computername'" `
+		-Verbose:$verboseFlag
 
 	$session = New-PSSession @newPSSessionParameters | Select-Object -First 1
 	if ($session.ComputerName -eq "localhost") {
