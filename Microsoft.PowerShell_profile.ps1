@@ -115,6 +115,7 @@ $VerbosePreference = 'SilentlyContinue'
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
+
 $PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -145,7 +146,7 @@ Set-PSReadLineOption `
 }
 
 Set-PSReadLineOption -Colors @{
-	Command                = "$([char]0x1b)[38;5;214;1m"
+	Command                = "$([char]0x1b)[38;5;220;1m"
 	Comment                = "$([char]0x1b)[32m"
 	ContinuationPrompt     = "$([char]0x1b)[37m"
 	Emphasis               = "`e[38;5;166m"
@@ -157,11 +158,18 @@ Set-PSReadLineOption -Colors @{
 	Member                 = "$([char]0x1b)[38;5;170m"
 	Number                 = '#73fff6'
 	Operator               = "$([char]0x1b)[38;5;166m"
-	Parameter              = "$([char]0x1b)[38;2;255;165;0;3m"
+	Parameter              = "$([char]0x1b)[38;5;14;3m"
 	Selection              = "$([char]0x1b)[7m"
-	String                 = "$([char]0x1b)[38;5;45m"
+	String                 = "$([char]0x1b)[38;5;166m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	Type                   = "$([char]0x1b)[38;5;81;1m"
+}
+
+function Get-BufferState {
+	$line = $null
+	$cursor = $null
+	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+	return $line, $cursor
 }
 
 $global:KeyMappings = @(
@@ -210,7 +218,7 @@ $global:KeyMappings = @(
 		Function = 'ShowCommandHelp'
 	}, 
 	@{
-		Key      = 'Ctrl+p'
+		Key      = 'Ctrl+F1'
 		Function = 'ShowParameterHelp'
 	}, 
 	@{
@@ -249,21 +257,76 @@ $global:KeyMappings = @(
 		Key      = 'Alt+a'
 		Function = 'SelectCommandArgument'
 	},
+	<# @{
+		Key         = 'Alt+c'
+		ScriptBlock = {
+			$line1 = ''
+			$cursor1 = 0
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
+
+			[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearch($null, $null)
+
+			$line2 = ''
+			$cursor2 = 0
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line2, [ref]$cursor2)
+			
+			Write-Debug "$line1 $cursor1 | $line2 $cursor2"
+			if ($cursor2 -eq $cursor1) {
+				[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, $null)
+			}
+
+
+		}
+	}, #>
+	@{
+		Key         = 'Alt+f'
+		ScriptBlock = {
+			$line1 = ''
+			$cursor1 = 0
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
+
+			Set-Clipboard $line1
+		}
+	},
+	@{
+		Key         = 'Alt+f'
+		ScriptBlock = {
+			$line1 = ''
+			$cursor1 = 0
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
+
+			Set-Clipboard $line1
+		}
+	},
 	@{
 		<#
 		Moves cursor to beginning of line, inserts template for declaring/modifying
 		a variable, and selects its name
 		#>
-		Key         = 'Alt+Ctrl+x'
+		Key         = 'Alt+c'
 		ScriptBlock = {
-			# [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
-			[PSConsoleReadLine]::BeginningOfLine()
-			[Microsoft.PowerShell.PSConsoleReadLine]::Insert('$x = ')
-			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(1)
-			[Microsoft.PowerShell.PSConsoleReadLine]::SelectShellForwardWord($null, $null)
+			$line1 = ''
+			$cursor1 = 0
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
+			
+			[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearch($null, '-')
+			
+			if ($script:CharIndex -eq $cursor1) {
+				[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, '-')
+				
+			}
+			else {
+				
+			}
+			$line2 = ''
+			$cursor2 = 0
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line2, [ref]$cursor2)
+			
+			
+			$script:CharIndex = $cursor1
 		}
 	},
-	@{
+	<# @{
 		Key         = 'Alt+q'
 		ScriptBlock = {
 			Write-Host
@@ -281,19 +344,18 @@ $global:KeyMappings = @(
 			[PSConsoleReadLine]::AcceptLine()
 			# $Host.ui.WriteLine()
 		}
-	},
-	@{
-		<#
-		Moves to index of character in the buffer
-		#>
+	}, #>
+	<# @{
+		#Moves to index of character in the buffer
+		
 		Key         = 'Alt+Ctrl+b'
 		ScriptBlock = {
 			$c = '-'
 
 			$line = $null
 			$cursor = $null
-			[Microsoft.PowerShell.PSConsoleReadLine]::BeginningOfLine($null, $null)  
 			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+			[Microsoft.PowerShell.PSConsoleReadLine]::BeginningOfLine($null, $null)  
 			$global:CharBufferIndex = $line.IndexOf($c, $global:CharBufferIndex)
 			#[Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 			# Write-Host
@@ -302,7 +364,7 @@ $global:KeyMappings = @(
 			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
 
 		}
-	},
+	}, #>
 	@{
 		Key         = 'F5'
 		ScriptBlock = {
@@ -313,8 +375,10 @@ $global:KeyMappings = @(
 		}
 	}, 
 	@{
-		Key      = 'F4'
-		Function = 'SwitchPredictionView'
+		Key         = 'F4'
+		ScriptBlock = {
+			
+		}
 	},
 	@{
 		Key         = 'Ctrl+F5' 
@@ -359,6 +423,8 @@ $global:KeyMappings = @(
 		}
 	}
 ) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
+
+$global:CharIndex = 0
 
 #region Smart Insert/Delete
 #https://megamorf.gitlab.io/cheat-sheets/powershell-psreadline/
@@ -573,3 +639,4 @@ Import-Module AudioDeviceCmdlets #>
 if ($env:TERM_PROGRAM -eq 'vscode') {
 	Write-Information "In VSCode terminal"
 }
+

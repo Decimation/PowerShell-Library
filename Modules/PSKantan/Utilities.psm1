@@ -102,19 +102,26 @@ function Get-CommandProcess {
 		[string]$s
 	)
 	
-	$pinfo = New-Object System.Diagnostics.ProcessStartInfo
-	$pinfo.FileName = 'cmd.exe'
-	
-	$pinfo.RedirectStandardError = $true
-	$pinfo.RedirectStandardOutput = $true
-	$pinfo.UseShellExecute = $false
-	
-	$pinfo.Arguments = "/c $s"
+	$pinfo = [System.Diagnostics.ProcessStartInfo]@{
+
+		FileName               = 'cmd.exe'
+		RedirectStandardError  = $true
+		RedirectStandardOutput = $true
+		UseShellExecute        = $false
+		Arguments              = "/c $s"
+	}
 	
 	$p = New-Object System.Diagnostics.Process
 	$p.StartInfo = $pinfo
 	
 	return $p
+}
+
+
+function Invoke-MsysCommand {
+	$rg = @('-c', $args)
+	msys2 @rg
+
 }
 
 
@@ -153,7 +160,7 @@ function Invoke-CommandProcess {
 
 
 
-function QCommand {
+function Invoke-CmdCommand {
 	#todo: use Invoke-Command
 	[CmdletBinding()]
 	param (
@@ -166,12 +173,6 @@ function QCommand {
 
 Set-Alias -Name ic -Value Invoke-Command
 
-function QInvoke($x) {
-	# $x = QInvoke("echo hello")
-	# $x == "hello"
-	$buf2 = (Invoke-Expression -OutVariable $buf ("$x 2>&1"))
-	return $buf2
-}
 # endregion
 
 
@@ -937,11 +938,6 @@ function Get-Focus {
 }
 
 
-function Invoke-MsysCommand {
-	msys2 -c @args	
-}
-
-
 function QText {
 
 	param (
@@ -977,4 +973,54 @@ function QText {
 		
 	}
 	return New-Text "$sb$Value$ANSI_END" @d
+}
+
+
+function New-QSession {
+	[CmdletBinding()]
+	[OutputType([System.Management.Automation.Runspaces.PSSession])]
+	Param (
+		
+		# If you don't want to use the default compatibility session, use
+		# this parameter to specify the name of the computer on which to create
+		# the compatibility session.
+		[Parameter(Mandatory = $false, Position = 0)]
+		[String][Alias("Cn")]
+		$ComputerName = $env:COMPUTERNAME,
+		# Specifies the configuration to connect to when creating the compatibility session
+		# (Defaults to 'Microsoft.PowerShell')
+		[Parameter()]
+		[String]$ConfigurationName,
+		# The credential to use when connecting to the target machine/configuration
+		[Parameter()]
+		[PSCredential]$Credential,
+		# If present, the specified session object will be returned
+		[Parameter()]
+		[Switch]$PassThru
+	)
+
+	$newPSSessionParameters = @{
+		Verbose           = $verboseFlag
+		ComputerName      = $ComputerName
+		Name              = $script:sessionName
+		ConfigurationName = $configurationName
+		ErrorAction       = "Stop"
+	}
+	if ($Credential) {
+		$newPSSessionParameters.Credential = $Credential
+	}
+	if ($ComputerName -eq "localhost" -or $ComputerName -eq [environment]::MachineName) {
+		$newPSSessionParameters.EnableNetworkAccess = $true
+	}
+		
+	Write-Verbose -Verbose:$verboseFlag "Created new compatibiilty session on host '$computername'"
+
+	$session = New-PSSession @newPSSessionParameters | Select-Object -First 1
+	if ($session.ComputerName -eq "localhost") {
+		$usingPath = (Get-Location).Path
+		Invoke-Command $session {
+			Set-Location $using:usingPath
+		}
+	}
+
 }

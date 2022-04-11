@@ -44,35 +44,6 @@ enum Direction {
 	Down
 }
 
-function Adb-InputFastSwipe {
-	param (
-		[Parameter(Mandatory = $false)]
-		[Direction]$d,
-		[Parameter(Mandatory = $false)]
-		[int]$t,
-		[Parameter(Mandatory = $false)]
-		[int]$c
-	)
-	
-	if (!($t)) {
-		$t = 25
-	}
-	if (!($d)) {
-		$d = [Direction]::Down
-	}
-	
-	while ($c-- -gt 0) {
-		switch ($d) {
-			Down {
-				adb shell input swipe 500 1000 300 300 $t
-			}
-			Up {
-				adb shell input swipe 300 300 500 1000 $t
-			}
-		}
-		Start-Sleep -Milliseconds $t
-	}
-}
 
 function Adb-SyncItems {
 	param (
@@ -124,8 +95,8 @@ function Adb-RemoveItem {
 		[Parameter(Mandatory = $true)]
 		[string]$src
 	)
-	
-	(adb shell rm "$src")
+	$a = @(Remove-Item "$src")
+	Invoke-AdbCommand @a
 }
 
 <#
@@ -272,7 +243,7 @@ function Adb-FindItems {
 	)
 
 	$fa = "%p\\n"
-	$a = @('shell', "find $x -printf $fa")
+	$a = @("find $x -printf $fa")
 	
 	if ($name) {
 		$a += '-name', $name
@@ -281,7 +252,7 @@ function Adb-FindItems {
 		$a += '-type', $type
 	}
 	
-	$r = adb @a
+	$r = Invoke-AdbCommand @a
 	
 	#TODO
 
@@ -292,6 +263,47 @@ function Adb-FindItems {
 
 #endregion
 
+
+function Invoke-AdbCommand {
+	$rg = @('shell', $args)
+	adb @rg
+}
+
+function Adb-SendInput {
+	$x = @('input', $args)
+	Invoke-AdbCommand @x
+}
+
+function Adb-SendFastSwipe {
+	param (
+		[Parameter(Mandatory = $false)]
+		[Direction]$d,
+		[Parameter(Mandatory = $false)]
+		[int]$t,
+		[Parameter(Mandatory = $false)]
+		[int]$c
+	)
+	
+	if (!($t)) {
+		$t = 25
+	}
+	
+	if (!($d)) {
+		$d = [Direction]::Down
+	}
+	
+	while ($c-- -gt 0) {
+		switch ($d) {
+			Down {
+				Adb-SendInput "swipe 500 1000 300 300 $t"
+			}
+			Up {
+				Adb-SendInput "swipe 300 300 500 1000 $t"
+			}
+		}
+		Start-Sleep -Milliseconds $t
+	}
+}
 function Adb-Stat {
 	param (
 		$x
@@ -300,8 +312,8 @@ function Adb-Stat {
 	
 	$d = "   "
 	$a = "%n", "%N", "%F", "%w", "%x", "%y", "%z", "%s" -join $d
-	$cmd = @('shell', "stat -c '$a' $x")
-	$out = [string] (adb @cmd)
+	$cmd = @("stat -c '$a' $x")
+	$out = [string] (Invoke-AdbCommand @cmd)
 	$rg = $out -split $d
 	$i = 0
 
@@ -374,8 +386,8 @@ function Adb-GetItem {
 }
 
 function Adb-GetPackages {
-	$aa = @('shell', 'pm list packages -f')
-	return (adb @aa)
+	$aa = @( 'pm list packages -f')
+	return (Invoke-AdbCommand @aa)
 }
 
 
