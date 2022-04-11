@@ -69,6 +69,8 @@ function Prompt {
 Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
 Set-Alias -Name ie -Value Invoke-Expression
+Set-Alias -Name open -Value start
+
 
 <#
 #	%	Foreach-Object
@@ -143,7 +145,7 @@ Set-PSReadLineOption `
 }
 
 Set-PSReadLineOption -Colors @{
-	Command                = "$([char]0x1b)[93;1m"
+	Command                = "$([char]0x1b)[38;5;214;1m"
 	Comment                = "$([char]0x1b)[32m"
 	ContinuationPrompt     = "$([char]0x1b)[37m"
 	Emphasis               = "`e[38;5;166m"

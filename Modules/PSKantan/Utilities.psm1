@@ -937,6 +937,10 @@ function Get-Focus {
 }
 
 
+function Invoke-MsysCommand {
+	msys2 -c @args	
+}
+
 
 function QText {
 
@@ -964,7 +968,7 @@ function QText {
 	else {
 		$sb = "`e[" 
 		$rg = @()
-		
+
 		$styles -split ',' | ForEach-Object { 
 			$rg += $ht.$_
 		}
