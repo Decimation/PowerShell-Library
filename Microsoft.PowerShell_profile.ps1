@@ -102,7 +102,6 @@ $script:qr = ".`$PROFILE; $ImportThis"
 $script:qr2 = ".`$PROFILE; $ReloadThis"
 
 
-# region 
 
 # region Preferences
 
@@ -110,8 +109,6 @@ $InformationPreference = 'Continue'
 $ErrorActionPreference = 'Continue'
 $DebugPreference = 'SilentlyContinue'
 $VerbosePreference = 'SilentlyContinue'
-
-# endregion
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
@@ -131,8 +128,6 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 $script:contchar = "~"
 $script:cont = "$contchar"
-
-# $script:cont = "`e[38;5;226m$contchar$ANSI_END"
 
 Set-PSReadLineOption `
 	-PredictionSource HistoryAndPlugin `
@@ -354,10 +349,10 @@ $global:KeyMappings = @(
 			# $Host.ui.WriteLine()
 		}
 	}, #>
-	<# @{
+	@{
 		#Moves to index of character in the buffer
 		
-		Chord       = 'Alt+Ctrl+b'
+		Chord       = 'Alt+q'
 		ScriptBlock = {
 			$c = '-'
 
@@ -373,7 +368,7 @@ $global:KeyMappings = @(
 			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
 
 		}
-	}, #>
+	},
 	@{
 		Chord       = 'F5'
 		ScriptBlock = {
@@ -384,12 +379,6 @@ $global:KeyMappings = @(
 		}
 	}, 
 	@{
-		Chord       = 'F4'
-		ScriptBlock = {
-			
-		}
-	},
-	@{
 		Chord       = 'Ctrl+F5' 
 		ScriptBlock = {
 			ie $qr2
@@ -397,6 +386,18 @@ $global:KeyMappings = @(
 			Write-Host 'Reloaded profile full' -ForegroundColor DarkGreen
 			[PSConsoleReadLine]::Ding()
 		}
+	},
+	@{
+		Chord    = 'F2'
+		Function = 'SwitchPredictionView'
+	}, 
+	@{
+		Chord    = 'F3'
+		Function = 'CharacterSearch'
+	},
+	@{
+		Chord    = 'Shift+F3'
+		Function = 'CharacterSearchBackward'
 	},
 	@{
 		Chord       = 'F6'
@@ -433,7 +434,7 @@ $global:KeyMappings = @(
 	}
 ) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
 
-$global:CharIndex = 0
+$global:CharBufferIndex = 0
 
 #region Smart Insert/Delete
 #https://megamorf.gitlab.io/cheat-sheets/powershell-psreadline/
