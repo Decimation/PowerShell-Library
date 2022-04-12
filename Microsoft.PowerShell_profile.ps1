@@ -156,11 +156,11 @@ Set-PSReadLineOption -Colors @{
 	ListPrediction         = "$([char]0x1b)[33m"
 	ListPredictionSelected = "$([char]0x1b)[48;5;234;4m"
 	Member                 = "$([char]0x1b)[38;5;170m"
-	Number                 = '#73fff6'
-	Operator               = "$([char]0x1b)[38;5;166m"
+	Number                 = '#c4e994'
+	Operator               = "$([char]0x1b)[38;5;200m"
 	Parameter              = "$([char]0x1b)[38;5;14;3m"
 	Selection              = "$([char]0x1b)[7m"
-	String                 = "$([char]0x1b)[38;5;88m"
+	String                 = "$([char]0x1b)[38;5;13m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	Type                   = "$([char]0x1b)[38;5;81;1m"
 }
