@@ -190,8 +190,8 @@ $global:KeyMappings = @(
 		Function = 'Yank'
 	}, 
 	@{
-		Key      = 'Ctrl+x'
-		Function = 'Cut'
+		Key      = 'Alt+y'
+		Function = 'BackwardKillLine'
 	},
 	@{
 		Key      = 'Shift+Tab' 
