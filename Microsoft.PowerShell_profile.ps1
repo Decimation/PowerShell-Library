@@ -275,6 +275,26 @@ $global:KeyMappings = @(
 				[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, $null)
 			}
 
+			# $line1 = ''
+			# $cursor1 = 0
+			# [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
+			
+			# [Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearch($null, $null)
+			
+			# if ($script:CharIndex -eq $cursor1) {
+			# 	[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, $null)
+				
+			# }
+			# else {
+				
+			# }
+
+			# $line2 = ''
+			# $cursor2 = 0
+			# [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line2, [ref]$cursor2)
+			
+			
+			# $script:CharIndex = $cursor1
 
 		}
 	}, #>
@@ -303,27 +323,16 @@ $global:KeyMappings = @(
 		Moves cursor to beginning of line, inserts template for declaring/modifying
 		a variable, and selects its name
 		#>
-		Chord       = 'Alt+c'
+		Chord       = 'Ctrl+Alt+x'
 		ScriptBlock = {
-			$line1 = ''
-			$cursor1 = 0
-			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
+
+			# [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
+			- [PSConsoleReadLine]::BeginningOfLine()
+			- [Microsoft.PowerShell.PSConsoleReadLine]::Insert('$x = ')
+			- [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(1)
+			- [Microsoft.PowerShell.PSConsoleReadLine]::SelectShellForwardWord($null, $null)
+
 			
-			[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearch($null, $null)
-			
-			if ($script:CharIndex -eq $cursor1) {
-				[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, $null)
-				
-			}
-			else {
-				
-			}
-			$line2 = ''
-			$cursor2 = 0
-			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line2, [ref]$cursor2)
-			
-			
-			$script:CharIndex = $cursor1
 		}
 	},
 	<# @{
@@ -348,7 +357,7 @@ $global:KeyMappings = @(
 	<# @{
 		#Moves to index of character in the buffer
 		
-		Chord         = 'Alt+Ctrl+b'
+		Chord       = 'Alt+Ctrl+b'
 		ScriptBlock = {
 			$c = '-'
 
