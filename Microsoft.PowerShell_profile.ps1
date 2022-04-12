@@ -160,7 +160,7 @@ Set-PSReadLineOption -Colors @{
 	Operator               = "$([char]0x1b)[38;5;166m"
 	Parameter              = "$([char]0x1b)[38;5;14;3m"
 	Selection              = "$([char]0x1b)[7m"
-	String                 = "$([char]0x1b)[38;5;166m"
+	String                 = "$([char]0x1b)[38;5;88m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	Type                   = "$([char]0x1b)[38;5;81;1m"
 }
