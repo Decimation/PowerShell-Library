@@ -293,26 +293,7 @@ $global:KeyMappings = @(
 
 		}
 	}, #>
-	<# @{
-		Chord       = 'Alt+f'
-		ScriptBlock = {
-			$line1 = ''
-			$cursor1 = 0
-			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
-
-			Set-Clipboard $line1
-		}
-	},
-	@{
-		Chord       = 'Alt+f'
-		ScriptBlock = {
-			$line1 = ''
-			$cursor1 = 0
-			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
-
-			Set-Clipboard $line1
-		}
-	}, #>
+	
 	@{
 		<#
 		Moves cursor to beginning of line, inserts template for declaring/modifying
@@ -322,12 +303,10 @@ $global:KeyMappings = @(
 		ScriptBlock = {
 
 			# [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
-			- [PSConsoleReadLine]::BeginningOfLine()
-			- [Microsoft.PowerShell.PSConsoleReadLine]::Insert('$x = ')
-			- [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(1)
-			- [Microsoft.PowerShell.PSConsoleReadLine]::SelectShellForwardWord($null, $null)
-
-			
+			[PSConsoleReadLine]::BeginningOfLine()
+			[Microsoft.PowerShell.PSConsoleReadLine]::Insert('$x = ')
+			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(1)
+			[Microsoft.PowerShell.PSConsoleReadLine]::SelectShellForwardWord($null, $null)
 		}
 	},
 	<# @{
