@@ -160,7 +160,7 @@ Set-PSReadLineOption -Colors @{
 	Operator               = "$([char]0x1b)[38;5;200m"
 	Parameter              = "$([char]0x1b)[38;5;14;3m"
 	Selection              = "$([char]0x1b)[7m"
-	String                 = "$([char]0x1b)[38;5;13m"
+	String                 = "$([char]0x1b)[38;5;166m"
 	Variable               = "$([char]0x1b)[38;2;0;255;34m"
 	Type                   = "$([char]0x1b)[38;5;81;1m"
 }
@@ -174,91 +174,91 @@ function Get-BufferState {
 
 $global:KeyMappings = @(
 	@{
-		Key      = 'Tab'
+		Chord    = 'Tab'
 		Function = 'MenuComplete'
 	}, 
 	@{
-		Key      = 'Ctrl+Tab'
+		Chord    = 'Ctrl+Tab'
 		Function = 'AcceptSuggestion'
 	}, 
 	@{
-		Key      = 'Ctrl+q'
+		Chord    = 'Ctrl+q'
 		Function = 'TabCompleteNext'
 	}, 
 	@{
-		Key      = 'Ctrl+y'
+		Chord    = 'Ctrl+y'
 		Function = 'Yank'
 	}, 
 	@{
-		Key      = 'Alt+y'
+		Chord    = 'Alt+y'
 		Function = 'BackwardKillLine'
 	},
 	@{
-		Key      = 'Shift+Tab' 
+		Chord    = 'Shift+Tab' 
 		Function = 'TabCompletePrevious'
 	}, 
 	@{
-		Key      = 'Ctrl+UpArrow'
+		Chord    = 'Ctrl+UpArrow'
 		Function = 'HistorySearchBackward'
 	},
 	@{
-		Key      = 'Ctrl+DownArrow'
+		Chord    = 'Ctrl+DownArrow'
 		Function = 'HistorySearchForward'
 	},
 	@{
-		Key      = 'DownArrow'
+		Chord    = 'DownArrow'
 		Function = 'NextHistory'
 	}, 
 	@{
-		Key      = 'UpArrow'
+		Chord    = 'UpArrow'
 		Function = 'PreviousHistory'
 	},
 	@{
-		Key      = 'F1'
+		Chord    = 'F1'
 		Function = 'ShowCommandHelp'
 	}, 
 	@{
-		Key      = 'Ctrl+F1'
+		Chord    = 'Ctrl+F1'
 		Function = 'ShowParameterHelp'
 	}, 
 	@{
-		Key      = 'Ctrl+d'
+		Chord    = 'Ctrl+d'
 		Function = 'ForwardWord'
 	},
 	@{
-		Key      = 'Ctrl+v'
+		Chord    = 'Ctrl+v'
 		Function = 'Paste'
 	},
 	@{
-		Key      = 'Ctrl+x'
+		Chord    = 'Ctrl+x'
 		Function = 'Cut'
 	},
 	@{
-		Key      = 'Ctrl+t'
+		Chord    = 'Ctrl+t'
 		Function = 'SwapCharacters'
 	}, 
 	@{
-		Key      = 'Ctrl+shift+x'
+		Chord    = 'Ctrl+shift+x'
 		Function = 'KillRegion'
 	},
 	@{
-		Key      = 'Ctrl+c'
+		Chord    = 'Ctrl+c'
 		Function = 'CopyOrCancelLine'
 	},
 	@{
-		Key      = 'Alt+s'
+		Chord    = 'Alt+s'
 		Function = 'SelectNextWord'
 	},
 	@{
-		Key      = 'Alt+Ctrl+s'
+		Chord    = 'Alt+Ctrl+s'
 		Function = 'SelectBackwardWord'
 	},
 	@{
-		Key      = 'Alt+a'
+		Chord    = 'Alt+a'
 		Function = 'SelectCommandArgument'
 	},
 	<# @{
-		Key         = 'Alt+c'
+		Chord         = 'Alt+c'
 		ScriptBlock = {
 			$line1 = ''
 			$cursor1 = 0
@@ -278,8 +278,8 @@ $global:KeyMappings = @(
 
 		}
 	}, #>
-	@{
-		Key         = 'Alt+f'
+	<# @{
+		Chord       = 'Alt+f'
 		ScriptBlock = {
 			$line1 = ''
 			$cursor1 = 0
@@ -289,7 +289,7 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
-		Key         = 'Alt+f'
+		Chord       = 'Alt+f'
 		ScriptBlock = {
 			$line1 = ''
 			$cursor1 = 0
@@ -297,22 +297,22 @@ $global:KeyMappings = @(
 
 			Set-Clipboard $line1
 		}
-	},
+	}, #>
 	@{
 		<#
 		Moves cursor to beginning of line, inserts template for declaring/modifying
 		a variable, and selects its name
 		#>
-		Key         = 'Alt+c'
+		Chord       = 'Alt+c'
 		ScriptBlock = {
 			$line1 = ''
 			$cursor1 = 0
 			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
 			
-			[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearch($null, '-')
+			[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearch($null, $null)
 			
 			if ($script:CharIndex -eq $cursor1) {
-				[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, '-')
+				[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, $null)
 				
 			}
 			else {
@@ -327,7 +327,7 @@ $global:KeyMappings = @(
 		}
 	},
 	<# @{
-		Key         = 'Alt+q'
+		Chord         = 'Alt+q'
 		ScriptBlock = {
 			Write-Host
 			Write-Host 'Popped:' -ForegroundColor DarkYellow
@@ -336,7 +336,7 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
-		Key         = 'Alt+Ctrl+q'
+		Chord         = 'Alt+Ctrl+q'
 		ScriptBlock = {
 			Write-Host
 			Write-Host 'Pushed:' -ForegroundColor DarkYellow
@@ -348,7 +348,7 @@ $global:KeyMappings = @(
 	<# @{
 		#Moves to index of character in the buffer
 		
-		Key         = 'Alt+Ctrl+b'
+		Chord         = 'Alt+Ctrl+b'
 		ScriptBlock = {
 			$c = '-'
 
@@ -366,7 +366,7 @@ $global:KeyMappings = @(
 		}
 	}, #>
 	@{
-		Key         = 'F5'
+		Chord       = 'F5'
 		ScriptBlock = {
 			ie $qr
 			[PSConsoleReadLine]::AcceptLine()
@@ -375,13 +375,13 @@ $global:KeyMappings = @(
 		}
 	}, 
 	@{
-		Key         = 'F4'
+		Chord       = 'F4'
 		ScriptBlock = {
 			
 		}
 	},
 	@{
-		Key         = 'Ctrl+F5' 
+		Chord       = 'Ctrl+F5' 
 		ScriptBlock = {
 			ie $qr2
 			[PSConsoleReadLine]::AcceptLine()
@@ -390,7 +390,7 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
-		Key         = 'F6'
+		Chord       = 'F6'
 		ScriptBlock = {
 			$idx = Wrap ($script:ActionPreferences.IndexOf($global:DebugPreference) + 1) ($script:ActionPreferences.Count)
 			$global:DebugPreference = $script:ActionPreferences[$idx]
@@ -401,7 +401,7 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
-		Key         = 'F7'
+		Chord       = 'F7'
 		ScriptBlock = {
 			$idx = Wrap ($script:ActionPreferences.IndexOf($global:ErrorActionPreference) + 1) ($script:ActionPreferences.Count)
 			$global:ErrorActionPreference = $script:ActionPreferences[$idx]
@@ -412,7 +412,7 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
-		Key         = 'F8'
+		Chord       = 'F8'
 		ScriptBlock = {
 			$idx = Wrap ($script:ActionPreferences.IndexOf($global:VerbosePreference) + 1) ($script:ActionPreferences.Count)
 			$global:VerbosePreference = $script:ActionPreferences[$idx]
@@ -640,3 +640,4 @@ if ($env:TERM_PROGRAM -eq 'vscode') {
 	Write-Information "In VSCode terminal"
 }
 
+#New-Item -ItemType SymbolicLink -Target .\Microsoft.PowerShell_profile.ps1 -Force .\Microsoft.VSCode_profile.ps1
