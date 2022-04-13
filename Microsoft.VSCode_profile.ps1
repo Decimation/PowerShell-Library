@@ -583,6 +583,9 @@ Import-Module AudioDeviceCmdlets #>
 # Set-PoshPrompt microverse-power
 # Install-Module -Name GuiCompletion -Scope CurrentUser
 
+if ($env:VSAPPIDNAME -eq 'devenv.exe') {
+	Write-Information "In VS2022 terminal"
+}
 if ($env:TERM_PROGRAM -eq 'vscode') {
 	Write-Information "In VSCode terminal"
 }
