@@ -270,7 +270,8 @@ function Invoke-AdbCommand {
 }
 
 function Adb-SendInput {
-	$x = @('input', $args)
+	param([parameter(ValueFromRemainingArguments)] $a)
+	$x = @('input', $a)
 	Invoke-AdbCommand @x
 }
 

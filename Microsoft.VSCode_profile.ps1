@@ -252,48 +252,7 @@ $global:KeyMappings = @(
 		Chord    = 'Alt+a'
 		Function = 'SelectCommandArgument'
 	},
-	<# @{
-		Chord         = 'Alt+c'
-		ScriptBlock = {
-			$line1 = ''
-			$cursor1 = 0
-			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
 
-			[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearch($null, $null)
-
-			$line2 = ''
-			$cursor2 = 0
-			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line2, [ref]$cursor2)
-			
-			Write-Debug "$line1 $cursor1 | $line2 $cursor2"
-			if ($cursor2 -eq $cursor1) {
-				[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, $null)
-			}
-
-			# $line1 = ''
-			# $cursor1 = 0
-			# [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line1, [ref]$cursor1)
-			
-			# [Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearch($null, $null)
-			
-			# if ($script:CharIndex -eq $cursor1) {
-			# 	[Microsoft.PowerShell.PSConsoleReadLine]::CharacterSearchBackward($null, $null)
-				
-			# }
-			# else {
-				
-			# }
-
-			# $line2 = ''
-			# $cursor2 = 0
-			# [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line2, [ref]$cursor2)
-			
-			
-			# $script:CharIndex = $cursor1
-
-		}
-	}, #>
-	
 	@{
 		<#
 		Moves cursor to beginning of line, inserts template for declaring/modifying
@@ -329,7 +288,7 @@ $global:KeyMappings = @(
 		}
 	}, #>
 	@{
-		#Moves to index of character in the buffer
+		# Character search
 		
 		Chord       = 'Alt+q'
 		ScriptBlock = {
@@ -345,7 +304,6 @@ $global:KeyMappings = @(
 			# Write-Host "$global:CharBufferIndex | $cursor | $line"
 			$global:CharBufferIndex++
 			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
-
 		}
 	},
 	@{
