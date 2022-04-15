@@ -441,25 +441,26 @@ Set-Alias const Set-Constant
 
 function New-PInvoke {
 	param (
-		$imports,
-		$className,
+		[parameter()]
+		$className, 
+		[parameter()]
 		$dll,
+		[parameter()]
 		$returnType,
+		[parameter()]
 		$funcName,
+		[parameter()]
 		$funcParams
 	)
-	
-	Add-Type @"
-using System;
-using System.Text;
-using System.Runtime.InteropServices;
 
-$imports
 
-public static class $className
-{
-	[DllImport("$dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	public static extern $returnType $funcName($funcParams);
-}
+	<# using System;
+		using System.Text;
+		using System.Runtime.InteropServices; #>
+		
+	Add-Type -Namespace 'PInvoke' -Name $className -MemberDefinition @"
+[DllImport("$dll", SetLastError = true, CharSet = CharSet.Unicode)]
+public static extern $returnType $funcName($funcParams);
 "@
+	
 }

@@ -19,7 +19,6 @@ public static extern bool CloseClipboard();
 [DllImport("user32.dll", SetLastError=true)]
 public static extern uint EnumClipboardFormats(uint format);
 
-
 '@
 
 function Assert-Win32CallSuccess {

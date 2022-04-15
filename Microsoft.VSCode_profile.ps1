@@ -2,7 +2,6 @@ using namespace System.Management.Automation.Language
 using namespace Microsoft.PowerShell
 
 
-
 <#
 # Profile
 #>
@@ -252,7 +251,6 @@ $global:KeyMappings = @(
 		Chord    = 'Alt+a'
 		Function = 'SelectCommandArgument'
 	},
-
 	@{
 		<#
 		Moves cursor to beginning of line, inserts template for declaring/modifying
@@ -268,25 +266,6 @@ $global:KeyMappings = @(
 			[Microsoft.PowerShell.PSConsoleReadLine]::SelectShellForwardWord($null, $null)
 		}
 	},
-	<# @{
-		Chord         = 'Alt+q'
-		ScriptBlock = {
-			Write-Host
-			Write-Host 'Popped:' -ForegroundColor DarkYellow
-			Pop-Location -PassThru | Out-Host
-			[PSConsoleReadLine]::AcceptLine()
-		}
-	},
-	@{
-		Chord         = 'Alt+Ctrl+q'
-		ScriptBlock = {
-			Write-Host
-			Write-Host 'Pushed:' -ForegroundColor DarkYellow
-			Push-Location -PassThru | Out-Host 
-			[PSConsoleReadLine]::AcceptLine()
-			# $Host.ui.WriteLine()
-		}
-	}, #>
 	@{
 		# Character search
 		
@@ -556,6 +535,8 @@ Set-PSReadLineKeyHandler -Key Backspace `
 
 $global:LoadTime = (Get-Date -Format $QDateFormat)
 
+# region 
+
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	param ($commandName, $wordToComplete, $cursorPosition)
@@ -564,7 +545,8 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	}
 }
 
-#Invoke-Expression "$(thefuck --alias)"
+
+Invoke-Expression "$(thefuck --alias)"
 # Install-Module -Name Terminal-Icons -Repository PSGallery
 # Install-Module oh-my-posh -Scope CurrentUser
 # Install-Module Pansies -AllowClobber
@@ -591,3 +573,4 @@ if ($env:TERM_PROGRAM -eq 'vscode') {
 }
 
 #New-Item -ItemType SymbolicLink -Target .\Microsoft.PowerShell_profile.ps1 -Force .\Microsoft.VSCode_profile.ps1
+# endregion
