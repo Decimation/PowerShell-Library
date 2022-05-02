@@ -1,7 +1,18 @@
+<#
+.DESCRIPTION
+Cycles through audio devices
+.PARAMETER Names
+
+.NOTES
+
+
+#>
+
 #Requires -Module PSKantan, AudioDeviceCmdlets
 
 [CmdletBinding()]
 param (
+
 	[Parameter(Mandatory = $true)]
 	$Names,
 
