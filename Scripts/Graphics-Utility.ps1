@@ -28,7 +28,6 @@ function Restart-Graphics {
 $k = 'HKCU:\SOFTWARE\AMD\DVR\'
 $k1 = 'HotkeysDisabled'
 
-
 function Get-AmdSettings {
 	
 	<# $r = (reg.exe query $k /v $k1) 2>&1

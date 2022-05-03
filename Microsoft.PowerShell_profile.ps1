@@ -286,6 +286,10 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
+		Chord    = 'F4'
+		Function = 'AcceptSuggestion'
+	},
+	@{
 		Chord       = 'F5'
 		ScriptBlock = {
 			ie $qr
