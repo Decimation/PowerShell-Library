@@ -50,9 +50,15 @@ function Convert-Obj {
 		$a,
 		$t
 	)
+
+	if ($a -is [System.Management.Automation.SwitchParameter]) {
+		if (@([int]) -contains $t) {
+			return $a ? 1 : 0
+		}
+	}
+
 	$a2 = $null
 	try {
-		
 		$a2 = [System.Management.Automation.LanguagePrimitives]::ConvertTo($a, ($t2))
 	}
 	catch {
@@ -464,3 +470,4 @@ public static extern $returnType $funcName($funcParams);
 "@
 	
 }
+
