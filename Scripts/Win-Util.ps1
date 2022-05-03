@@ -21,6 +21,7 @@ function Set-VTSetting {
 	
 	$rv = $null
 	$ht = $null
+	
 	if ($Toggle) {
 		$ht = Get-VTSetting
 		foreach ($kk in $kr) {
