@@ -23,35 +23,51 @@ function Restart-Graphics {
 	$d | Enable-PnpDevice -Confirm:$false
 }
 
-function Amd-GetHotkeysDisabled {
+# $k = 'HKCU\SOFTWARE\AMD\DVR\'
+
+$k = 'HKCU:\SOFTWARE\AMD\DVR\'
+$k1 = 'HotkeysDisabled'
+
+
+function Get-AmdSettings {
 	
-	$r = (reg.exe query HKCU\SOFTWARE\AMD\DVR\ /v HotkeysDisabled) 2>&1
+	<# $r = (reg.exe query $k /v $k1) 2>&1
 	$v = $r[2].Trim().Split('    ')[2]
 	$b = [bool][int]$v
 	
-	return $b
+	return $b #>
+
+	$c = Get-Item $k
+	return $c
 }
 
-function Amd-SetHotkeysDisabled {
-	param ($v)
+function Set-AmdSettings {
+	<# param ($v)
 	
 	$ai = [int]$v
-	$r = (reg.exe add HKCU\SOFTWARE\AMD\DVR\ /v HotkeysDisabled /t REG_DWORD /d $ai /f) 2>&1
+	$r = (reg.exe add $k /v $k1 /t REG_DWORD /d $ai /f) 2>&1
 	$b = ([string]$r[0]).Contains('success')
 	
-	return $b
+	return $b #>
+
+	param($Name, $Value)
+
+	Set-ItemProperty -Path $k -Name $Name -Value $Value
 }
 
-function Amd-ToggleHotkeys {
-	$v = Amd-GetHotkeysDisabled
-	$nv = (-not $v)
-	$r = Amd-SetHotkeysDisabled $nv
-	
-	return $r ? $nv : $false
+switch ($arg) {
+	'togglehk' {
+		$h = Get-AmdSettings
+		$hkd = $h.GetValue($k1)
+
+		Set-AmdSettings -Name $k1 -Value $($hkd ? 0 : 1)
+	}
 }
 
-if ($arg -eq 'togglehk') {
+<# if ($arg -eq 'togglehk') {
 	Amd-ToggleHotkeys
 }
 
+
+ #>
 #pwsh -command "& %userprofile%\Documents\PowerShell\Scripts\AMD.ps1 togglehk"
