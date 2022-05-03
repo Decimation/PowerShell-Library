@@ -179,8 +179,8 @@ function Adb-QPull {
 		
 
 		# $sz = (Get-ChildItem $parameter).count
-		$global:SyncState.fc++
-		Write-Host "`r$($global:SyncState.fc)" -NoNewline
+		$global:SyncState.Counter++
+		Write-Host "`r$($global:SyncState.Counter)" -NoNewline
 
 		# $SyncTable.c++
 		# Write-Host "`r $($SyncTable.c)/$($SyncTable.l)" -NoNewline
@@ -199,9 +199,9 @@ function Adb-QPull {
 
 $global:SyncStateEmpty = [hashtable]::Synchronized(
 	@{
-		c  = 0 
-		l  = 0
-		fc = 0
+		c       = 0 
+		l       = 0
+		Counter = 0
 	}
 )
 
@@ -417,10 +417,10 @@ function Adb-Escape {
 			return $x
 		}
 		Exchange {
-			$SyncState = $x.Split('/')
+			$s = $x.Split('/')
 			$x3 = New-List 'string'
 			
-			foreach ($b in $SyncState) {
+			foreach ($b in $s) {
 				if ($b.Contains(' ')) {
 					$b2 = "`"$b/`""
 				}
