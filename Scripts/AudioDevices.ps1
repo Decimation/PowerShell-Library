@@ -8,11 +8,10 @@ Cycles through audio devices
 
 #>
 
-#Requires -Module PSKantan, AudioDeviceCmdlets
+#Requires -Module PSKantan, AudioDeviceCmdlets, Pansies
 
 [CmdletBinding()]
 param (
-
 	[Parameter(Mandatory = $true)]
 	$Names,
 
@@ -25,20 +24,9 @@ param (
 
 Write-Debug "$($Names -join ',')"
 
-function Get-DefaultAudioDevice {
-	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory = $false)]
-		$Types = '*'
-	)
-
-	return Get-AudioDevices | Where-Object { 
-		$_.MultimediaDefault -and $_.Type -like $Types
-	}
-}
 function Get-AudioDeviceName {
 	param (
-		[AudioDeviceCmdlets.AudioDevice]	$d
+		[AudioDeviceCmdlets.AudioDevice]$d
 	)
 	return $d.Name.Substring(0, $d.Name.LastIndexOf('(')).Trim()
 }
@@ -66,26 +54,29 @@ function Get-AudioDevices {
 	return $devices2
 }
 
-$m = Get-AudioDevices -Names $Names
+$Devices = Get-AudioDevices -Names $Names
 
-$cur = Get-AudioDevice | Where-Object { 
+$CurrentDevice = Get-AudioDevice | Where-Object { 
 	$_.MultimediaDefault -eq $MultimediaDefault
 }
 
-# $m
-Write-Host "Current: $($cur.Name)"
+# $Devices
+
+Write-Host "$(Text "Current:" -ForegroundColor 'Orange') $(Text $CurrentDevice.Name -ForegroundColor 'Cyan')"
 
 $Next = $null
 
-for ($i = 0; $i -lt $m.Count; $i++) {
-	if ((Get-AudioDeviceName $m[$i]) -like (Get-AudioDeviceName $cur[0])) {
-		$Next = $m[$i + 1]
+for ($i = 0; $i -lt $Devices.Count; $i++) {
+	if ((Get-AudioDeviceName $Devices[$i]) -like (Get-AudioDeviceName $CurrentDevice[0])) {
+		$Next = $Devices[$i + 1]
 		break
 	}
 }
 
-$Next = $Next ?? $m[0]
+$Next = $Next ?? $Devices[0]
 
-Write-Host "Next: $($Next.Name)"
+Write-Host "$(Text "Next:" -ForegroundColor 'Orange') $(Text $Next.Name -ForegroundColor 'LawnGreen')"
 
-Set-AudioDevice -MultimediaDefault -Index $Next.Index
+$Next = Set-AudioDevice -MultimediaDefault -Index $Next.Index
+
+return $Next

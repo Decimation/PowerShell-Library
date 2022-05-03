@@ -56,7 +56,7 @@ function Prompt {
 	$p = Text "`e[1m$ps$ANSI_END" -ForegroundColor 'magenta'
 	$f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
 	$l = Text "$p1" -ForegroundColor 'yellow'
-	$d = Text " $(Get-Date -Format "HH:mm:ss") " -ForegroundColor 'pink'
+	$d = Text " $(Get-Date -Format "yyyy-MM-dd @ HH:mm:ss") " -ForegroundColor 'orange'
 
 	Write-Host $($p, $u, "@", $c, $d, $f, "`n", "$l" ) -NoNewline -Separator ''
 
@@ -347,7 +347,11 @@ $global:KeyMappings = @(
 			Write-Host "$global:VerbosePreference" -ForegroundColor Green
 			[PSConsoleReadLine]::Ding()
 		}
-	}
+	}<# ,
+	@{
+		Chord    = 'F13'
+		Function = 'AcceptSuggestion'
+	} #>
 ) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
 
 $global:CharBufferIndex = 0

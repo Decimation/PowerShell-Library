@@ -305,11 +305,13 @@ function Adb-SendFastSwipe {
 		Start-Sleep -Milliseconds $t
 	}
 }
+
 function Adb-Stat {
 	param (
 		$x
 	)
 	
+	$x = Adb-Escape -x $x -e Shell
 	
 	$d = "   "
 	$a = "%n", "%N", "%F", "%w", "%x", "%y", "%z", "%s" -join $d
@@ -328,10 +330,11 @@ function Adb-Stat {
 		LastStatusChange = $rg[$i++]
 		Size             = $rg[$i++]
 		
-		Raw              = $out
-		
 		IsDirectory      = $null
 		IsFile           = $null
+		
+		Raw              = $out
+		Input            = $cmd
 	}
 
 	$obj.IsDirectory = $obj.Type -match 'directory'
@@ -397,6 +400,7 @@ enum EscapeType {
 	Exchange
 }
 
+
 function Adb-Escape {
 	param (
 		[Parameter(Mandatory = $true)]
@@ -407,8 +411,8 @@ function Adb-Escape {
 	
 	switch ($e) {
 		Shell {
-			$x = $x.Replace('`', [string]::Empty)
-			#$x = $x.Replace(' ', '\ ')
+			# $x = $x.Replace('`', [string]::Empty)
+			$x = $x.Replace(' ', '\ ').Replace('(', '\(').Replace(')', '\)')
 			
 			return $x
 		}
