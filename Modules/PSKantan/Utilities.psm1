@@ -1025,3 +1025,14 @@ function New-QSession {
 	}
 
 }
+
+
+
+function Start-Sound {
+	param (
+		$Value
+	)
+	$sp = [System.Media.SoundPlayer]::new($Value)
+	$sp.Play()
+	$sp.Dispose()
+}

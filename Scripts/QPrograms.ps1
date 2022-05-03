@@ -1,8 +1,12 @@
-﻿[CmdletBinding()]
+﻿
+[CmdletBinding()]
 param(
-	[parameter(Mandatory = $true)]$op, 
-	[parameter(Mandatory = $false)]$query,
-	[parameter(Mandatory = $false)]$n = '.' 
+	[parameter(Mandatory = $false)]
+	$op = 'export', 
+	[parameter(Mandatory = $false)]
+	$query = $null,
+	[parameter(Mandatory = $false)]
+	$n = '' 
 )
 
 
@@ -15,6 +19,7 @@ param(
 #>
 
 #Requires -Module PSKantan
+
 
 
 # region 
@@ -99,7 +104,7 @@ $Sources = @(
 		name   = 'appx'
 		export = {
 			$dir = $args[0]
-			Import-Module Appx -UseWindowsPowerShell
+			Import-Module Appx -UseWindowsPowerShell -WarningAction Ignore
 			Get-AppxPackage | Out-File "$dir\apps.txt"
 			Export-StartLayout "$dir\start layout.xml"
 		}
@@ -136,14 +141,16 @@ $Sources = @(
 			Get-ChildItem $env:ProgramFiles | Out-File "$dir\programs.txt"
 			Get-ChildItem ${env:ProgramFiles(x86)} | Out-File "$dir\programs (x86).txt"
 		}
-	}, [BackupSource]@{
+	}, 
+	[BackupSource]@{
 		name   = 'winterm'
 		export = {
 			$dir = $args[0]
 			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" `
 				"$dir\wt_settings.json"
 		}
-	}, [BackupSource]@{
+	}, 
+	[BackupSource]@{
 		name   = "vscode"
 		export = {
 			$dir = $args[0]
@@ -161,6 +168,9 @@ $Selected = $Index + $Sources | Where-Object { $_.name -match $n }
 
 Write-Host "$($Selected | Select-Object -ExpandProperty name)"
 Write-Debug "$op | $query |$n"
+
+$oldTitle = $Host.UI.RawUI.WindowTitle
+$host.UI.RawUI.WindowTitle = "Exporting..."
 
 switch ($op) {
 	'export' {
@@ -184,6 +194,9 @@ switch ($op) {
 			
 			# Write-Progress -Id 1 -Activity Updating -Status 'Progress' -PercentComplete (($i / $l) * 100.0)
 		}
+
+		$Host.UI.RawUI.WindowTitle = $oldTitle
+
 	}
 	'' {
 		
@@ -210,3 +223,4 @@ switch ($op) {
 		} | Format-Table
 	}
 }
+
