@@ -44,7 +44,7 @@ enum Direction {
 	Down
 }
 
-
+<# 
 function Adb-SyncItems {
 	param (
 		[Parameter(Mandatory = $true)]
@@ -84,7 +84,7 @@ function Adb-SyncItems {
 		}
 	}
 	return $m
-}
+} #>
 
 <#
 .Description
@@ -217,7 +217,7 @@ function Adb-GetItems {
 		$t = 'f'
 	)
 	
-	$r = Adb-FindItems -x $x -type $t
+	$r = Adb-Find -x $x -type $t
 	$r = [string[]] ($r | Sort-Object)
 
 	if ($pattern) {
@@ -230,39 +230,10 @@ function Adb-GetItems {
 }
 
 
-
-function Adb-FindItems {
-	[CmdletBinding()]
-	[outputtype([string[]])]
-	param (
-		$x,
-		[Parameter(Mandatory = $false)]
-		$name,
-		[parameter(Mandatory = $false)]
-		$type
-	)
-
-	$fa = "%p\\n"
-	$a = @("find $x -printf $fa")
-	
-	if ($name) {
-		$a += '-name', $name
-	}
-	if ($type) {
-		$a += '-type', $type
-	}
-	
-	$r = Invoke-AdbCommand @a
-	
-	#TODO
-
-	$r = $r[1..$r.Length]
-	
-	return $r
-}
-
 #endregion
 
+Set-Alias Adb-Shell Invoke-AdbCommand
+Set-Alias Adb-GetItem Adb-Stat
 
 function Invoke-AdbCommand {
 	$rg = @('shell', $args)
@@ -304,6 +275,49 @@ function Adb-SendFastSwipe {
 		}
 		Start-Sleep -Milliseconds $t
 	}
+}
+
+
+function Adb-Find {
+	[CmdletBinding()]
+	[outputtype([string[]])]
+	param (
+		# [Parameter(Mandatory = $true)]
+		$x,
+		
+		[Parameter(Mandatory = $false)]
+		$name,
+
+		[parameter(Mandatory = $false)]
+		$type,
+
+		[parameter(Mandatory = $false)]
+		$maxdepth = -1
+	)
+	
+
+	$fa = "%p\\n"
+	# $ig = "2>&1 | grep -v `"Permission denied`""
+	$a = @("find $x")
+	#find 'sdcard/*' -type 'f' -maxdepth 0
+	if ($name) {
+		$a += '-name', $name
+	}
+	if ($type) {
+		$a += '-type', $type
+	}
+	if ($maxdepth -ne -1) {
+		$a += '-maxdepth', $maxdepth
+	}
+	$a += '-printf', $fa
+	
+	$r = Invoke-AdbCommand @a
+	
+	#TODO
+
+	# $r = $r[1..$r.Length]
+	
+	return $r
 }
 
 function Adb-Stat {
@@ -348,46 +362,47 @@ function Adb-Stat {
 	return $obj
 }
 
+<# 
 function Adb-GetItem {
 	
 	param($x)
 	return Adb-Stat $x
 
-	<# param (
-		$x,
-		[Parameter(Mandatory = $false)]
-		$x2
-	)
+	# param (
+	# 	$x,
+	# 	[Parameter(Mandatory = $false)]
+	# 	$x2
+	# )
 		
-	$a = @('shell', "wc -c $x", '2>&1')
-	$x = adb @a
-	$x = [string]$x
-	Write-Debug "$x| $(typeof $x)"
+	# $a = @('shell', "wc -c $x", '2>&1')
+	# $x = adb @a
+	# $x = [string]$x
+	# Write-Debug "$x| $(typeof $x)"
 
-	if ($x -match 'Is a directory') {
-		$isDir = $true
-		$isFile = $false
-	}
-	elseif ($x -match ('No such')) {
-		#...
-		return
-	}
-	else {
-		$isDir = $false
-		$isFile = $true
-		$size = [int]$x.Split(' ')[0]
-	}
+	# if ($x -match 'Is a directory') {
+	# 	$isDir = $true
+	# 	$isFile = $false
+	# }
+	# elseif ($x -match ('No such')) {
+	# 	#...
+	# 	return
+	# }
+	# else {
+	# 	$isDir = $false
+	# 	$isFile = $true
+	# 	$size = [int]$x.Split(' ')[0]
+	# }
 	
-	$buf = @{
-		IsFile      = $isFile
-		IsDirectory = $isDir
-		Size        = $size
-		Orig        = $x
-	}
+	# $buf = @{
+	# 	IsFile      = $isFile
+	# 	IsDirectory = $isDir
+	# 	Size        = $size
+	# 	Orig        = $x
+	# }
 	
 	
-	return $buf #>
-}
+	# return $buf
+} #>
 
 function Adb-GetPackages {
 	$aa = @( 'pm list packages -f')
@@ -405,8 +420,8 @@ function Adb-Escape {
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$x,
-		[Parameter(Mandatory = $true)]
-		[EscapeType]$e
+		[Parameter(Mandatory = $false)]
+		[EscapeType]$e = 'Shell'
 	)
 	
 	switch ($e) {
