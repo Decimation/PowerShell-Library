@@ -294,7 +294,10 @@ function Adb-Find {
 		[parameter(Mandatory = $false)]
 		$maxdepth = -1
 	)
-	
+	#find . ! -name . -prune -type f -exec ls -ldi {} +
+	#adb shell "find sdcard/* ! -name . -prune -type f -exec ls -ldi {} +"
+	#adb shell "find sdcard/* ! -name . -prune -type f -exec ls -la {} \;"
+	#adb shell "find sdcard/* ! -name . -prune -type f -exec ls -F {} \;"
 
 	$fa = "%p\\n"
 	# $ig = "2>&1 | grep -v `"Permission denied`""
