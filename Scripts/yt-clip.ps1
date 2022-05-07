@@ -8,15 +8,20 @@ https://gist.github.com/lostfictions/5700848187b8edfb6e45270b462a4534
 & "yt-clip.ps1" -Url "https://www.youtube.com/watch?v=SNgNBsCI4EA" -Start '1:10' -End "1:26"
 .EXAMPLE
 & "yt-clip.ps1" -Url "https://youtu.be/YPqYvll6XD0" -Start '10:52' -End "11:38" -Args2 @('-preset','veryfast')
+.EXAMPLE
+& "yt-clip.ps1" -u "https://youtu.be/YPqYvll6XD0" -s '1:00' -e "2:00" -Args2 @('-preset','veryfast')
 #>
 param (
 	# Url
+	[Parameter(Mandatory)]
 	[alias('u')]
 	$Url, 
 	# Start time
+	[Parameter(Mandatory)]
 	[Alias('s')]
 	$Start = '0:0:0', 
 	# End time
+	[Parameter(Mandatory)]
 	[alias('e')]
 	$End,
 	[Parameter(Mandatory = $false)]
