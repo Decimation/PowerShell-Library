@@ -8,7 +8,7 @@ https://gist.github.com/lostfictions/5700848187b8edfb6e45270b462a4534
 param (
 	$Url, 
 	$Start = '0:0:0', 
-	$End, 
+	$End,
 	[Parameter(Mandatory = $false)]
 	$Output = $null,
 	[Parameter(Mandatory = $false)]
@@ -36,17 +36,37 @@ if (Test-Path $Output) {
 	}
 }
 
-#todo: same result?
-try {
 
-	$Start = [timespan]::ParseExact($Start, "g", [cultureinfo]::CurrentCulture)
-	$End = [timespan]::ParseExact($End, "g", [cultureinfo]::CurrentCulture)
-}
-catch {
-	$Start = ([timespan]::Parse($Start))
-	$End = ([timespan]::Parse($End)) 
+function script:Get-ParsedTime($t) {
+	$st = $t.Split(':')
+
+	switch ($st.Length) {
+		1 {
+			$t = [TimeSpan]::FromSeconds($t)
+		}
+		2 {
+			$t = "0:" + $t
+		}
+		default {
+		}
+	}
+	
+	
+	try {
+		$t = [timespan]::ParseExact($t, "g", [cultureinfo]::CurrentCulture)	
+	}
+	catch {
+		$t = ([timespan]::Parse($t))
+	}
+
+	return $t
 }
 
+$Start = script:Get-ParsedTime($Start)
+$End = script:Get-ParsedTime($End)
+
+Write-Host "Start: $Start"
+Write-Host "End: $End"
 
 $arg1 = @('-g', $Other, '--youtube-skip-dash-manifest', $Url)
 $x1 = yt-dlp @arg1
@@ -70,7 +90,9 @@ $ffArgs += @('-t', $duration, `
 Write-Host "$Start - $End ($duration)"
 Write-Debug "$($ffArgs -join ' ')"
 
-$p = Start-Process -FilePath 'ffmpeg.exe' -RedirectStandardOutput:$true `
+ffmpeg @ffArgs
+
+<# $p = Start-Process -FilePath 'ffmpeg.exe' -RedirectStandardOutput:$true `
 	-ArgumentList $ffArgs -NoNewWindow -PassThru
 
-return $p
+return $p #>
