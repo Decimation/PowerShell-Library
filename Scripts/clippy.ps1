@@ -1,8 +1,9 @@
+
 <#
 .DESCRIPTION
 Downloads a YouTube clip with yt-dlp and ffmpeg
 .LINK
-https://github.com/Decimation/PowerShell-Library
+https://gist.github.com/lostfictions/5700848187b8edfb6e45270b462a4534
 .EXAMPLE
 & "yt-clip.ps1" -Url "https://www.youtube.com/watch?v=SNgNBsCI4EA" -Start '1:10' -End "1:26"
 .EXAMPLE
@@ -83,8 +84,8 @@ if (-not $c_ffmpeg) {
 	return
 }
 
-Write-Host "$($c_ytdlp.Path)" -ForegroundColor 'DarkGray'
-Write-Host "$($c_ffmpeg.Path)" -ForegroundColor 'DarkGray'
+Write-Host "$($c_ytdlp.Path)" -ForegroundColor 'DarkGrey'
+Write-Host "$($c_ffmpeg.Path)" -ForegroundColor 'DarkGrey'
 
 # $tf = "hh\.mm\.ss"
 $tf = "hh\hmm\mss\s"
@@ -93,11 +94,9 @@ $fs = $Start.ToString($tf)
 $fe = $End.ToString($tf)
 
 # $arg2 = @($Url, '--print', 'id')
-$arg2 = @($Url, '--print', 'title')
+$arg2 = @($Url, '--print', 'title', '--restrict-filenames')
 
-$il = [System.IO.Path]::GetInvalidFileNameChars()
-
-$Output ??= "$(yt-dlp @arg2) ($fs - $fe).mp4" -replace '//'
+$Output ??= "$(yt-dlp @arg2) ($fs - $fe).mp4"
 Write-Host "Output filename: $Output" -ForegroundColor 'Green'
 
 if (Test-Path $Output) {
