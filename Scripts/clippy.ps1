@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.1
+.VERSION 1.2
 
 .GUID dce65b3a-d917-425b-9090-d82b368e12fa
 
@@ -26,11 +26,16 @@
 
 .RELEASENOTES
 
-.DESCRIPTION
-Downloads clips from sites supported by yt-dlp
+
 
 .PRIVATEDATA
 
+#>
+
+
+<#
+.DESCRIPTION
+Downloads clips from sites supported by yt-dlp
 .PARAMETER Url
 Url
 .PARAMETER Start
@@ -48,7 +53,7 @@ https://github.com/Decimation/PowerShell-Library
 .EXAMPLE
 & "clippy.ps1" -Url "https://youtu.be/YPqYvll6XD0" -Start '10:52' -End "11:38" -Args2 @('-preset','veryfast')
 .EXAMPLE
-& "clippy.ps1" -u "https://youtu.be/YPqYvll6XD0" -s '1:00' -e "2:00" -Args2 @('-preset','veryfast')
+& "clippy.ps1" -u "https://youtu.be/YPqYvll6XD0" -s '1:00' -e "2:00" -Args2 @('-preset','ultrafast')
 #>
 param (
 	[Parameter(Mandatory)]
@@ -70,6 +75,20 @@ param (
 )
 
 #$ErrorActionPreference = 'Abort'
+
+
+function private:Get-SanitizedFilename {
+	param (
+		$origFileName, $repl = ''
+	)
+	
+	$invalids = [System.IO.Path]::GetInvalidFileNameChars()
+	$newName = [String]::Join($repl, $origFileName.Split($invalids, 
+			[System.StringSplitOptions]::RemoveEmptyEntries)).TrimEnd('.')
+	
+	return $newName
+}
+
 
 function private:Get-ParsedTime($t) {
 	$st = $t.Split(':')
@@ -118,8 +137,8 @@ if (-not $c_ffmpeg) {
 	return
 }
 
-Write-Host "$($c_ytdlp.Path)" -ForegroundColor 'DarkGray'
-Write-Host "$($c_ffmpeg.Path)" -ForegroundColor 'DarkGray'
+Write-Host "$e_ytdlp : $($c_ytdlp.Path)" -ForegroundColor 'DarkGray'
+Write-Host "$e_ffmpeg : $($c_ffmpeg.Path)" -ForegroundColor 'DarkGray'
 
 # $tf = "hh\.mm\.ss"
 $tf = "hh\hmm\mss\s"
@@ -130,9 +149,13 @@ $fe = $End.ToString($tf)
 # $arg2 = @($Url, '--print', 'id')
 $arg2 = @($Url, '--print', 'title')
 
-$il = [System.IO.Path]::GetInvalidFileNameChars()
+<# $il = [System.IO.Path]::GetInvalidFileNameChars()
+$il | ForEach-Object { $s2 = $s -replace ([regex]::Escape($_)), '' } #>
 
-$Output ??= "$(yt-dlp @arg2) ($fs - $fe).mp4" -replace '//'
+$n1 = "$(yt-dlp @arg2) ($fs - $fe).mp4"
+$Output ??= $n1
+$Output = Get-SanitizedFilename $Output
+
 Write-Host "Output filename: $Output" -ForegroundColor 'Green'
 
 if (Test-Path $Output) {
