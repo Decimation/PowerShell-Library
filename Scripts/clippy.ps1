@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 1.1
 
 .GUID dce65b3a-d917-425b-9090-d82b368e12fa
 
@@ -31,12 +31,6 @@ Downloads clips from sites supported by yt-dlp
 
 .PRIVATEDATA
 
-#>
-
-
-<#
-.DESCRIPTION
-Downloads clips from sites supported by yt-dlp
 .PARAMETER Url
 Url
 .PARAMETER Start
