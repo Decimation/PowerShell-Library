@@ -10,7 +10,7 @@
 
 .COPYRIGHT
 
-.TAGS Downloader, yt-dlp, ffmpeg, clip
+.TAGS Downloader yt-dlp ffmpeg clip
 
 .LICENSEURI
 
@@ -26,53 +26,58 @@
 
 .RELEASENOTES
 
+.DESCRIPTION
+Downloads clips from sites supported by yt-dlp
 
 .PRIVATEDATA
 
 #>
 
-<# 
 
 <#
 .DESCRIPTION
-Downloads a YouTube clip with yt-dlp and ffmpeg
-.AUTHOR
+Downloads clips from sites supported by yt-dlp
+.PARAMETER Url
+Url
+.PARAMETER Start
+Start time
+.PARAMETER End
+End time
+.PARAMETER Args1
+Extra yt-dlp args
+.PARAMETER Args2
+Extra ffmpeg args
 .LINK
 https://github.com/Decimation/PowerShell-Library
 .EXAMPLE
-& "yt-clip.ps1" -Url "https://www.youtube.com/watch?v=SNgNBsCI4EA" -Start '1:10' -End "1:26"
+& "clippy.ps1" -Url "https://www.youtube.com/watch?v=SNgNBsCI4EA" -Start '1:10' -End "1:26"
 .EXAMPLE
-& "yt-clip.ps1" -Url "https://youtu.be/YPqYvll6XD0" -Start '10:52' -End "11:38" -Args2 @('-preset','veryfast')
+& "clippy.ps1" -Url "https://youtu.be/YPqYvll6XD0" -Start '10:52' -End "11:38" -Args2 @('-preset','veryfast')
 .EXAMPLE
-& "yt-clip.ps1" -u "https://youtu.be/YPqYvll6XD0" -s '1:00' -e "2:00" -Args2 @('-preset','veryfast')
+& "clippy.ps1" -u "https://youtu.be/YPqYvll6XD0" -s '1:00' -e "2:00" -Args2 @('-preset','veryfast')
 #>
 param (
-	# Url
 	[Parameter(Mandatory)]
 	[alias('u')]
 	$Url, 
-	# Start time
 	[Parameter(Mandatory)]
 	[Alias('s')]
 	$Start = '0:0:0', 
-	# End time
 	[Parameter(Mandatory)]
 	[alias('e')]
 	$End,
 	[Parameter(Mandatory = $false)]
 	$Output = $null,
-	# yt-dlp args
 	[Parameter(Mandatory = $false)]
 	$Args1,
-	# ffmpeg args
 	[Parameter(Mandatory = $false)]
-	$Args2 = @('-y'),
+	$Args2 = @('-y', '-preset', 'fast'),
 	[Alias('cf')][switch]$Confirm
 )
 
 #$ErrorActionPreference = 'Abort'
 
-function script:Get-ParsedTime($t) {
+function private:Get-ParsedTime($t) {
 	$st = $t.Split(':')
 
 	switch ($st.Length) {
@@ -97,8 +102,8 @@ function script:Get-ParsedTime($t) {
 	return $t
 }
 
-$Start = script:Get-ParsedTime($Start)
-$End = script:Get-ParsedTime($End)
+$Start = private:Get-ParsedTime($Start)
+$End = private:Get-ParsedTime($End)
 
 Write-Host "Start: $Start" -ForegroundColor 'Cyan'
 Write-Host "End: $End" -ForegroundColor 'Cyan'
