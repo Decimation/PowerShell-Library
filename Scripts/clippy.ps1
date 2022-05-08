@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.2
+.VERSION 1.4
 
 .GUID dce65b3a-d917-425b-9090-d82b368e12fa
 
@@ -54,6 +54,12 @@ https://github.com/Decimation/PowerShell-Library
 & "clippy.ps1" -Url "https://youtu.be/YPqYvll6XD0" -Start '10:52' -End "11:38" -Args2 @('-preset','veryfast')
 .EXAMPLE
 & "clippy.ps1" -u "https://youtu.be/YPqYvll6XD0" -s '1:00' -e "2:00" -Args2 @('-preset','ultrafast')
+.EXAMPLE
+& "clippy.ps1" -Url "https://www.youtube.com/watch?v=lGJBUauU-CE" -Start 1:00 -End 3:00 -Args2 @('-c','copy')
+.EXAMPLE
+Clip 00:00:13 to the end:
+& "clippy.ps1" -Url "https://www.youtube.com/watch?v=IV_H7wsdWFY" -Start 13
+
 #>
 param (
 	[Parameter(Mandatory)]
@@ -71,7 +77,8 @@ param (
 	$Args1,
 	[Parameter(Mandatory = $false)]
 	$Args2 = @('-y', '-preset', 'fast'),
-	[Alias('cf')][switch]$Confirm
+	[Alias('cf')]
+	[switch]$Confirm
 )
 
 #$ErrorActionPreference = 'Abort'
@@ -81,7 +88,7 @@ function private:Get-SanitizedFilename {
 	param (
 		$origFileName, $repl = ''
 	)
-	
+
 	$invalids = [System.IO.Path]::GetInvalidFileNameChars()
 	$newName = [String]::Join($repl, $origFileName.Split($invalids, 
 			[System.StringSplitOptions]::RemoveEmptyEntries)).TrimEnd('.')
@@ -90,18 +97,22 @@ function private:Get-SanitizedFilename {
 }
 
 
-function private:Get-ParsedTime($t) {
+function script:Get-ParsedTime {
+	[Outputtype([timespan])]
+	param ([string]$t)
+
 	$st = $t.Split(':')
 
 	switch ($st.Length) {
 		1 {
 			$t = [TimeSpan]::FromSeconds($t)
+			return $t;
 		}
 		2 {
 			$t = "0:" + $t
 		}
-		default {
-		}
+		
+		
 	}
 	
 	
@@ -112,11 +123,11 @@ function private:Get-ParsedTime($t) {
 		$t = ([timespan]::Parse($t))
 	}
 
-	return $t
+	return [timespan] $t
 }
 
-$Start = private:Get-ParsedTime($Start)
-$End = private:Get-ParsedTime($End)
+$Start = [timespan] (Get-ParsedTime($Start))
+$End = [timespan] (Get-ParsedTime($End))
 
 Write-Host "Start: $Start" -ForegroundColor 'Cyan'
 Write-Host "End: $End" -ForegroundColor 'Cyan'
@@ -221,9 +232,9 @@ Write-Debug "$($ffArgs -join ' ')"
 script:Read-Confirmation
 
 ffmpeg @ffArgs
-$of = $(Resolve-Path $Output)
 
-Write-Host "Output: $of" -ForegroundColor 'Green'
+
+Write-Host "Output: $Output" -ForegroundColor 'Green'
 
 <# $p = Start-Process -FilePath 'ffmpeg.exe' -RedirectStandardOutput:$true `
 	-ArgumentList $ffArgs -NoNewWindow -PassThru
