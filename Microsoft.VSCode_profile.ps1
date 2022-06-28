@@ -54,7 +54,9 @@ function Prompt {
 	$u = Text "`e[1m$user$ANSI_END" -ForegroundColor 220
 	$c = Text "`e[3m$cname$ANSI_END" -ForegroundColor 40
 	$p = Text "`e[1m$ps$ANSI_END" -ForegroundColor 'magenta'
-	$f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
+	# $f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
+	$f = Text "`e[3m$cd$ANSI_END" -ForegroundColor 'cyan'
+
 	$l = Text "$p1" -ForegroundColor 'yellow'
 	$d = Text " $(Get-Date -Format "yyyy-MM-dd @ HH:mm:ss") " -ForegroundColor 'orange'
 
@@ -539,6 +541,51 @@ Set-PSReadLineKeyHandler -Key Backspace `
 }
 
 
+
+
+# This example will replace any aliases on the command line with the resolved commands.
+Set-PSReadLineKeyHandler -Key "Alt+%" `
+                         -BriefDescription ExpandAliases `
+                         -LongDescription "Replace all aliases with the full command" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $ast = $null
+    $tokens = $null
+    $errors = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+
+    $startAdjustment = 0
+    foreach ($token in $tokens)
+    {
+        if ($token.TokenFlags -band [TokenFlags]::CommandName)
+        {
+			
+            $alias = $ExecutionContext.InvokeCommand.GetCommand($token.Extent.Text, 'Alias')
+            if ($alias -ne $null)
+            {
+                $resolvedCommand = $alias.ResolvedCommandName
+                if ($resolvedCommand -ne $null)
+                {
+                    $extent = $token.Extent
+                    $length = $extent.EndOffset - $extent.StartOffset
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
+                        $extent.StartOffset + $startAdjustment,
+                        $length,
+                        $resolvedCommand)
+
+                    # Our copy of the tokens won't have been updated, so we need to
+                    # adjust by the difference in length
+                    $startAdjustment += ($resolvedCommand.Length - $length)
+                }
+
+            }
+        }
+    }
+}
+
+
 #endregion
 
 $global:LoadTime = (Get-Date -Format $QDateFormat)
@@ -554,7 +601,8 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 }
 
 
-Invoke-Expression "$(thefuck --alias)"
+# Invoke-Expression "$(thefuck --alias)"
+
 # Install-Module -Name Terminal-Icons -Repository PSGallery
 # Install-Module oh-my-posh -Scope CurrentUser
 # Install-Module Pansies -AllowClobber
@@ -574,10 +622,10 @@ Import-Module AudioDeviceCmdlets #>
 # Install-Module -Name GuiCompletion -Scope CurrentUser
 
 if ($env:VSAPPIDNAME -eq 'devenv.exe') {
-	Write-Information "In VS2022 terminal"
+	Write-Verbose "In VS2022 terminal"
 }
 if ($env:TERM_PROGRAM -eq 'vscode') {
-	Write-Information "In VSCode terminal"
+	Write-Verbose "In VSCode terminal"
 }
 
 #New-Item -ItemType SymbolicLink -Target .\Microsoft.PowerShell_profile.ps1 -Force .\Microsoft.VSCode_profile.ps1

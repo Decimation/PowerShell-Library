@@ -65,18 +65,26 @@ param (
 	[Parameter(Mandatory)]
 	[alias('u')]
 	$Url, 
+	
 	[Parameter(Mandatory)]
 	[Alias('s')]
 	$Start = '0:0:0', 
+	
 	[Parameter(Mandatory)]
 	[alias('e')]
 	$End,
+
 	[Parameter(Mandatory = $false)]
 	$Output = $null,
+
+	# yt-dlp args
 	[Parameter(Mandatory = $false)]
 	$Args1,
+
+	# ffmpeg args
 	[Parameter(Mandatory = $false)]
-	$Args2 = @('-y', '-preset', 'fast'),
+	$Args2 = @('-y', '-preset', 'veryfast'),
+
 	[Alias('cf')]
 	[switch]$Confirm
 )
@@ -226,8 +234,9 @@ $ffArgs += @('-t', $duration, `
 	+ $Args2 + "`"$Output`""
 
 
+
 Write-Host "Duration: ($duration)" -ForegroundColor 'DarkGray'
-Write-Debug "$($ffArgs -join ' ')"
+Write-Host "ffmpeg args: $($ffArgs -join ' ')" -ForegroundColor 'Cyan'
 
 script:Read-Confirmation
 
