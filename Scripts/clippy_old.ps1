@@ -187,7 +187,6 @@ $arg2 = @($Url, '--print', 'title')
 $il | ForEach-Object { $s2 = $s -replace ([regex]::Escape($_)), '' } #>
 
 $n1 = "$(yt-dlp @arg2) ($fs - $fe).mp4"
-
 $Output ??= $n1
 $Output = Get-SanitizedFilename $Output
 
@@ -213,20 +212,30 @@ script:Read-Confirmation
 
 # yt-dlp args
 
+$arg1 = @('-g', $Args1, '--youtube-skip-dash-manifest', $Url)
+$x1 = yt-dlp @arg1
 
+$video = $x1[0]
+$audio = $x1[1]
 $duration = $End - $Start
-$ts = "*$Start-$End"
-$x2Args += @($Url, `
-		'--download-sections', $ts, `
-		'--postprocessor-args', "ffmpeg:$Args2") `
-	+ $Args1 + @('-o', "`"$Output`"")
+
+$ffArgs = @('-ss', $Start, '-i', $video)
+
+if ($audio) {
+	$ffArgs += @('-ss', $Start, '-i', $audio)
+}
+
+$ffArgs += @('-t', $duration, `
+		"-map", "0:v", "-map", "1:a", `
+		"-c:v", "libx264", "-c:a", "aac") `
+	+ $Args2 + "`"$Output`""
 
 Write-Host "Duration: ($duration)" -ForegroundColor 'DarkGray'
-Write-Host "final args: $($x2Args -join ' ')" -ForegroundColor 'Cyan'
+Write-Host "ffmpeg args: $($ffArgs -join ' ')" -ForegroundColor 'Cyan'
 
 script:Read-Confirmation
 
-yt-dlp @x2Args
+ffmpeg @ffArgs
 
 Write-Host "Output: $Output" -ForegroundColor 'Green'
 

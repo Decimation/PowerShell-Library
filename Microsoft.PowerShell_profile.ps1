@@ -627,5 +627,7 @@ if ($env:TERM_PROGRAM -eq 'vscode') {
 #New-Item -ItemType SymbolicLink -Target .\Microsoft.PowerShell_profile.ps1 -Force .\Microsoft.VSCode_profile.ps1
 # endregion
 
-Import-Module "$(get-item ((Find-Item gsudo)[0])|^ -exp Directory)\gsudoModule.psd1"
+# Import-Module "$(get-item ((Find-Item gsudo)[0])|^ -exp Directory)\gsudoModule.psd1"
+# Get-Command gsudoModule.psd1
+import-module $(Get-Command gsudoModule.psd1).Path
 $gsudoLoadProfile = $true
