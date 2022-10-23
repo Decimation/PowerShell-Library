@@ -2,6 +2,8 @@ using namespace System.Management.Automation.Language
 using namespace Microsoft.PowerShell
 
 
+[console]::InputEncoding = [console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+
 <#
 # Profile
 #>
@@ -71,6 +73,7 @@ Set-Alias -Name wh -Value Write-Host
 Set-Alias -Name wd -Value Write-Debug
 Set-Alias -Name ie -Value Invoke-Expression
 Set-Alias -Name open -Value start
+Set-Alias -Name kill -Value kill.exe
 
 
 <#
@@ -102,8 +105,6 @@ $private:ReloadThis = [string] {
 $script:qr = ".`$PROFILE; $ImportThis"
 $script:qr2 = ".`$PROFILE; $ReloadThis"
 
-
-
 # region Preferences
 
 $InformationPreference = 'Continue'
@@ -127,15 +128,12 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 #region Keys
 
-$script:contchar = "~"
-$script:cont = "$contchar"
-
 Set-PSReadLineOption `
 	-PredictionSource HistoryAndPlugin `
 	-HistorySearchCursorMovesToEnd `
 	-ShowToolTips `
 	-MaximumHistoryCount 10000 `
-	-ContinuationPrompt $script:cont `
+	-ContinuationPrompt "$(Text "`u{fb0c}" -fg 'orange') " `
 	-AddToHistoryHandler {
 	param([string]$line)
 	return $line;
@@ -254,6 +252,10 @@ $global:KeyMappings = @(
 		Function = 'SelectCommandArgument'
 	},
 	@{
+		Chord    = 'Ctrl+Insert'
+		Function = 'InsertLineAbove'
+	},
+	@{
 		<#
 		Moves cursor to beginning of line, inserts template for declaring/modifying
 		a variable, and selects its name
@@ -288,7 +290,7 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
-		Chord    = 'F4'
+		Chord    = 'Ctrl+p'
 		Function = 'AcceptSuggestion'
 	},
 	@{
@@ -365,6 +367,25 @@ $global:CharBufferIndex = 0
 #region Smart Insert/Delete
 #https://megamorf.gitlab.io/cheat-sheets/powershell-psreadline/
 
+function FindToken {
+	param($tokens, $cursor)
+
+	foreach ($token in $tokens) {
+		if ($cursor -lt $token.Extent.StartOffset) { continue }
+		if ($cursor -lt $token.Extent.EndOffset) {
+			$result = $token
+			$token = $token -as [StringExpandableToken]
+			if ($token) {
+				$nested = FindToken $token.NestedTokens $cursor
+				if ($nested) { $result = $nested }
+			}
+
+			return $result
+		}
+	}
+	return $null
+}
+
 Set-PSReadLineKeyHandler -Key '"', "'" `
 	-BriefDescription SmartInsertQuote `
 	-LongDescription 'Insert paired quotes if not already on a quote' `
@@ -393,24 +414,7 @@ Set-PSReadLineKeyHandler -Key '"', "'" `
 	$parseErrors = $null
 	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$parseErrors, [ref]$null)
 
-	function FindToken {
-		param($tokens, $cursor)
 
-		foreach ($token in $tokens) {
-			if ($cursor -lt $token.Extent.StartOffset) { continue }
-			if ($cursor -lt $token.Extent.EndOffset) {
-				$result = $token
-				$token = $token -as [StringExpandableToken]
-				if ($token) {
-					$nested = FindToken $token.NestedTokens $cursor
-					if ($nested) { $result = $nested }
-				}
-
-				return $result
-			}
-		}
-		return $null
-	}
 
 	$token = FindToken $tokens $cursor
 
@@ -588,6 +592,8 @@ $global:LoadTime = (Get-Date -Format $QDateFormat)
 
 # region 
 
+# region 
+
 # PowerShell parameter completion shim for the dotnet CLI
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	param ($commandName, $wordToComplete, $cursorPosition)
@@ -596,6 +602,20 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	}
 }
 
+# enable completion in current shell, use absolute path because PowerShell Core not respect $env:PSModulePath
+Import-Module "$($(Get-Item $(Get-Command scoop.ps1).Path).Directory.Parent.FullName)\modules\scoop-completion"
+
+Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
+	param($wordToComplete, $commandAst, $cursorPosition)
+	[Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
+	$Local:word = $wordToComplete.Replace('"', '""')
+	$Local:ast = $commandAst.ToString().Replace('"', '""')
+	winget complete --word="$Local:word" --commandline "$Local:ast" --position $cursorPosition | ForEach-Object {
+		[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+	}
+}
+
+# endregion
 
 # Invoke-Expression "$(thefuck --alias)"
 
@@ -617,6 +637,16 @@ Import-Module AudioDeviceCmdlets #>
 # Set-PoshPrompt microverse-power
 # Install-Module -Name GuiCompletion -Scope CurrentUser
 
+tdl completion powershell | Out-String | Invoke-Expression
+
+#New-Item -ItemType SymbolicLink -Target .\Microsoft.PowerShell_profile.ps1 -Force .\Microsoft.VSCode_profile.ps1
+# endregion
+
+# Import-Module "$(get-item ((Find-Item gsudo)[0])|^ -exp Directory)\gsudoModule.psd1"
+# Get-Command gsudoModule.psd1
+Import-Module $(Get-Command gsudoModule.psd1).Path
+$gsudoLoadProfile = $true
+
 if ($env:VSAPPIDNAME -eq 'devenv.exe') {
 	Write-Verbose "In VS2022 terminal"
 }
@@ -624,10 +654,4 @@ if ($env:TERM_PROGRAM -eq 'vscode') {
 	Write-Verbose "In VSCode terminal"
 }
 
-#New-Item -ItemType SymbolicLink -Target .\Microsoft.PowerShell_profile.ps1 -Force .\Microsoft.VSCode_profile.ps1
-# endregion
-
-# Import-Module "$(get-item ((Find-Item gsudo)[0])|^ -exp Directory)\gsudoModule.psd1"
-# Get-Command gsudoModule.psd1
-import-module $(Get-Command gsudoModule.psd1).Path
-$gsudoLoadProfile = $true
+Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"

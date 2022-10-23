@@ -55,18 +55,21 @@ function Set-AmdSettings {
 }
 
 switch ($arg) {
-	'togglehk' {
+	'toggle-hk' {
 		$h = Get-AmdSettings
 		$hkd = $h.GetValue($k1)
 
 		Set-AmdSettings -Name $k1 -Value $($hkd ? 0 : 1)
 	}
+	'restart-gfx'{
+		Restart-Graphics
+	}
 }
 
-<# if ($arg -eq 'togglehk') {
+<# if ($arg -eq 'toggle-hk') {
 	Amd-ToggleHotkeys
 }
 
 
  #>
-#pwsh -command "& %userprofile%\Documents\PowerShell\Scripts\AMD.ps1 togglehk"
+#pwsh -command "& %userprofile%\Documents\PowerShell\Scripts\AMD.ps1 toggle-hk"

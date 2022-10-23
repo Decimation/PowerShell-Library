@@ -6,7 +6,7 @@ param(
 	[parameter(Mandatory = $false)]
 	$query = $null,
 	[parameter(Mandatory = $false)]
-	$n = '' 
+	$n = ''
 )
 
 
@@ -24,7 +24,8 @@ param(
 
 # region 
 class BackupSource {
-	[string]$name
+	[string]$Name
+	# [string]$cmd_export = 'export'
 	[scriptblock]$export
 }
 
@@ -42,15 +43,15 @@ class PackageManager : BackupSource {
 
 $Index = @(
 	[PackageManager]@{
-		name   = 'scoop'
-		export = { 
+		Name   = 'scoop'
+		export = {
 			# Write-Debug "$($args -join ',')"
 			$dir = $args[0]
 			scoop export | Out-File "$dir\scoop.txt" | Out-Null
 		}
 	},
 	[PackageManager]@{
-		name    = 'pacman'
+		Name    = 'pacman'
 		search  = '-Q'
 		install = '-S'
 		list    = '-S'
@@ -62,7 +63,7 @@ $Index = @(
 		}
 	},
 	[PackageManager]@{
-		name   = 'choco'
+		Name   = 'choco'
 		export = {
 			$dir = $args[0]
 
@@ -70,7 +71,7 @@ $Index = @(
 		}
 	},
 	[PackageManager]@{
-		name   = 'pip'
+		Name   = 'pip'
 		update = (($pm_install + ' --upgrade'))
 		export = {
 			$dir = $args[0]
@@ -79,7 +80,7 @@ $Index = @(
 		}
 	},
 	[PackageManager]@{
-		name   = 'npm'
+		Name   = 'npm'
 		export = {
 			$dir = $args[0]
 
@@ -87,7 +88,7 @@ $Index = @(
 		}
 	},
 	[PackageManager]@{
-		name   = 'winget'
+		Name   = 'winget'
 		export = {
 			$dir = $args[0]
 
@@ -101,7 +102,7 @@ $Index = @(
 
 $Sources = @(
 	[BackupSource]@{
-		name   = 'appx'
+		Name   = 'appx'
 		export = {
 			$dir = $args[0]
 			Import-Module Appx -UseWindowsPowerShell -WarningAction Ignore
@@ -110,7 +111,7 @@ $Sources = @(
 		}
 	},
 	[BackupSource]@{
-		name   = 'bd'
+		Name   = 'bd'
 		export = {
 			$dir = $args[0]
 
@@ -123,7 +124,7 @@ $Sources = @(
 		}
 	},
 	[BackupSource]@{
-		name   = 'env_vars'
+		Name   = 'env_vars'
 		export = {
 			$dir = $args[0]
 			
@@ -135,7 +136,7 @@ $Sources = @(
 		}
 	}
 	[BackupSource]@{
-		name   = 'progfiles'
+		Name   = 'progfiles'
 		export = {
 			$dir = $args[0]
 			Get-ChildItem $env:ProgramFiles | Out-File "$dir\programs.txt"
@@ -143,7 +144,7 @@ $Sources = @(
 		}
 	}, 
 	[BackupSource]@{
-		name   = 'winterm'
+		Name   = 'winterm'
 		export = {
 			$dir = $args[0]
 			Copy-Item "C:\Users\Deci\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" `
@@ -151,7 +152,7 @@ $Sources = @(
 		}
 	}, 
 	[BackupSource]@{
-		name   = "vscode"
+		Name   = "vscode"
 		export = {
 			$dir = $args[0]
 			Copy-Item "C:\Users\Deci\AppData\Roaming\Code\User\settings.json" `
@@ -161,66 +162,88 @@ $Sources = @(
 )
 # endregion
 
+
+
+function Export-All {
+	param(
+		[parameter(Mandatory = $false)]
+		$op = 'export', 
+		[parameter(Mandatory = $false)]
+		$query = $null,
+		[parameter(Mandatory = $false)]
+		$n = ''
+	)
+
 #TODO: parallel
+#TODO: design
+#TODO: refactor
+	
+	$Selected = $Index + $Sources | Where-Object { $_.Name -match $n }
 
-$Selected = $Index + $Sources | Where-Object { $_.name -match $n }
+	Write-Host "$($Selected | Select-Object -ExpandProperty Name)"
+	Write-Debug "$op | $query |$n"
+	
+	#$host.UI.RawUI.WindowTitle = "Exporting..."
+	# Write-Progress -Activity 'Exporting...' -PercentComplete 0
 
-
-Write-Host "$($Selected | Select-Object -ExpandProperty name)"
-Write-Debug "$op | $query |$n"
-
-$oldTitle = $Host.UI.RawUI.WindowTitle
-$host.UI.RawUI.WindowTitle = "Exporting..."
-
-switch ($op) {
-	'export' {
-		$OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
-
-		if (-not (Test-Path $OutputFolder)) {
-			mkdir $OutputFolder
-		}
-
-		$l = $Selected.Length
-		
-		for ($i = 0; $i -lt $l; $i++) {
-			$val = $Selected[$i]
-			
-			# Write-Host "$($val.name)"
-			$pa = @($OutputFolder, $val.name)
-			& $val.export @pa
-			
-			$sz = [string]::Format('{0:00}/{1:00}', $i + 1, $l)
-			Write-Host "`r$sz" -NoNewline
-			
-			# Write-Progress -Id 1 -Activity Updating -Status 'Progress' -PercentComplete (($i / $l) * 100.0)
-		}
-
-		$Host.UI.RawUI.WindowTitle = $oldTitle
-
-	}
-	'' {
-		
-	}
-	$null {
-
-	}
-	Default {
-		$f = $op
-		foreach ($e in $Selected) {
-			$v = @($e.$f, $query)
-			
-			if (-not (Test-Command $e.name)) {
-				continue;
+	switch ($op) {
+		'export' {
+			$OutputFolder = "($(Get-Date -Format 'MM-dd-yy @ HH\hmm\mss\s'))"
+	
+			if (-not (Test-Path $OutputFolder)) {
+				mkdir $OutputFolder
 			}
-		
-			Write-Host ">> $($e.name)" -ForegroundColor Green
-			& $e.name @v
+	
+			$l = $Selected.Length
+			
+			for ($i = 0; $i -lt $l; $i++) {
+				$val = $Selected[$i]
+				
+				# Write-Host "$($val.Name)"
+				$pa = @($OutputFolder, $val.Name)
+				& $val.export @pa
+				
+				$sz = [string]::Format('{0:00}/{1:00}', $i + 1, $l)
+				# Write-Host "`r$sz" -NoNewline
+				
+				# Write-Progress -Id 1 -Activity Updating -Status 'Progress' -PercentComplete (($i / $l) * 100.0)
+				Write-Progress -Activity 'Exporting...' -PercentComplete $($i/$l*100.0) -Status $sz
+			}
+	
+			#$Host.UI.RawUI.WindowTitle = $oldTitle
+	
+		}
+		'' {
+			
+		}
+		$null {
+	
+		}
+		Default {
+			$f = $op
+			foreach ($e in $Selected) {
+				$v = @($e.$f, $query)
+				
+				if (-not (Test-Command $e.Name)) {
+					continue;
+				}
+			
+				Write-Host ">> $($e.Name)" -ForegroundColor Green
+				& $e.Name @v
+			}
+		}
+		'help' {
+			$Index | ForEach-Object { 
+				$_.Name
+			} | Format-Table
 		}
 	}
-	'help' {
-		$Index | ForEach-Object { 
-			$_.name
-		} | Format-Table
-	}
+	
+	
+	
 }
 
+if ($PSBoundParameters) {
+	<# Action to perform if the condition is true #>
+	Export-All @PSBoundParameters
+}
