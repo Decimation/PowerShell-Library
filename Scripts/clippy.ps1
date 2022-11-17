@@ -186,7 +186,7 @@ $arg2 = @($Url, '--print', 'title')
 <# $il = [System.IO.Path]::GetInvalidFileNameChars()
 $il | ForEach-Object { $s2 = $s -replace ([regex]::Escape($_)), '' } #>
 
-$n1 = "$(yt-dlp @arg2) ($fs - $fe).mp4"
+$n1 = "$(yt-dlp @arg2) ($fs - $fe)"
 
 $Output ??= $n1
 $Output = Get-SanitizedFilename $Output
@@ -216,17 +216,17 @@ script:Read-Confirmation
 
 $duration = $End - $Start
 $ts = "*$Start-$End"
-$x2Args += @($Url, `
+$x2Args += $Args1 + @($Url, `
 		'--download-sections', $ts, `
 		'--postprocessor-args', "ffmpeg:$Args2") `
-	+ $Args1 + @('-o', "`"$Output`"")
+	 + @('-o', "`"$Output.mp4`"")
 
 Write-Host "Duration: ($duration)" -ForegroundColor 'DarkGray'
 Write-Host "final args: $($x2Args -join ' ')" -ForegroundColor 'Cyan'
 
 script:Read-Confirmation
 
-yt-dlp @x2Args
+$o_ytdlp = yt-dlp @x2Args
 
 Write-Host "Output: $Output" -ForegroundColor 'Green'
 

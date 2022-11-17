@@ -637,7 +637,7 @@ Import-Module AudioDeviceCmdlets #>
 # Set-PoshPrompt microverse-power
 # Install-Module -Name GuiCompletion -Scope CurrentUser
 
-tdl completion powershell | Out-String | Invoke-Expression
+# tdl completion powershell | Out-String | Invoke-Expression
 
 #New-Item -ItemType SymbolicLink -Target .\Microsoft.PowerShell_profile.ps1 -Force .\Microsoft.VSCode_profile.ps1
 # endregion

@@ -47,7 +47,6 @@ function Receive-Q {
 		$jobs
 	)
 	foreach ($j in $jobs) {
-		$o = Receive-Job -Job $j -Wait
-		Write-Host "$o"
+		Receive-Job -Job $j -Wait
 	}
 }
