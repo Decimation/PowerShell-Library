@@ -49,7 +49,7 @@ function Prompt {
 	# $p1 = ""
 	$p1 = ""
 	$ps = "PS "
-
+	# $p2 = "$(U 0x26a1)"
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
 	
@@ -62,7 +62,7 @@ function Prompt {
 	$l = Text "$p1" -ForegroundColor 'yellow'
 	$d = Text " $(Get-Date -Format "yyyy-MM-dd @ HH:mm:ss") " -ForegroundColor 'orange'
 
-	Write-Host $($p, $u, "@", $c, $d, $f, "`n", "$l" ) -NoNewline -Separator ''
+	Write-Host $($p, $u, "@", $c, $d, $f, " $(U 0x27EB)", "`n", "$l") -NoNewline -Separator ''
 
 	return ' '
 }
@@ -132,6 +132,7 @@ Set-PSReadLineOption `
 	-PredictionSource HistoryAndPlugin `
 	-HistorySearchCursorMovesToEnd `
 	-ShowToolTips `
+	-CompletionQueryItems 100 `
 	-MaximumHistoryCount 10000 `
 	-ContinuationPrompt "$(Text "`u{fb0c}" -fg 'orange') " `
 	-AddToHistoryHandler {
@@ -602,9 +603,6 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	}
 }
 
-# enable completion in current shell, use absolute path because PowerShell Core not respect $env:PSModulePath
-Import-Module "$($(Get-Item $(Get-Command scoop.ps1).Path).Directory.Parent.FullName)\modules\scoop-completion"
-
 Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
 	param($wordToComplete, $commandAst, $cursorPosition)
 	[Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
@@ -644,7 +642,18 @@ Import-Module AudioDeviceCmdlets #>
 
 # Import-Module "$(get-item ((Find-Item gsudo)[0])|^ -exp Directory)\gsudoModule.psd1"
 # Get-Command gsudoModule.psd1
-Import-Module $(Get-Command gsudoModule.psd1).Path
+
+function Get-ScoopPath {
+	return "$($(Get-Item $(Get-Command scoop.ps1).Path).Directory.Parent.FullName)"
+}
+
+$other=@(
+	"$(Get-ScoopPath)\modules\scoop-completion",
+	$(Get-Command gsudoModule.psd1).Path,
+	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg"
+)
+$other| % {Import-Module $_}
+
 $gsudoLoadProfile = $true
 
 if ($env:VSAPPIDNAME -eq 'devenv.exe') {
@@ -655,3 +664,4 @@ if ($env:TERM_PROGRAM -eq 'vscode') {
 }
 
 Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
+

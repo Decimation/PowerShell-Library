@@ -10,7 +10,7 @@
 
 .COPYRIGHT
 
-.TAGS Downloader yt-dlp ffmpeg clip
+.TAGS Downloader yt-dlp ffmpeg clip youtube media
 
 .LICENSEURI
 
