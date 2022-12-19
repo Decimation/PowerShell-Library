@@ -665,3 +665,7 @@ if ($env:TERM_PROGRAM -eq 'vscode') {
 
 Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 
+Set-Alias ffmpeg ffmpeg.exe
+Set-Alias ffprobe ffprobe.exe
+Set-Alias ffplay ffplay.exe
+
