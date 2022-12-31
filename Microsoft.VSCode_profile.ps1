@@ -253,8 +253,8 @@ $global:KeyMappings = @(
 		Function = 'SelectCommandArgument'
 	},
 	@{
-		Chord    = 'Ctrl+Insert'
-		Function = 'InsertLineAbove'
+		Chord    = 'Ctrl+F9'
+		Function = 'AddLine'
 	},
 	@{
 		<#

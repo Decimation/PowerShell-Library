@@ -219,7 +219,7 @@ $ts = "*$Start-$End"
 $x2Args += $Args1 + @($Url, `
 		'--download-sections', $ts, `
 		'--postprocessor-args', "ffmpeg:$Args2") `
-	 + @('-o', "`"$Output.mp4`"")
+	+ @('-o', "`"$Output.mp4`"")
 
 Write-Host "Duration: ($duration)" -ForegroundColor 'DarkGray'
 Write-Host "final args: $($x2Args -join ' ')" -ForegroundColor 'Cyan'
