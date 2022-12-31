@@ -647,19 +647,20 @@ function Get-ScoopPath {
 	return "$($(Get-Item $(Get-Command scoop.ps1).Path).Directory.Parent.FullName)"
 }
 
-$other=@(
+@(
 	"$(Get-ScoopPath)\modules\scoop-completion",
 	$(Get-Command gsudoModule.psd1).Path,
 	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg"
-)
-$other| % {Import-Module $_}
+) | ForEach-Object { Import-Module $_ }
 
 $gsudoLoadProfile = $true
+$InVS2022 = $env:VSAPPIDNAME -eq 'devenv.exe'
+$InVSCode = $env:TERM_PROGRAM -eq 'vscode'
 
-if ($env:VSAPPIDNAME -eq 'devenv.exe') {
+if ($InVS2022) {
 	Write-Verbose "In VS2022 terminal"
 }
-if ($env:TERM_PROGRAM -eq 'vscode') {
+if ($InVSCode) {
 	Write-Verbose "In VSCode terminal"
 }
 
