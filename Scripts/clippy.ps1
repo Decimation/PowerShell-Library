@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.6
+.VERSION 1.7
 
 .GUID dce65b3a-d917-425b-9090-d82b368e12fa
 
@@ -91,7 +91,8 @@ param (
 
 function private:Get-SanitizedFilename {
 	param (
-		$origFileName, $repl = ''
+		$origFileName, 
+		$repl = ''
 	)
 
 	$invalids = [System.IO.Path]::GetInvalidFileNameChars()
@@ -146,6 +147,17 @@ function script:Read-Confirmation {
 	}
 
 }
+function script:Find-MediaCommand {
+	
+	param($c)
+	$c2 = (Get-Command $c -ErrorAction SilentlyContinue -CommandType All)
+	if (-not $c2) {
+		throw "$c not found"
+		return
+	}
+	Write-Host "$c : $($c2.Path)" -ForegroundColor 'DarkGray'
+return $c2
+}
 
 # endregion
 
@@ -158,21 +170,9 @@ Write-Host "End: $End" -ForegroundColor 'Cyan'
 $e_ffmpeg = 'ffmpeg'
 $e_ytdlp = 'yt-dlp'
 
-$c_ytdlp = (Get-Command $e_ytdlp)
-$c_ffmpeg = (Get-Command $e_ffmpeg)
+$c_ytdlp = script:Find-MediaCommand $e_ytdlp
+$c_ffmpeg = script:Find-MediaCommand $e_ffmpeg
 
-if (-not $c_ytdlp) {
-	Write-Error "$e_ytdlp not found"
-	return
-}
-
-if (-not $c_ffmpeg) {
-	Write-Error "$e_ffmpeg not found"
-	return
-}
-
-Write-Host "$e_ytdlp : $($c_ytdlp.Path)" -ForegroundColor 'DarkGray'
-Write-Host "$e_ffmpeg : $($c_ffmpeg.Path)" -ForegroundColor 'DarkGray'
 
 # $tf = "hh\.mm\.ss"
 $tf = "hh\hmm\mss\s"
@@ -186,7 +186,7 @@ $arg2 = @($Url, '--print', 'title')
 <# $il = [System.IO.Path]::GetInvalidFileNameChars()
 $il | ForEach-Object { $s2 = $s -replace ([regex]::Escape($_)), '' } #>
 
-$n1 = "$(yt-dlp @arg2) ($fs - $fe)"
+$n1 = "$(& $c_ytdlp @arg2) ($fs - $fe)"
 
 $Output ??= $n1
 $Output = Get-SanitizedFilename $Output
@@ -226,7 +226,7 @@ Write-Host "final args: $($x2Args -join ' ')" -ForegroundColor 'Cyan'
 
 script:Read-Confirmation
 
-$o_ytdlp = yt-dlp @x2Args
+$o_ytdlp = & $c_ytdlp @x2Args
 
 Write-Host "Output: $Output" -ForegroundColor 'Green'
 
