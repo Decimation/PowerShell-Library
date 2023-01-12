@@ -91,7 +91,7 @@ param (
 
 function private:Get-SanitizedFilename {
 	param (
-		$origFileName, 
+		$origFileName,
 		$repl = ''
 	)
 
@@ -156,7 +156,7 @@ function script:Find-MediaCommand {
 		return
 	}
 	Write-Host "$c : $($c2.Path)" -ForegroundColor 'DarkGray'
-return $c2
+	return $c2
 }
 
 # endregion
