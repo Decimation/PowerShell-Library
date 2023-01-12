@@ -54,8 +54,6 @@ https://github.com/Decimation/PowerShell-Library
 .EXAMPLE
 & "clippy.ps1" -Url "https://www.youtube.com/watch?v=lGJBUauU-CE" -Start 1:00 -End 3:00 -Args2 @('-c','copy')
 .EXAMPLE
-Clip 00:00:13 to the end:
-& "clippy.ps1" -Url "https://www.youtube.com/watch?v=IV_H7wsdWFY" -Start 13
 
 #>
 param (
@@ -67,7 +65,7 @@ param (
 	[Alias('s')]
 	$Start = '0:0:0', 
 	
-	[Parameter(Mandatory)]
+	[Parameter(Mandatory=$false)]
 	[alias('e')]
 	$End,
 
@@ -161,17 +159,24 @@ function script:Find-MediaCommand {
 
 # endregion
 
-$Start = [timespan] (Get-ParsedTime($Start))
-$End = [timespan] (Get-ParsedTime($End))
-
-Write-Host "Start: $Start" -ForegroundColor 'Cyan'
-Write-Host "End: $End" -ForegroundColor 'Cyan'
 
 $e_ffmpeg = 'ffmpeg'
 $e_ytdlp = 'yt-dlp'
 
 $c_ytdlp = script:Find-MediaCommand $e_ytdlp
 $c_ffmpeg = script:Find-MediaCommand $e_ffmpeg
+
+if (-not $End) {
+	$targs=@('--print', 'duration_string', $Url)
+	$End = & $c_ytdlp @targs
+	Write-Host "Automatically retrieved duration: $End"
+}
+
+$Start = [timespan] (Get-ParsedTime($Start))
+$End = [timespan] (Get-ParsedTime($End))
+
+Write-Host "Start: $Start" -ForegroundColor 'Cyan'
+Write-Host "End: $End" -ForegroundColor 'Cyan'
 
 
 # $tf = "hh\.mm\.ss"
@@ -219,7 +224,7 @@ $ts = "*$Start-$End"
 $x2Args += $Args1 + @($Url, `
 		'--download-sections', $ts, `
 		'--postprocessor-args', "ffmpeg:$Args2") `
-	+ @('-o', "`"$Output.mp4`"")
+	+ @('-o', "$Output")
 
 Write-Host "Duration: ($duration)" -ForegroundColor 'DarkGray'
 Write-Host "final args: $($x2Args -join ' ')" -ForegroundColor 'Cyan'
