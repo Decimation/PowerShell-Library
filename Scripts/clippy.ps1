@@ -53,7 +53,6 @@ https://github.com/Decimation/PowerShell-Library
 & "clippy.ps1" -u "https://youtu.be/YPqYvll6XD0" -s '1:00' -e "2:00" -Args2 @('-preset','ultrafast')
 .EXAMPLE
 & "clippy.ps1" -Url "https://www.youtube.com/watch?v=lGJBUauU-CE" -Start 1:00 -End 3:00 -Args2 @('-c','copy')
-.EXAMPLE
 
 #>
 param (
@@ -65,9 +64,13 @@ param (
 	[Alias('s')]
 	$Start = '0:0:0', 
 	
-	[Parameter(Mandatory=$false)]
+	[Parameter(Mandatory=$false,ParameterSetName='TimeAbsolute')]
 	[alias('e')]
 	$End,
+
+	[Parameter(Mandatory = $false,ParameterSetName='TimeDuration')]
+	[alias('d')]
+	$Duration,
 
 	[Parameter(Mandatory = $false)]
 	$Output = $null,
@@ -159,6 +162,7 @@ function script:Find-MediaCommand {
 
 # endregion
 
+Write-Debug "$Url $Start $End $Duration | $TimeAbsolute $TimeDuration"
 
 $e_ffmpeg = 'ffmpeg'
 $e_ytdlp = 'yt-dlp'
@@ -166,15 +170,20 @@ $e_ytdlp = 'yt-dlp'
 $c_ytdlp = script:Find-MediaCommand $e_ytdlp
 $c_ffmpeg = script:Find-MediaCommand $e_ffmpeg
 
-if (-not $End) {
+if (-not $End -and -not $Duration) {
 	$targs=@('--print', 'duration_string', $Url)
 	$End = & $c_ytdlp @targs
-	Write-Host "Automatically retrieved duration: $End"
+	Write-Host "Automatically retrieved end time: $End"
 }
 
 $Start = [timespan] (Get-ParsedTime($Start))
-$End = [timespan] (Get-ParsedTime($End))
-
+if ($End) {
+	$End = [timespan] (Get-ParsedTime($End))
+}
+elseif ($Duration -and -not $End) {
+	$End = $Start + ([timespan] (Get-ParsedTime($Duration)))
+	
+}
 Write-Host "Start: $Start" -ForegroundColor 'Cyan'
 Write-Host "End: $End" -ForegroundColor 'Cyan'
 
@@ -218,15 +227,21 @@ script:Read-Confirmation
 
 # yt-dlp args
 
+if ($End) {
+	$duration1 = $End - $Start
+}
+elseif($Duration) {
+	$duration1 = $Start + $Duration
+}
 
-$duration = $End - $Start
+Write-Host "Duration: ($duration1)" -ForegroundColor 'DarkGray'
+
 $ts = "*$Start-$End"
 $x2Args += $Args1 + @($Url, `
 		'--download-sections', $ts, `
 		'--postprocessor-args', "ffmpeg:$Args2") `
 	+ @('-o', "$Output")
 
-Write-Host "Duration: ($duration)" -ForegroundColor 'DarkGray'
 Write-Host "final args: $($x2Args -join ' ')" -ForegroundColor 'Cyan'
 
 script:Read-Confirmation
