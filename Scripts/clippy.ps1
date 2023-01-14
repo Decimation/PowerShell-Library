@@ -84,7 +84,10 @@ param (
 	$Args2 = @('-y', '-preset', 'veryfast'),
 
 	[Alias('cf')]
-	[switch]$Confirm
+	[switch]$Confirm,
+
+	[switch]
+	$IgnoreConfig
 )
 
 #$ErrorActionPreference = 'Abort'
@@ -241,6 +244,10 @@ $x2Args += $Args1 + @($Url, `
 		'--download-sections', $ts, `
 		'--postprocessor-args', "ffmpeg:$Args2") `
 	+ @('-o', "$Output")
+
+if ($IgnoreConfig) {
+	$x2Args += @('--ignore-config')
+}
 
 Write-Host "final args: $($x2Args -join ' ')" -ForegroundColor 'Cyan'
 
