@@ -165,7 +165,7 @@ function script:Find-MediaCommand {
 
 # endregion
 
-Write-Debug "$Url $Start $End $Duration | $TimeAbsolute $TimeDuration"
+Write-Debug "$Url $Start $End $Duration"
 
 $e_ffmpeg = 'ffmpeg'
 $e_ytdlp = 'yt-dlp'
@@ -198,15 +198,17 @@ $fs = $Start.ToString($tf)
 $fe = $End.ToString($tf)
 
 # $arg2 = @($Url, '--print', 'id')
-$arg2 = @($Url, '--print', 'title')
+$arg2 = @($Url, '--print', "%(title)s.%(ext)s")+$Args1
 
 <# $il = [System.IO.Path]::GetInvalidFileNameChars()
 $il | ForEach-Object { $s2 = $s -replace ([regex]::Escape($_)), '' } #>
 
-$n1 = "$(& $c_ytdlp @arg2) ($fs - $fe)"
+# $n1 = "$(& $c_ytdlp @arg2) ($fs - $fe)"
+$n1 = "$(& $c_ytdlp @arg2)"
+
 
 $Output ??= $n1
-$Output = Get-SanitizedFilename $Output
+#$Output = Get-SanitizedFilename $Output
 
 Write-Host "Output filename: $Output" -ForegroundColor 'Green'
 
@@ -241,6 +243,7 @@ Write-Host "Duration: ($duration1)" -ForegroundColor 'DarkGray'
 
 $ts = "*$Start-$End"
 $x2Args += $Args1 + @($Url, `
+		'--force-keyframes-at-cuts', `
 		'--download-sections', $ts, `
 		'--postprocessor-args', "ffmpeg:$Args2") `
 	+ @('-o', "$Output")
@@ -255,6 +258,7 @@ script:Read-Confirmation
 
 $o_ytdlp = & $c_ytdlp @x2Args
 
+Write-Host "$o_ytdlp"
 Write-Host "Output: $Output" -ForegroundColor 'Green'
 
 <# $p = Start-Process -FilePath 'ffmpeg.exe' -RedirectStandardOutput:$true `
