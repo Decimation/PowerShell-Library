@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.8
+.VERSION 1.9
 
 .GUID dce65b3a-d917-425b-9090-d82b368e12fa
 
@@ -64,11 +64,11 @@ param (
 	[Alias('s')]
 	$Start = '0:0:0', 
 	
-	[Parameter(Mandatory=$false,ParameterSetName='TimeAbsolute')]
+	[Parameter(Mandatory = $false, ParameterSetName = 'TimeAbsolute')]
 	[alias('e')]
 	$End,
 
-	[Parameter(Mandatory = $false,ParameterSetName='TimeDuration')]
+	[Parameter(Mandatory = $false, ParameterSetName = 'TimeDuration')]
 	[alias('d')]
 	$Duration,
 
@@ -174,7 +174,7 @@ $c_ytdlp = script:Find-MediaCommand $e_ytdlp
 $c_ffmpeg = script:Find-MediaCommand $e_ffmpeg
 
 if (-not $End -and -not $Duration) {
-	$targs=@('--print', 'duration_string', $Url)
+	$targs = @('--print', 'duration_string', $Url)
 	$End = & $c_ytdlp @targs
 	Write-Host "Automatically retrieved end time: $End"
 }
@@ -198,16 +198,32 @@ $fs = $Start.ToString($tf)
 $fe = $End.ToString($tf)
 
 # $arg2 = @($Url, '--print', 'id')
-$arg2 = @($Url, '--print', "%(title)s.%(ext)s")+$Args1
+# $arg2 = @($Url, '--print', "%(title)s.%(ext)s") + $Args1
 
 <# $il = [System.IO.Path]::GetInvalidFileNameChars()
 $il | ForEach-Object { $s2 = $s -replace ([regex]::Escape($_)), '' } #>
 
 # $n1 = "$(& $c_ytdlp @arg2) ($fs - $fe)"
-$n1 = "$(& $c_ytdlp @arg2)"
+# $n1 = "$(& $c_ytdlp @arg2)"
 
+$title = &$c_ytdlp $(@($Url, '--print', '%(title)s') + $Args1)
+$ext = &$c_ytdlp $(@($Url, '--print', '%(ext)s') + $Args1)
 
-$Output ??= $n1
+if ($Output) {
+	if ([System.IO.Path]::HasExtension($Output)) {
+		# $Output = [System.IO.Path]::GetFileNameWithoutExtension($Output)
+		$ext=[System.IO.Path]::GetExtension($Output)
+	}else{
+		$Output="$Output.$ext"
+	}
+}
+else{
+	$Output="$title ($fs - $fe).$ext"
+}
+
+Write-Debug "$title $ext $Output"
+
+# $Output ??= $n1
 #$Output = Get-SanitizedFilename $Output
 
 Write-Host "Output filename: $Output" -ForegroundColor 'Green'
@@ -235,7 +251,7 @@ script:Read-Confirmation
 if ($End) {
 	$duration1 = $End - $Start
 }
-elseif($Duration) {
+elseif ($Duration) {
 	$duration1 = $Start + $Duration
 }
 
