@@ -73,7 +73,7 @@ param (
 	$Duration,
 
 	[Parameter(Mandatory = $false)]
-	$Output = $null,
+	$Output,
 
 	# yt-dlp args
 	[Parameter(Mandatory = $false)]
@@ -84,7 +84,8 @@ param (
 	$Args2 = @('-y', '-preset', 'veryfast'),
 
 	[Alias('cf')]
-	[switch]$Confirm,
+	[switch]
+	$Confirm,
 
 	[switch]
 	$IgnoreConfig

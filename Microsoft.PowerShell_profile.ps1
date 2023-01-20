@@ -356,10 +356,54 @@ $global:KeyMappings = @(
 			Write-Host "$global:VerbosePreference" -ForegroundColor Green
 			[PSConsoleReadLine]::Ding()
 		}
+	},
+	@{
+		Chord       = 'F4'
+		Function = 'RepeatLastCharSearch'
+	},
+	@{
+		Chord    = 'Shift+F4'
+		Function = 'RepeatLastCharSearchBackwards'
 	}<# ,
 	@{
-		Chord    = 'F13'
-		Function = 'AcceptSuggestion'
+		Chord    = 'F5'
+		ScriptBlock={
+			$line = $null
+			$cursor = $null
+			$ast=$null
+			[Token[]]$tok=$null
+			[ParseError[]]$pe=$null
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast,[ref]$tok,[ref]$pe, [ref]$cursor)
+
+			#([ref] System.Management.Automation.Language.Ast ast, [ref] System.Management.Automation.Language.Token[] tokens, [ref] System.Management.Automation.Language.ParseError[] parseErrors, [ref] int cursor)
+			
+
+			# $ls=$line.Substring($cursor).Split(' ')
+
+			# $ls|%{
+
+			# 	$c = (Get-Command -Type All $_)
+				
+			# 	if ($c) {
+			# 		Write-Debug "$($global:CharBufferIndex) | $_ | $line | $cursor | $c"
+			# 		$global:CharBufferIndex =$line.IndexOf($_,$global:CharBufferIndex)
+			# 		[PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
+			# 		[PSConsoleReadLine]::SelectShellForwardWord($null, $null)
+			# 		$global:CharBufferIndex+=$_.Length
+			# 	}
+			# }
+			Write-Debug "$cursor"
+			$tok|%{Write-Debug "$_"}
+
+			$tok|%{
+				$c=Get-Command -Type All $_
+				if ($c) {
+					$global:CharBufferIndex = $line.IndexOf($_, $global:CharBufferIndex)
+					[PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
+					[PSConsoleReadLine]::SelectShellForwardWord($null, $null)
+				}
+			}
+		}
 	} #>
 ) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
 
