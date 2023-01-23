@@ -694,7 +694,8 @@ function Get-ScoopPath {
 @(
 	"$(Get-ScoopPath)\modules\scoop-completion",
 	$(Get-Command gsudoModule.psd1).Path,
-	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg"
+	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg",
+	$(Get-Module Terminal-Icons)
 ) | ForEach-Object { Import-Module $_ }
 
 $gsudoLoadProfile = $true
@@ -713,4 +714,3 @@ Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 Set-Alias ffmpeg ffmpeg.exe
 Set-Alias ffprobe ffprobe.exe
 Set-Alias ffplay ffplay.exe
-

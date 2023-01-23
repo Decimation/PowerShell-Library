@@ -7,20 +7,34 @@ param (
 )
 
 function Restart-Graphics {
-	
-	Import-WinModule PnpDevice
+	param($Old)
 	
 	if (!(IsAdmin)) {
 		gsudo
 		return
 	}
 	
-	$d = Get-PnpDevice | Where-Object {
-		$_.class -like 'Display*'
-	}
 	
-	$d | Disable-PnpDevice -Confirm:$false
-	$d | Enable-PnpDevice -Confirm:$false
+	if ($Old) {
+		
+		Import-WinModule PnpDevice
+		$d = Get-PnpDevice | Where-Object {
+			$_.class -like 'Display*'
+		}
+		
+		$d | Disable-PnpDevice -Confirm:$false
+		$d | Enable-PnpDevice -Confirm:$false
+	}
+	else{
+		$a=("/enum-devices", "/class","display")
+		$d=pnputil @a
+		if (-not $d) {
+			throw
+		}
+		$d1 =$($($($d -match 'instance id') -split ':')[1].Trim())
+		$a=("/restart-device",$d1)
+		pnputil @a
+	}
 }
 
 # $k = 'HKCU\SOFTWARE\AMD\DVR\'
@@ -61,7 +75,7 @@ switch ($arg) {
 
 		Set-AmdSettings -Name $k1 -Value $($hkd ? 0 : 1)
 	}
-	'restart-gfx'{
+	'restart-gfx' {
 		Restart-Graphics
 	}
 }
