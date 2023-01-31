@@ -358,7 +358,7 @@ $global:KeyMappings = @(
 		}
 	},
 	@{
-		Chord       = 'F4'
+		Chord    = 'F4'
 		Function = 'RepeatLastCharSearch'
 	},
 	@{
@@ -607,6 +607,7 @@ Set-PSReadLineKeyHandler -Key "Alt+%" `
 
 	$startAdjustment = 0
 	foreach ($token in $tokens) {
+		Write-Verbose "$token | $($token.TokenFlags)"
 		if ($token.TokenFlags -band [TokenFlags]::CommandName) {
 			
 			$alias = $ExecutionContext.InvokeCommand.GetCommand($token.Extent.Text, 'Alias')
@@ -627,6 +628,17 @@ Set-PSReadLineKeyHandler -Key "Alt+%" `
 
 			}
 		}
+		<# else {
+			$a = Get-Alias $token -ErrorAction Ignore
+			if ($a) {
+				$extent = $token.Extent
+				$length = $extent.EndOffset - $extent.StartOffset
+				[Microsoft.PowerShell.PSConsoleReadLine]::Replace(
+					$extent.StartOffset + $startAdjustment,
+					$length,
+					$resolvedCommand)
+			}
+		} #>
 	}
 }
 
