@@ -726,3 +726,6 @@ Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 Set-Alias ffmpeg ffmpeg.exe
 Set-Alias ffprobe ffprobe.exe
 Set-Alias ffplay ffplay.exe
+
+#C:\Users\Deci\deci.omp.json
+#(@(& 'C:/Users/Deci/scoop/apps/oh-my-posh/current/oh-my-posh.exe' init pwsh --config='' --print) -join "`n") | Invoke-Expression

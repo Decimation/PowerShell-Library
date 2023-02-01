@@ -25,15 +25,20 @@ function Restart-Graphics {
 		$d | Disable-PnpDevice -Confirm:$false
 		$d | Enable-PnpDevice -Confirm:$false
 	}
-	else{
-		$a=("/enum-devices", "/class","display")
-		$d=pnputil @a
+	else {
+		$a = ("/enum-devices", "/class", "display")
+		$d = pnputil.exe @a
+		
+		Write-Information "$d"
 		if (-not $d) {
 			throw
 		}
-		$d1 =$($($($d -match 'instance id') -split ':')[1].Trim())
-		$a=("/restart-device",$d1)
-		pnputil @a
+
+		$d1 = $($($($d -match 'instance id') -split ':')[1].Trim())
+		Write-Information "$d1"
+		
+		$a = ("/restart-device", $d1)
+		pnputil.exe @a
 	}
 }
 
@@ -83,7 +88,5 @@ switch ($arg) {
 <# if ($arg -eq 'toggle-hk') {
 	Amd-ToggleHotkeys
 }
-
-
  #>
 #pwsh -command "& %userprofile%\Documents\PowerShell\Scripts\AMD.ps1 toggle-hk"
