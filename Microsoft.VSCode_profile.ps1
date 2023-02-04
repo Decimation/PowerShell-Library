@@ -2,7 +2,9 @@ using namespace System.Management.Automation.Language
 using namespace Microsoft.PowerShell
 
 
-[console]::InputEncoding = [console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+[console]::InputEncoding = ` 
+[console]::OutputEncoding =  ` 
+[System.Text.UTF8Encoding]::new()
 
 <#
 # Profile
@@ -109,7 +111,7 @@ $script:qr2 = ".`$PROFILE; $ReloadThis"
 
 $InformationPreference = 'Continue'
 $ErrorActionPreference = 'Continue'
-$DebugPreference = 'SilentlyContinue'
+$DebugPreference = 'Continue'
 $VerbosePreference = 'SilentlyContinue'
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
@@ -128,37 +130,45 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 #region Keys
 
-Set-PSReadLineOption `
-	-PredictionSource HistoryAndPlugin `
-	-HistorySearchCursorMovesToEnd `
-	-ShowToolTips `
-	-CompletionQueryItems 100 `
-	-MaximumHistoryCount 10000 `
-	-ContinuationPrompt "$(Text "`u{fb0c}" -fg 'orange') " `
-	-AddToHistoryHandler {
-	param([string]$line)
-	return $line;
+$esc = $([char]0x1b);
+
+$PSROptions = @{
+	PredictionSource              = 'HistoryAndPlugin'
+	HistorySearchCursorMovesToEnd = $true
+	ShowToolTips                  = $true
+	CompletionQueryItems          = 250
+	MaximumHistoryCount           = 10000
+	ContinuationPrompt            = "$(Text "`u{fb0c}" -fg 'orange') "
+	
+	AddToHistoryHandler           = {
+		param([string]$line)
+		return $line;
+	}
+
+	Colors                        = @{
+
+		Command                = "$esc[38;5;220;1m"
+		Comment                = "$esc[32m"
+		ContinuationPrompt     = "$esc[37m"
+		Emphasis               = "`e[38;5;166m"
+		Error                  = "$esc[91m"
+		InlinePrediction       = "$esc[0;90m"
+		Keyword                = "$esc[38;5;33;1m"
+		ListPrediction         = "$esc[33m"
+		ListPredictionSelected = "$esc[48;5;234;4m"
+		Member                 = "$esc[38;5;170m"
+		Number                 = '#c4e994'
+		Operator               = "$esc[38;5;200m"
+		Parameter              = "$esc[38;5;14;3m"
+		Selection              = "$esc[7m"
+		String                 = "$esc[38;5;166m"
+		Variable               = "$esc[38;2;0;255;34m"
+		Type                   = "$esc[38;5;81;1m"
+	}
+	
 }
 
-Set-PSReadLineOption -Colors @{
-	Command                = "$([char]0x1b)[38;5;220;1m"
-	Comment                = "$([char]0x1b)[32m"
-	ContinuationPrompt     = "$([char]0x1b)[37m"
-	Emphasis               = "`e[38;5;166m"
-	Error                  = "$([char]0x1b)[91m"
-	InlinePrediction       = "$([char]0x1b)[0;90m"
-	Keyword                = "$([char]0x1b)[38;5;33;1m"
-	ListPrediction         = "$([char]0x1b)[33m"
-	ListPredictionSelected = "$([char]0x1b)[48;5;234;4m"
-	Member                 = "$([char]0x1b)[38;5;170m"
-	Number                 = '#c4e994'
-	Operator               = "$([char]0x1b)[38;5;200m"
-	Parameter              = "$([char]0x1b)[38;5;14;3m"
-	Selection              = "$([char]0x1b)[7m"
-	String                 = "$([char]0x1b)[38;5;166m"
-	Variable               = "$([char]0x1b)[38;2;0;255;34m"
-	Type                   = "$([char]0x1b)[38;5;81;1m"
-}
+Set-PSReadLineOption @PSROptions
 
 function Get-BufferState {
 	$line = $null
@@ -167,7 +177,7 @@ function Get-BufferState {
 	return $line, $cursor
 }
 
-$global:KeyMappings = @(
+$global:PSRKeyMap = @(
 	@{
 		Chord    = 'Tab'
 		Function = 'MenuComplete'
@@ -707,7 +717,9 @@ function Get-ScoopPath {
 	"$(Get-ScoopPath)\modules\scoop-completion",
 	$(Get-Command gsudoModule.psd1).Path,
 	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg",
-	$(Get-Module Terminal-Icons)
+	$(Get-Module Terminal-Icons),
+	$(Get-Module PoshFunctions)
+	$(Get-Module RoughDraft)
 ) | ForEach-Object { Import-Module $_ }
 
 $gsudoLoadProfile = $true
@@ -726,6 +738,9 @@ Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 Set-Alias ffmpeg ffmpeg.exe
 Set-Alias ffprobe ffprobe.exe
 Set-Alias ffplay ffplay.exe
+
+Update-SessionEnvironment
+oh-my-posh.exe completion powershell | Out-String | Invoke-Expression
 
 #C:\Users\Deci\deci.omp.json
 #(@(& 'C:/Users/Deci/scoop/apps/oh-my-posh/current/oh-my-posh.exe' init pwsh --config='' --print) -join "`n") | Invoke-Expression

@@ -92,7 +92,9 @@ $Index = @(
 		export = {
 			$dir = $args[0]
 
-			winget export "$dir\winget.json" --include-versions | Out-Null
+			$a=@('export','-o',"$dir\winget.json", '--include-versions')
+			& winget @a
+			# winget export -o "$dir\winget.json" --include-versions
 		}
 	}
 	
