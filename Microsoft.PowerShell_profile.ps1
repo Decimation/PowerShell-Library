@@ -157,14 +157,14 @@ $PSROptions = @{
 		Keyword                = "$esc[38;5;33;1m"
 		ListPrediction         = "$esc[33m"
 		ListPredictionSelected = "$esc[48;5;234;4m"
-		Member                 = "$esc[38;5;170m"
+		Member                 = $PSStyle.Italic+$PSStyle.Foreground.Magenta
 		Number                 = '#c4e994'
 		Operator               = "$esc[38;5;200m"
 		Parameter              = "$esc[38;5;14;3m"
 		Selection              = "$esc[7m"
 		String                 = "$esc[38;5;166m"
-		Variable               = "$esc[38;2;0;255;34m"
-		Type                   = "$esc[38;5;81;1m"
+		Variable               = $PSStyle.Foreground.BrightGreen
+		Type                   = $PSStyle.Bold+$PSStyle.Foreground.BrightCyan
 	}
 	
 }
