@@ -2,8 +2,8 @@ using namespace System.Management.Automation.Language
 using namespace Microsoft.PowerShell
 
 
-[console]::InputEncoding = ` 
-[console]::OutputEncoding =  ` 
+[console]::InputEncoding = `
+[console]::OutputEncoding =  `
 [System.Text.UTF8Encoding]::new()
 
 <#
@@ -139,6 +139,7 @@ $PSROptions = @{
 	CompletionQueryItems          = 250
 	MaximumHistoryCount           = 10000
 	ContinuationPrompt            = "$(Text "`u{fb0c}" -fg 'orange') "
+	WordDelimiters = ";:,.[]{}()/\|^&*-=+'`"–—―"
 	
 	AddToHistoryHandler           = {
 		param([string]$line)
@@ -228,7 +229,7 @@ $global:PSRKeyMap = @(
 	}, 
 	@{
 		Chord    = 'Ctrl+d'
-		Function = 'ForwardWord'
+		Function = 'BackwardWord'
 	},
 	@{
 		Chord    = 'Ctrl+v'
@@ -374,7 +375,16 @@ $global:PSRKeyMap = @(
 	@{
 		Chord    = 'Shift+F4'
 		Function = 'RepeatLastCharSearchBackwards'
-	}<# ,
+	},
+	@{
+		Chord    = 'Ctrl+f'
+		Function = 'ForwardWord'
+	},
+	@{
+		Chord    = 'Enter'
+		Function = 'ValidateAndAcceptLine'
+	}
+	<# ,
 	@{
 		Chord    = 'F5'
 		ScriptBlock={
