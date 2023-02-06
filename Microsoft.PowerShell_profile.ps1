@@ -3,8 +3,8 @@ using namespace Microsoft.PowerShell
 
 
 [console]::InputEncoding = `
-[console]::OutputEncoding =  `
-[System.Text.UTF8Encoding]::new()
+	[console]::OutputEncoding = `
+	[System.Text.UTF8Encoding]::new()
 
 <#
 # Profile
@@ -110,7 +110,7 @@ $script:qr2 = ".`$PROFILE; $ReloadThis"
 # region Preferences
 
 $InformationPreference = 'Continue'
-$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Break'
 $DebugPreference = 'Continue'
 $VerbosePreference = 'SilentlyContinue'
 
@@ -138,8 +138,8 @@ $PSROptions = @{
 	ShowToolTips                  = $true
 	CompletionQueryItems          = 250
 	MaximumHistoryCount           = 10000
-	ContinuationPrompt            = "$(Text "`u{fb0c}" -fg 'orange') "
-	WordDelimiters = ";:,.[]{}()/\|^&*-=+'`"–—―"
+	ContinuationPrompt            = "$(Text "`u{fb0c}") "
+	WordDelimiters                = ";:,.[]{}()/\|^&*-=+'`"–—―"
 	
 	AddToHistoryHandler           = {
 		param([string]$line)
@@ -148,23 +148,24 @@ $PSROptions = @{
 
 	Colors                        = @{
 
-		Command                = "$esc[38;5;220;1m"
-		Comment                = "$esc[32m"
-		ContinuationPrompt     = "$esc[37m"
-		Emphasis               = "`e[38;5;166m"
-		Error                  = "$esc[91m"
-		InlinePrediction       = "$esc[0;90m"
-		Keyword                = "$esc[38;5;33;1m"
-		ListPrediction         = "$esc[33m"
-		ListPredictionSelected = "$esc[48;5;234;4m"
-		Member                 = $PSStyle.Italic+$PSStyle.Foreground.Magenta
-		Number                 = '#c4e994'
-		Operator               = "$esc[38;5;200m"
-		Parameter              = "$esc[38;5;14;3m"
-		Selection              = "$esc[7m"
-		String                 = "$esc[38;5;166m"
+		Command                = $PSStyle.Bold + $PSStyle.Foreground.FromRgb(0xff, 0xff, 0)
+		Comment                = $PSStyle.Foreground.Green
+		ContinuationPrompt     = $PSStyle.Blink+$PSStyle.Foreground.FromRgb(255,165,0)
+		Emphasis               = $PSStyle.Foreground.FromRgb(209, 143, 52)
+		Error                  = $PSStyle.Foreground.BrightRed
+		InlinePrediction       = $PSStyle.Foreground.FromRgb(118, 118, 118)
+		Keyword                = $PSStyle.Foreground.FromRgb(0, 135, 255) + $PSStyle.Bold
+		ListPrediction         = $PSStyle.Foreground.FromRgb(129, 134, 0)
+		ListPredictionSelected = $PSStyle.Background.FromRgb(28, 28, 28) + $PSStyle.Underline + $PSStyle.Foreground.FromRgb(0xff, 0xff, 0xff)
+
+		Member                 = $PSStyle.Italic + $PSStyle.Foreground.Magenta
+		Number                 = $PSStyle.Foreground.FromRgb(127, 186, 87)
+		Operator               = $PSStyle.Foreground.FromRgb(244, 194, 194)
+		Parameter              = $PSStyle.Italic + $PSStyle.Foreground.BrightCyan
+		Selection              = $PSStyle.Reverse + $PSStyle.Underline
+		String                 = $PSStyle.Foreground.FromRgb(215, 95, 0)
 		Variable               = $PSStyle.Foreground.BrightGreen
-		Type                   = $PSStyle.Bold+$PSStyle.Foreground.BrightCyan
+		Type                   = $PSStyle.Bold + $PSStyle.Foreground.BrightBlue
 	}
 	
 }
