@@ -50,19 +50,19 @@ function Prompt {
 	$cd = Get-Location
 	# $p1 = ""
 	$p1 = ""
-	$ps = "PS "
+	$ps = "PS"
 	# $p2 = "$(U 0x26a1)"
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
 	
-	$u = Text "`e[1m$user$ANSI_END" -ForegroundColor 220
-	$c = Text "`e[3m$cname$ANSI_END" -ForegroundColor 40
-	$p = Text "`e[1m$ps$ANSI_END" -ForegroundColor 'magenta'
+	$u = "$($PSStyle.Bold)$($PSStyle.Foreground.FromRgb(255,165,0))$user$($PSStyle.Reset)"
+	$c = "$($PSStyle.Italic)$($PSStyle.Foreground.BrightGreen)$cname$($PSStyle.Reset)"
+	$p = "$($PSStyle.Bold)$($PSStyle.Background.Blue)$ps$($PSStyle.Reset) "
 	# $f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
-	$f = Text "`e[3m$cd$ANSI_END" -ForegroundColor 'cyan'
+	$f = "$($PSStyle.Italic)$($PSStyle.Foreground.Cyan)$cd$($PSStyle.Reset)"
 
-	$l = Text "$p1" -ForegroundColor 'yellow'
-	$d = Text " $(Get-Date -Format "yyyy-MM-dd @ HH:mm:ss") " -ForegroundColor 'orange'
+	$l = "$($PSStyle.Foreground.BrightYellow)$p1$($PSStyle.Reset)"
+	$d = " $(Get-Date -Format "yyyy-MM-dd @ HH:mm:ss") "
 
 	Write-Host $($p, $u, "@", $c, $d, $f, " $(U 0x27EB)", "`n", "$l") -NoNewline -Separator ''
 
@@ -110,7 +110,7 @@ $script:qr2 = ".`$PROFILE; $ReloadThis"
 # region Preferences
 
 $InformationPreference = 'Continue'
-$ErrorActionPreference = 'Break'
+$ErrorActionPreference = 'Continue'
 $DebugPreference = 'Continue'
 $VerbosePreference = 'SilentlyContinue'
 
