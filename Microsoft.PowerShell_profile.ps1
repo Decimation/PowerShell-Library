@@ -34,7 +34,7 @@ New-Module {
 	}
 	function Set-CallerVariable {
 		param (
-			[Parameter(ValuefromPipeline)]
+			[Parameter(ValueFromPipeline)]
 			[string]$Value,
 			[Parameter(Position = 1)]
 			$Name
@@ -130,7 +130,7 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 #region Keys
 
-$esc = $([char]0x1b);
+# $esc = $([char]0x1b);
 
 $PSROptions = @{
 	PredictionSource              = 'HistoryAndPlugin'
@@ -139,7 +139,7 @@ $PSROptions = @{
 	CompletionQueryItems          = 250
 	MaximumHistoryCount           = 10000
 	ContinuationPrompt            = "$(Text "`u{fb0c}") "
-	WordDelimiters                = ";:,.[]{}()/\|^&*-=+'`"–—―"
+	WordDelimiters                = ";:,.[]{}()/\|^&*-=+'`"–—―@"
 	
 	AddToHistoryHandler           = {
 		param([string]$line)
@@ -265,7 +265,7 @@ $global:PSRKeyMap = @(
 		Function = 'SelectCommandArgument'
 	},
 	@{
-		Chord    = 'Ctrl+F9'
+		Chord    = 'Ctrl+Insert'
 		Function = 'AddLine'
 	},
 	@{
@@ -303,7 +303,7 @@ $global:PSRKeyMap = @(
 		}
 	},
 	@{
-		Chord    = 'Ctrl+p'
+		Chord    = 'Alt+f'
 		Function = 'AcceptSuggestion'
 	},
 	@{
