@@ -159,6 +159,8 @@ $Sources = @(
 			$dir = $args[0]
 			Copy-Item "C:\Users\Deci\AppData\Roaming\Code\User\settings.json" `
 				"$dir\vs_settings.json"
+			$a = @('--list-extensions')
+			code @a | Out-File "$dir\vs_extensions.txt"
 		}
 	}
 )
