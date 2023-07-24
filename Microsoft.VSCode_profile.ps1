@@ -728,9 +728,10 @@ function Get-ScoopPath {
 	"$(Get-ScoopPath)\modules\scoop-completion",
 	$(Get-Command gsudoModule.psd1).Path,
 	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg",
-	$(Get-Module Terminal-Icons),
-	$(Get-Module PoshFunctions)
-	$(Get-Module RoughDraft)
+	#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg",
+	'Terminal-Icons',
+	'PoshFunctions',
+	'RoughDraft'
 ) | ForEach-Object { Import-Module $_ }
 
 $gsudoLoadProfile = $true
@@ -755,3 +756,4 @@ oh-my-posh.exe completion powershell | Out-String | Invoke-Expression
 
 #C:\Users\Deci\deci.omp.json
 #(@(& 'C:/Users/Deci/scoop/apps/oh-my-posh/current/oh-my-posh.exe' init pwsh --config='' --print) -join "`n") | Invoke-Expression
+Import-Module 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg'
