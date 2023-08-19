@@ -730,8 +730,8 @@ function Get-ScoopPath {
 	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg",
 	#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg",
 	'Terminal-Icons',
-	'PoshFunctions',
-	'RoughDraft'
+	'PoshFunctions'
+	# 'RoughDraft'
 ) | ForEach-Object { Import-Module $_ }
 
 $gsudoLoadProfile = $true
@@ -745,15 +745,16 @@ if ($InVSCode) {
 	Write-Verbose "In VSCode terminal"
 }
 
-Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 
 Set-Alias ffmpeg ffmpeg.exe
 Set-Alias ffprobe ffprobe.exe
 Set-Alias ffplay ffplay.exe
 
-Update-SessionEnvironment
+# Update-SessionEnvironment
+
 oh-my-posh.exe completion powershell | Out-String | Invoke-Expression
+Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 
 #C:\Users\Deci\deci.omp.json
 #(@(& 'C:/Users/Deci/scoop/apps/oh-my-posh/current/oh-my-posh.exe' init pwsh --config='' --print) -join "`n") | Invoke-Expression
-Import-Module 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg'
+# Import-Module 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg'
