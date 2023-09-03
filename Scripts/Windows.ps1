@@ -1,5 +1,8 @@
 
 #https://gist.github.com/danielmoore/2322634
+
+# region Clipboard
+
 Add-Type -Namespace PowershellPlatformInterop -Name Clipboard -MemberDefinition @'
 [DllImport("user32.dll", SetLastError=true)]
 public static extern bool EmptyClipboard();
@@ -19,6 +22,8 @@ public static extern bool CloseClipboard();
 [DllImport("user32.dll", SetLastError=true)]
 public static extern uint EnumClipboardFormats(uint format);
 
+[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+public static extern int DragQueryFile(IntPtr hDrop, uint iFile, [System.Runtime.InteropServices.Out] System.Text.StringBuilder lpszFile, int cch);
 '@
 
 function Assert-Win32CallSuccess {
@@ -32,6 +37,7 @@ function Assert-Win32CallSuccess {
 	
 	if ($NullIsError -and $result -eq 0 -or -not $NullIsError -and $result -ne 0) {
 		$errorCode = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
+		Write-Error "$errorCode"
 		[Runtime.InteropServices.Marshal]::ThrowExceptionForHR($errorCode)
 	}
 	
@@ -39,29 +45,40 @@ function Assert-Win32CallSuccess {
 		$result
 	}
 }
+function Open-Clipboard {
+	$script:isClipboardOwned = $true
+	
+	Assert-Win32CallSuccess -NullIsError {
+		[PowershellPlatformInterop.Clipboard]::OpenClipboard([IntPtr]::Zero)
+	}
+	
+}
 
+function Close-Clipboard {
+	Assert-Win32CallSuccess -NullIsError {
+			[PowershellPlatformInterop.Clipboard]::CloseClipboard()
+		}
+		
+		$script:isClipboardOwned = $false
+	
+}
 function Use-Clipboard {
-	param ([ScriptBlock]$action)
+	param ([ScriptBlock]$action,[switch]$keepOpen)
 	
 	if ($script:isClipboardOwned) {
 		return & $action
 	}
 	
-	$script:isClipboardOwned = $true
-	
-	Assert-Win32CallSuccess {
-		[PowershellPlatformInterop.Clipboard]::OpenClipboard([IntPtr]::Zero)
-	}
+	Open-Clipboard
 	
 	try {
 		& $action
 	}
- finally {
-		Assert-Win32CallSuccess {
-			[PowershellPlatformInterop.Clipboard]::CloseClipboard()
+ 	finally {
+		if ($keepOpen -eq $false) {
+			
+			Close-Clipboard
 		}
-		
-		$script:isClipboardOwned = $false
 	}
 }
 
@@ -126,6 +143,19 @@ function Get-ClipboardText {
 	)
 	
 	
+	$s=Get-ClipboardData @fmt
+	$sz=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($s)
+	Close-Clipboard
+	return $sz
+}
+
+function Get-ClipboardData {
+	param (
+		[Parameter(Mandatory = $false)]
+		$fmt
+	)
+	
+	
 	Use-Clipboard {
 		if (!($fmt)) {
 			$formats = Get-ClipboardFormats
@@ -136,7 +166,7 @@ function Get-ClipboardText {
 				}
 				
 				if ($ptr -ne 0) {
-					[Runtime.InteropServices.Marshal]::PtrToStringUni($ptr)
+					$ptr
 				}
 			}
 			elseif ($formats -contains $ANSI_FORMAT) {
@@ -145,7 +175,7 @@ function Get-ClipboardText {
 				}
 				
 				if ($ptr -ne 0) {
-					[Runtime.InteropServices.Marshal]::PtrToStringAnsi($ptr)
+				return	$ptr
 				}
 			}
 		}
@@ -154,13 +184,59 @@ function Get-ClipboardText {
 				[PowershellPlatformInterop.Clipboard]::GetClipboardData($fmt)
 			}
 			
-			$s = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($ptr)
+			$s = $ptr
 			
 			return $s
 		}
 		
-	}
+	} -keepOpen
 }
+function Get-DragQuery {
+
+	<# 
+	public static string[] GetDragQueryList()
+        {
+                var h = Native.GetClipboardData((uint) ClipboardFormat.CF_HDROP);
+
+                var cn = Native.DragQueryFile(h, UInt32.MaxValue, null, 0);
+                var rg = new List<string>();
+
+                for (int i = 0; i < cn; i++) {
+                        var l    = Native.DragQueryFile(h, (uint) i, null, 0) + 1;
+                        var file = new StringBuilder(l);
+                        l = Native.DragQueryFile(h, (uint) i, file, l);
+                        rg.Add(file.ToString());
+                }
+
+                return rg.ToArray();
+        }
+	#>
+
+	Open-Clipboard
+	$ptr = Get-ClipboardData 15
+	if ($ptr -eq 0) {
+		return $null
+	}
+
+	$s = [System.Text.StringBuilder]::new(256)
+	$i = [PowershellPlatformInterop.Clipboard]::DragQueryFile([System.IntPtr]$ptr, [uint]::MaxValue, $s, 0)
+
+	$rg = @()
+
+	for ($j = 0; $j -lt $i; $j++) {
+		$l = [PowershellPlatformInterop.Clipboard]::DragQueryFile([System.IntPtr]$ptr, $j, $null, 0) + 1
+		$f = [System.Text.StringBuilder]::new(256)
+		$l = [PowershellPlatformInterop.Clipboard]::DragQueryFile([System.IntPtr]$ptr, $j, $f, $l)
+		$rg += $f.ToString()
+		
+	}
+	Close-Clipboard
+
+	return $rg
+}
+
+#endregion
+
 
 <# Set-Alias -Name gcb -Value Get-Clipboard
 Set-Alias -Name gcbt -Value Get-ClipboardText
@@ -189,6 +265,7 @@ function Get-EnvironmentVariables {
 	}
 }
 
+#region Screen
 
 function Set-ScreenRefreshRate { 
 	param ( 
@@ -330,6 +407,7 @@ function Get-ScreenRefreshRate {
 
 	return $frequency
 }
+#endregion
 
 
 # region Windows PWSH
