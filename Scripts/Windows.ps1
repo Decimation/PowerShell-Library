@@ -445,6 +445,8 @@ function __Invoke-WinCommand {
 
 # endregion
 
+# region Media
+
 $Signature = @'
 [DllImport("user32.dll")]
 public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);
@@ -478,6 +480,8 @@ function Start-WinSound {
 function Stop-WinSound {
 	$script:WinSoundPlayer.Stop()
 }
+
+#endregion
 
 function Show-Process($Process, [Switch]$Maximize) {
 	$sig = '

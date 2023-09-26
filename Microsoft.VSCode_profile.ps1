@@ -739,10 +739,11 @@ $InVS2022 = $env:VSAPPIDNAME -eq 'devenv.exe'
 $InVSCode = $env:TERM_PROGRAM -eq 'vscode'
 
 if ($InVS2022) {
-	Write-Verbose "In VS2022 terminal"
+	Write-Debug "$($PSStyle.Foreground.BrightCyan)In VS2022 terminal$($PSStyle.Reset)"
 }
 if ($InVSCode) {
-	Write-Verbose "In VSCode terminal"
+	Write-Debug "$($PSStyle.Foreground.BrightCyan)In VS Code terminal$($PSStyle.Reset)"
+	
 }
 
 
@@ -758,3 +759,5 @@ Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 #C:\Users\Deci\deci.omp.json
 #(@(& 'C:/Users/Deci/scoop/apps/oh-my-posh/current/oh-my-posh.exe' init pwsh --config='' --print) -join "`n") | Invoke-Expression
 # Import-Module 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg'
+
+
