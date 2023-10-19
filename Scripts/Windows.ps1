@@ -56,14 +56,14 @@ function Open-Clipboard {
 
 function Close-Clipboard {
 	Assert-Win32CallSuccess -NullIsError {
-			[PowershellPlatformInterop.Clipboard]::CloseClipboard()
-		}
+		[PowershellPlatformInterop.Clipboard]::CloseClipboard()
+	}
 		
-		$script:isClipboardOwned = $false
+	$script:isClipboardOwned = $false
 	
 }
 function Use-Clipboard {
-	param ([ScriptBlock]$action,[switch]$keepOpen)
+	param ([ScriptBlock]$action, [switch]$keepOpen)
 	
 	if ($script:isClipboardOwned) {
 		return & $action
@@ -74,7 +74,7 @@ function Use-Clipboard {
 	try {
 		& $action
 	}
- 	finally {
+	finally {
 		if ($keepOpen -eq $false) {
 			
 			Close-Clipboard
@@ -91,8 +91,13 @@ function Clear-Clipboard {
 }
 
 
-$global:ANSI_FORMAT = 1
-$global:UNICODE_FORMAT = 13
+#region Clipboard Formats
+
+$global:CF_ANSI = 1
+$global:CF_UNICODE = 13
+$global:CF_DRAGQUERY = 15
+
+# endregion
 
 function Set-ClipboardText {
 	param (
@@ -106,13 +111,13 @@ function Set-ClipboardText {
 			
 			$ptr = [Runtime.InteropServices.Marshal]::StringToHGlobalUni($value)
 			Assert-Win32CallSuccess -NullIsError {
-				[PowershellPlatformInterop.Clipboard]::SetClipboardData($UNICODE_FORMAT, $ptr)
+				[PowershellPlatformInterop.Clipboard]::SetClipboardData($CF_UNICODE, $ptr)
 			}
 			
 			$ptr = [Runtime.InteropServices.Marshal]::StringToHGlobalAnsi($value)
 			
 			Assert-Win32CallSuccess -NullIsError {
-				[PowershellPlatformInterop.Clipboard]::SetClipboardData($ANSI_FORMAT, $ptr)
+				[PowershellPlatformInterop.Clipboard]::SetClipboardData($CF_ANSI, $ptr)
 			}
 		}
 	}
@@ -143,8 +148,8 @@ function Get-ClipboardText {
 	)
 	
 	
-	$s=Get-ClipboardData @fmt
-	$sz=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($s)
+	$s = Get-ClipboardData @fmt
+	$sz = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($s)
 	Close-Clipboard
 	return $sz
 }
@@ -160,22 +165,22 @@ function Get-ClipboardData {
 		if (!($fmt)) {
 			$formats = Get-ClipboardFormats
 			
-			if ($formats -contains $UNICODE_FORMAT) {
+			if ($formats -contains $CF_UNICODE) {
 				$ptr = Assert-Win32CallSuccess -PassThru -NullIsError {
-					[PowershellPlatformInterop.Clipboard]::GetClipboardData($UNICODE_FORMAT)
+					[PowershellPlatformInterop.Clipboard]::GetClipboardData($CF_UNICODE)
 				}
 				
 				if ($ptr -ne 0) {
 					$ptr
 				}
 			}
-			elseif ($formats -contains $ANSI_FORMAT) {
+			elseif ($formats -contains $CF_ANSI) {
 				$ptr = Assert-Win32CallSuccess -PassThru -NullIsError {
-					[PowershellPlatformInterop.Clipboard]::GetClipboardData($ANSI_FORMAT)
+					[PowershellPlatformInterop.Clipboard]::GetClipboardData($CF_ANSI)
 				}
 				
 				if ($ptr -ne 0) {
-				return	$ptr
+					return	$ptr
 				}
 			}
 		}
@@ -191,6 +196,9 @@ function Get-ClipboardData {
 		
 	} -keepOpen
 }
+
+
+
 function Get-DragQuery {
 
 	<# 
@@ -213,8 +221,11 @@ function Get-DragQuery {
 	#>
 
 	Open-Clipboard
-	$ptr = Get-ClipboardData 15
+
+	$ptr = Get-ClipboardData $CF_DRAGQUERY
+
 	if ($ptr -eq 0) {
+		Close-Clipboard
 		return $null
 	}
 
@@ -230,6 +241,7 @@ function Get-DragQuery {
 		$rg += $f.ToString()
 		
 	}
+	
 	Close-Clipboard
 
 	return $rg
@@ -489,7 +501,12 @@ function Show-Process($Process, [Switch]$Maximize) {
     [DllImport("user32.dll")] public static extern int SetForegroundWindow(IntPtr hwnd);
   '
   
-	if ($Maximize) { $Mode = 3 } else { $Mode = 4 }
+	if ($Maximize) { 
+		$Mode = 3 
+	}
+ else { 
+		$Mode = 4 
+	}
 	$type = Add-Type -MemberDefinition $sig -Name WindowAPI -PassThru
 	$hwnd = $process.MainWindowHandle
 	$null = $type::ShowWindowAsync($hwnd, $Mode)

@@ -132,13 +132,25 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 
 # $esc = $([char]0x1b);
 
+
+$global:CustomColors = @(
+	$PSStyle.Foreground.FromRgb(106, 255, 106),
+	$PSStyle.Foreground.FromRgb(0xff, 0xff, 0),
+	$PSStyle.Foreground.FromRgb(118, 118, 118),
+	$PSStyle.Foreground.FromRgb(0xff, 0xff, 0xff),
+	$PSStyle.Foreground.FromRgb(234, 67, 54),
+	$PSStyle.Foreground.FromRgb(255, 134, 112),
+	$PSStyle.Foreground.FromRgb(121, 192, 255)
+
+)
+
 $PSROptions = @{
 	PredictionSource              = 'HistoryAndPlugin'
 	HistorySearchCursorMovesToEnd = $true
 	ShowToolTips                  = $true
 	CompletionQueryItems          = 250
 	MaximumHistoryCount           = 10000
-	ContinuationPrompt            = "$(Text "`u{fb0c}") "
+	ContinuationPrompt            = " "
 	WordDelimiters                = ";:,.[]{}()/\|^&*-=+'`"–—―@"
 	
 	AddToHistoryHandler           = {
@@ -148,15 +160,15 @@ $PSROptions = @{
 
 	Colors                        = @{
 
-		Command                = $PSStyle.Bold + $PSStyle.Foreground.FromRgb(0xff, 0xff, 0)
+		Command                = $PSStyle.Bold + $global:CustomColors[1]
 		Comment                = $PSStyle.Foreground.Green
-		ContinuationPrompt     = $PSStyle.Blink+$PSStyle.Foreground.FromRgb(255,165,0)
+		ContinuationPrompt     = $PSStyle.Blink + $global:CustomColors[0]
 		Emphasis               = $PSStyle.Foreground.FromRgb(209, 143, 52)
 		Error                  = $PSStyle.Foreground.BrightRed
-		InlinePrediction       = $PSStyle.Foreground.FromRgb(118, 118, 118)
+		InlinePrediction       = $global:CustomColors[2]
 		Keyword                = $PSStyle.Foreground.FromRgb(0, 135, 255) + $PSStyle.Bold
 		ListPrediction         = $PSStyle.Foreground.FromRgb(129, 134, 0)
-		ListPredictionSelected = $PSStyle.Background.FromRgb(28, 28, 28) + $PSStyle.Underline + $PSStyle.Foreground.FromRgb(0xff, 0xff, 0xff)
+		ListPredictionSelected = $PSStyle.Background.FromRgb(28, 28, 28) + $PSStyle.Underline + $global:CustomColors[3]
 
 		Member                 = $PSStyle.Italic + $PSStyle.Foreground.Magenta
 		Number                 = $PSStyle.Foreground.FromRgb(127, 186, 87)
@@ -753,7 +765,7 @@ Set-Alias ffplay ffplay.exe
 
 # Update-SessionEnvironment
 
-oh-my-posh.exe completion powershell | Out-String | Invoke-Expression
+# oh-my-posh.exe completion powershell | Out-String | Invoke-Expression
 Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 
 #C:\Users\Deci\deci.omp.json
@@ -761,3 +773,29 @@ Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 # Import-Module 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg'
 
 
+
+
+# Assign the key handler to a specific key combination (e.g., Ctrl+Shift+R)
+Set-PSReadLineKeyHandler -Key 'alt+x' -ScriptBlock {
+	param(
+		[Microsoft.PowerShell.PSConsoleReadLine.KeyHandlerArg]$arg
+	)
+
+	$line = $null
+	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$null)
+
+	# Get the start and end positions of the parameter
+	$start = $line.IndexOf(' ', $arg.Start) + 1
+	$end = $line.IndexOf(' ', $start)
+
+	# Check if the cursor is at the end of the line
+	if ($end -eq -1) {
+		$end = $line.Length
+	}
+
+	# Set the selection to the parameter
+	[Microsoft.PowerShell.PSConsoleReadLine]::Select($start, $end - $start)
+
+	# Redraw the prompt and current line
+	[Microsoft.PowerShell.PSConsoleReadLine]::RefreshLine()
+}
