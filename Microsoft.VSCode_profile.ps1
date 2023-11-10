@@ -624,9 +624,48 @@ Set-PSReadLineKeyHandler -Key Backspace `
 
 
 
+<# Set-PSReadLineKeyHandler -Key "Alt+c" `
+	-ScriptBlock {
+	param($key, $arg)
+
+	$ast = $null
+	$tokens = $null
+	$errors = $null
+	$cursor = $null
+	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+
+	$startAdjustment = 0
+	foreach ($token in $tokens) {
+		# Write-Verbose "$token | $($token.TokenFlags)"
+		if ($token.TokenFlags -band [TokenFlags]::CommandName) {
+			$extent = $token.Extent
+			
+			$length = $extent.EndOffset - $extent.StartOffset
+
+			[PSConsoleReadLine]::SetCursorPosition($token.Extent.StartOffset)
+			[PSConsoleReadLine]::SelectForwardWord($null, $null)
+			
+			$l = $null
+			$c = $null
+			[PSConsoleReadLine]::GetBufferState([ref]$l, [ref]$c);
+			
+			if ($sz -ne $token.Text) {
+				$s = $null
+				$li = $null
+				[PSConsoleReadLine]::GetSelectionState([ref]$s, [ref]$li)
+				[PSConsoleReadLine]::SelectForwardWord($null, $null)
+				$sz = $l[$s..$li]
+				Write-Verbose "`n$length $c $l $s $li $sz"
+				
+			}
+
+
+		}
+	}
+} #>
 
 # This example will replace any aliases on the command line with the resolved commands.
-Set-PSReadLineKeyHandler -Key "Alt+%" `
+Set-PSReadLineKeyHandler -Key "Alt+p" `
 	-BriefDescription ExpandAliases `
 	-LongDescription "Replace all aliases with the full command" `
 	-ScriptBlock {
@@ -649,6 +688,7 @@ Set-PSReadLineKeyHandler -Key "Alt+%" `
 				if ($resolvedCommand -ne $null) {
 					$extent = $token.Extent
 					$length = $extent.EndOffset - $extent.StartOffset
+					
 					[Microsoft.PowerShell.PSConsoleReadLine]::Replace(
 						$extent.StartOffset + $startAdjustment,
 						$length,
