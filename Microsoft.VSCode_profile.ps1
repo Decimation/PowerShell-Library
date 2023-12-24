@@ -170,7 +170,7 @@ $PSROptions = @{
 		ListPrediction         = $PSStyle.Foreground.FromRgb(129, 134, 0)
 		ListPredictionSelected = $PSStyle.Background.FromRgb(28, 28, 28) + $PSStyle.Underline + $global:CustomColors[3]
 
-		Member                 = $PSStyle.Italic + $PSStyle.Foreground.Magenta
+		Member                 = $PSStyle.Italic + $PSStyle.Foreground.FromRgb(0xc353c3)
 		Number                 = $PSStyle.Foreground.FromRgb(127, 186, 87)
 		Operator               = $PSStyle.Foreground.FromRgb(244, 194, 194)
 		Parameter              = $PSStyle.Italic + $PSStyle.Foreground.BrightCyan
@@ -715,6 +715,38 @@ Set-PSReadLineKeyHandler -Key "Alt+p" `
 	}
 }
 
+<# Set-PSReadLineKeyHandler -Chord 'Ctrl+\' -ScriptBlock {
+	param($key, $arg)
+	# [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
+	
+	$ast = $null
+	$tokens = $null
+	$errors = $null
+	$cursor = $null
+	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+
+	# Write-Debug "$ast | $tokens | $errors | $cursor"
+
+	# Identify the token at the cursor position
+	$selectedToken = $tokens | Where-Object { 
+		
+		($cursor -ge $_.Extent.StartOffset -and $cursor -le $_.Extent.EndOffset) `
+			-and ($_.TokenFlags -band [TokenFlags]::CommandName)
+	}
+
+	# Select the token (highlight it, for example)
+	# This is a placeholder action; you can customize what you want to do with the selected token
+	if ($selectedToken -ne $null) {
+		#Write-Host "Selected Token: $($selectedToken)" -ForegroundColor Cyan
+	}
+	
+	[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($selectedToken.Extent.StartOffset + $cursor)
+	# $nextToken = $tokens | Where-Object { $_ -eq $selectedToken } | Select-Object -Skip 1 -First 1
+
+    # # Move the cursor to the next token's start position
+    # if ($nextToken -ne $null) {
+    # }
+} #>
 
 #endregion
 
@@ -812,30 +844,3 @@ Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 #(@(& 'C:/Users/Deci/scoop/apps/oh-my-posh/current/oh-my-posh.exe' init pwsh --config='' --print) -join "`n") | Invoke-Expression
 # Import-Module 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg'
 
-
-
-
-# Assign the key handler to a specific key combination (e.g., Ctrl+Shift+R)
-Set-PSReadLineKeyHandler -Key 'alt+x' -ScriptBlock {
-	param(
-		[Microsoft.PowerShell.PSConsoleReadLine.KeyHandlerArg]$arg
-	)
-
-	$line = $null
-	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$null)
-
-	# Get the start and end positions of the parameter
-	$start = $line.IndexOf(' ', $arg.Start) + 1
-	$end = $line.IndexOf(' ', $start)
-
-	# Check if the cursor is at the end of the line
-	if ($end -eq -1) {
-		$end = $line.Length
-	}
-
-	# Set the selection to the parameter
-	[Microsoft.PowerShell.PSConsoleReadLine]::Select($start, $end - $start)
-
-	# Redraw the prompt and current line
-	[Microsoft.PowerShell.PSConsoleReadLine]::RefreshLine()
-}
