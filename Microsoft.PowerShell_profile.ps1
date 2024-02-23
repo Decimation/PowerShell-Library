@@ -21,6 +21,22 @@ function Reload-Module {
 }
 
 Import-Module -DisableNameChecking PSKantan
+Import-Module -Name GuiCompletion
+
+$global:GuiCompletionConfig.Colors = @{
+	Background        = [System.ConsoleColor]::DarkGray
+	Foreground        = [System.ConsoleColor]::White
+	TextColor         = [System.ConsoleColor]::White
+	BackColor         = [System.ConsoleColor]::DarkGray
+	SelectedTextColor = [System.ConsoleColor]::White
+	SelectedBackColor = [System.ConsoleColor]::DarkBlue
+	BorderTextColor   = [System.ConsoleColor]::White
+	BorderBackColor   = [System.ConsoleColor]::Black
+	BorderColor       = [System.ConsoleColor]::DarkGreen
+	FilterColor       = [System.ConsoleColor]::DarkYellow
+}
+
+$global:GuiCompletionConfig.MinimumTextWidth = 50
 
 # https://stackoverflow.com/questions/46528262/is-there-any-way-for-a-powershell-module-to-get-at-its-callers-scope
 	
@@ -150,6 +166,8 @@ $PSROptions = @{
 	ShowToolTips                  = $true
 	CompletionQueryItems          = 250
 	MaximumHistoryCount           = 10000
+	# MaximumHistoryCount           = 5000
+	# MaximumHistoryCount           = 1000
 	ContinuationPrompt            = " "
 	WordDelimiters                = ";:,.[]{}()/\|^&*-=+'`"–—―@"
 	
@@ -190,6 +208,8 @@ function Get-BufferState {
 	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 	return $line, $cursor
 }
+
+
 
 $global:PSRKeyMap = @(
 	@{
@@ -396,6 +416,12 @@ $global:PSRKeyMap = @(
 	@{
 		Chord    = 'Enter'
 		Function = 'ValidateAndAcceptLine'
+	},
+	@{
+		Chord       = 'Ctrl+Spacebar'
+		ScriptBlock = {
+			Invoke-GuiCompletion
+		}
 	}
 	<# ,
 	@{
@@ -810,7 +836,7 @@ function Get-ScoopPath {
 
 @(
 	"$(Get-ScoopPath)\modules\scoop-completion",
-	$(Get-Command gsudoModule.psd1).Path,
+	$(Get-Command gsudo).Module.Path,
 	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg",
 	#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg",
 	'Terminal-Icons',
@@ -844,3 +870,40 @@ Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 #(@(& 'C:/Users/Deci/scoop/apps/oh-my-posh/current/oh-my-posh.exe' init pwsh --config='' --print) -join "`n") | Invoke-Expression
 # Import-Module 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg'
 
+
+# Set-Alias python3 python.exe
+# Set-Alias python39 python3.9.exe
+
+
+<# $pythonExe = Get-Command -CommandType Application 'python*'
+$pythonExe | ForEach-Object { 
+	& $_ --version 
+} #>
+
+<# $PYTHON_NAME = 'python'
+$pythonExe = whereitem $PYTHON_NAME
+$pythonExe | ForEach-Object {
+	$pv = [string](& cmd /c $_ -V 2>&1)
+	$pvs = $pv.Split(' ')
+	$ver = $pvs[1].Split('.')
+	$vers = $PYTHON_NAME + $ver[0] + $ver[1]
+	
+	$al = Get-Alias -Name $vers -ErrorAction SilentlyContinue
+	if ($al -and $al.Value -ne $_) {
+		$vers = $vers + $ver[2]
+	}
+	$al = Set-Alias -Name $vers -Value $_ `
+		-Option None `
+		-Scope Global `
+		-PassThru `
+	
+	Write-Debug "$pv → $pvs $ver → $vers → $al"
+	# $pv = & $_ -V
+
+} #>
+
+$script:PYTHON_NAME = 'python'
+$script:PYTHON_NAMEEXE = 'python.exe'
+# $P = $(Get-Command -Name $PYTHON_NAMEEXE -CommandType All) | Where-Object { $_.Path -cmatch '310' }
+Set-Alias python310 "C:\Users\Deci\AppData\Local\Programs\Python\Python310\python.exe" -Scope Global `
+	-Option None
