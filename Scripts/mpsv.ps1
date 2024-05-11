@@ -5,45 +5,64 @@
 # BEGIN: FILEPATH: Untitled-1
 
 # Create a named pipe for IPC communication0
-function Test-Pipe {
+
+<#     $pipeServer = New-Object System.IO.Pipes.NamedPipeServerStream ($pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+ #>
+
+
+<# 
+$x=New-Object 'System.IO.Pipes.NamedPipeClientStream'($env:COMPUTERNAME,"\\.\pipe\mpsv",[System.IO.Pipes.PipeDirection]::InOut,
+[System.IO.Pipes.PipeOptions]::None,[System.Security.Principal.TokenImpersonationLevel]::Impersonation)
+#>
+
+param (
+	[string]$pipeName = "mpsv",
+	[switch]$srv
+)
+
+$pipePath = "\\.\pipe\$pipeName"
+Write-Output $pipePath
+
+function RunMpsv {
+	
 	param (
-		$pipeName
+		$pipeServer
 	)
-	
-	$pipePath = "\\.\pipe\$pipeName"
-	return Test-Path $pipePath
-}
 
-$pipeName = "mpsv"
+	try {
 
-if (Test-Pipe $pipeName) {
-	return	
-}
+		# Write-Output "$pipeServer"
 
-try {
-	$pipeServer = New-Object System.IO.Pipes.NamedPipeServerStream ($pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+		Write-Output "Waiting on $using:pipePath $pipeServer"
 
-	Write-Output "$pipeServer"
+		# Connect to the named pipe
+		
+		$pipeServer.WaitForConnection()
+		Write-Output "Connected"
 
-	Write-Output "Waiting"
-	# Connect to the named pipe
-	$pipeServer.WaitForConnection()
-	Write-Output "Connected"
-
-	$pipeReader = New-Object System.IO.StreamReader($pipeServer)
-	$script:pipeWriter = New-Object System.IO.StreamWriter($pipeServer)
-	$pipeWriter.AutoFlush = $true
+		$pipeReader = New-Object System.IO.StreamReader($pipeServer)
+		$script:pipeWriter = New-Object System.IO.StreamWriter($pipeServer)
+		$pipeWriter.AutoFlush = $true
 
 	
-	while ($line -ne "exit") {
-		$pipeWriter.WriteLine("Received: $line")
-		$line = $pipeReader.ReadLine()
-		Write-Output "Received: $line"
+		while ($line -ne "exit") {
+			$pipeWriter.WriteLine("Received: $line")
+			$line = $pipeReader.ReadLine()
+			Write-Output "Received: $line"
+		}
+	}
+	finally {
+		Write-Output "Disconnecting..."
+		$pipeServer.Disconnect()
+		$pipeReader.Dispose()
+		Write-Output "Disconnected"
 	}
 }
-finally {
+
+if ($srv) {
+
+	$pipeServer2 = New-Object System.IO.Pipes.NamedPipeServerStream ($pipePath, [System.IO.Pipes.PipeDirection]::InOut, 1, [System.IO.Pipes.PipeTransmissionMode]::Message)
 	
-	$pipeReader.Dispose()
-	$pipeServer.Dispose()
-	Write-Output "Disconnected"
+	Start-Job -ScriptBlock $function:RunMpsv -ArgumentList $pipeServer2 
+	
 }

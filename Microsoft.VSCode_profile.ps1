@@ -163,6 +163,7 @@ $global:CustomColors = @(
 $PSROptions = @{
 	PredictionSource              = 'HistoryAndPlugin'
 	HistorySearchCursorMovesToEnd = $true
+	HistoryNoDuplicates           = $false
 	ShowToolTips                  = $true
 	CompletionQueryItems          = 250
 	MaximumHistoryCount           = 10000
@@ -199,7 +200,7 @@ $PSROptions = @{
 	}
 	
 }
-
+# Set-PSReadLineKeyHandler
 Set-PSReadLineOption @PSROptions
 
 function Get-BufferState {
@@ -209,12 +210,32 @@ function Get-BufferState {
 	return $line, $cursor
 }
 
+function CycleValues {
+	param([array]$Values, [ref]$ValueRef)
+	$ov = $ValueRef.Value
+	$idx = WrapNumber ($Values.IndexOf($ov) + 1) ($Values.Count)
+	$ValueRef.Value = $Values[$idx]
+
+	#[PSConsoleReadLine]::AcceptLine()
+	#Write-Debug "$($ov) → $($nval)"
+	# Write-Host "$global:DebugPreference" -ForegroundColor Green
+	#[PSConsoleReadLine]::Ding()
+	
+}
 
 
 $global:PSRKeyMap = @(
 	@{
 		Chord    = 'Tab'
 		Function = 'MenuComplete'
+		<# ScriptBlock = {
+			$line = $null
+			$cursor = $null
+			# [PSConsoleUtilities.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
+			[PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+			$line = $line.Replace('[', '``[')
+			[PSConsoleReadLine]::MenuComplete()
+		} #>
 	}, 
 	@{
 		Chord    = 'Ctrl+Tab'
@@ -371,34 +392,43 @@ $global:PSRKeyMap = @(
 	@{
 		Chord       = 'F6'
 		ScriptBlock = {
-			$idx = Wrap ($script:ActionPreferences.IndexOf($global:DebugPreference) + 1) ($script:ActionPreferences.Count)
+			<# $idx = WrapNumber ($script:ActionPreferences.IndexOf($global:DebugPreference) + 1) ($script:ActionPreferences.Count)
 			$global:DebugPreference = $script:ActionPreferences[$idx]
 			[PSConsoleReadLine]::AcceptLine()
-			Write-Host 'Debug preference: ' -NoNewline -ForegroundColor Yellow
 			Write-Host "$global:DebugPreference" -ForegroundColor Green
-			[PSConsoleReadLine]::Ding()
+			[PSConsoleReadLine]::Ding() #>
+			
+			CycleValues $script:ActionPreferences ([ref]$global:DebugPreference)
+			Write-Host "Debug preference: $($global:DebugPreference)" -NoNewline -ForegroundColor Yellow
+			[PSConsoleReadLine]::AcceptLine()
 		}
 	},
 	@{
 		Chord       = 'F7'
 		ScriptBlock = {
-			$idx = Wrap ($script:ActionPreferences.IndexOf($global:ErrorActionPreference) + 1) ($script:ActionPreferences.Count)
+			<# $idx = WrapNumber ($script:ActionPreferences.IndexOf($global:ErrorActionPreference) + 1) ($script:ActionPreferences.Count)
 			$global:ErrorActionPreference = $script:ActionPreferences[$idx]
 			[PSConsoleReadLine]::AcceptLine()
-			Write-Host 'Error action preference: ' -NoNewline -ForegroundColor Yellow
 			Write-Host "$global:ErrorActionPreference" -ForegroundColor Green
-			[PSConsoleReadLine]::Ding()
+			[PSConsoleReadLine]::Ding() #>
+			CycleValues $script:ActionPreferences ([ref]$global:ErrorActionPreference)
+			Write-Host "Error action preference: $($Global:ErrorActionPreference)" -NoNewline -ForegroundColor Yellow
+			[PSConsoleReadLine]::AcceptLine()
 		}
 	},
 	@{
 		Chord       = 'F8'
 		ScriptBlock = {
-			$idx = Wrap ($script:ActionPreferences.IndexOf($global:VerbosePreference) + 1) ($script:ActionPreferences.Count)
+			<# $idx = WrapNumber ($script:ActionPreferences.IndexOf($global:VerbosePreference) + 1) ($script:ActionPreferences.Count)
 			$global:VerbosePreference = $script:ActionPreferences[$idx]
 			[PSConsoleReadLine]::AcceptLine()
-			Write-Host 'Verbose preference: ' -NoNewline -ForegroundColor Yellow
 			Write-Host "$global:VerbosePreference" -ForegroundColor Green
-			[PSConsoleReadLine]::Ding()
+			[PSConsoleReadLine]::Ding() #>
+			
+			CycleValues $script:ActionPreferences ([ref]$global:VerbosePreference)
+			Write-Host "Verbose preference: $($global:VerbosePreference)" -NoNewline -ForegroundColor Yellow
+			[PSConsoleReadLine]::AcceptLine()
+
 		}
 	},
 	@{
@@ -835,14 +865,17 @@ function Get-ScoopPath {
 }
 
 @(
-	"$(Get-ScoopPath)\modules\scoop-completion",
-	$(Get-Command gsudo).Module.Path,
+	"$(Get-ScoopPath)\modules\scoop-completion\",
+	# $(Get-Command gsudo).Module.Path,
+	"gsudoModule",
 	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg",
 	#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg",
 	'Terminal-Icons',
 	'PoshFunctions'
 	# 'RoughDraft'
-) | ForEach-Object { Import-Module $_ }
+) | ForEach-Object {
+	Import-Module $_ 
+}
 
 $gsudoLoadProfile = $true
 $InVS2022 = $env:VSAPPIDNAME -eq 'devenv.exe'
@@ -864,7 +897,6 @@ Set-Alias ffplay ffplay.exe
 # Update-SessionEnvironment
 
 # oh-my-posh.exe completion powershell | Out-String | Invoke-Expression
-Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
 
 #C:\Users\Deci\deci.omp.json
 #(@(& 'C:/Users/Deci/scoop/apps/oh-my-posh/current/oh-my-posh.exe' init pwsh --config='' --print) -join "`n") | Invoke-Expression
@@ -907,3 +939,8 @@ $script:PYTHON_NAMEEXE = 'python.exe'
 # $P = $(Get-Command -Name $PYTHON_NAMEEXE -CommandType All) | Where-Object { $_.Path -cmatch '310' }
 Set-Alias python310 "C:\Users\Deci\AppData\Local\Programs\Python\Python310\python.exe" -Scope Global `
 	-Option None
+
+
+gh copilot alias pwsh | Out-String | Invoke-Expression
+
+Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
