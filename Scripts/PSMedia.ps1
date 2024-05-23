@@ -1,7 +1,7 @@
 #Requires -Module PSKantan
 #Requires -Module Get-MediaInfo
 
-function ConvertToTimeSpan([string]$time) {
+<# function ConvertToTimeSpan([string]$time) {
 	$timeParts = $time.Split(':')
 
 	if ($timeParts.Count -lt 1 -or $timeParts.Count -gt 3) {
@@ -33,9 +33,9 @@ function ConvertToTimeSpan([string]$time) {
 	$timeSpan = New-TimeSpan -Hours $hours -Minutes $minutes -Seconds $seconds -Milliseconds $milliseconds
 
 	return $timeSpan
-}
+} #>
 
-<# function ConvertToTimeSpan([string]$time) {
+function ConvertToTimeSpan([string]$time) {
 	$timeParts = $time.Split(':')
 
 
@@ -72,7 +72,7 @@ function ConvertToTimeSpan([string]$time) {
 
 	return $timeSpan
 }
- #>
+
 function Get-Duration {
 	param (
 		[Parameter(Mandatory = $true)]
@@ -111,15 +111,63 @@ function Get-Clip {
 		$cv = 'h264_nvenc',
 
 		[Parameter(Mandatory = $false)]
-		$Hwaccel = 'none',
+		$Hwaccel = $null,
 		
 		[Parameter(Mandatory = $false)]
-		$HwaccelOutput = 'none',
+		$HwaccelOutput = $null,
 
-		$Output
+		$Output,
+
+		[Parameter(Mandatory = $false)]
+		$Extra1,
+
+		[Parameter(Mandatory = $false)]
+		$Extra2
 	)
 	
+	<# $ffmpegArgs = @()
+
+	if ($Extra1) {
+		$ffmpegArgs += $Extra1
+	}
+
+	$ffmpegArgs += "-ss $Start"
+	$ffmpegArgs += "-i $File"
+
+	if ($dur) {
+		$ffmpegArgs += "-t $dur"
+	}
+
+	$ffmpegArgs += $cv ? "-c:v $cv" : $null
+	$ffmpegArgs += $Bitrate ? "-b:v $Bitrate" : $null
+
+	
+	
+	if ($Extra2) {
+		$ffmpegArgs += $Extra2
+	}
+	$ffmpegArgs += $Output
+
+	Write-Debug "$ffmpegArgs"
+	ffmpeg @ffmpegArgs #>
+
 	$dur = Get-Duration -Start $Start -End $End
 
-	ffmpeg -hwaccel $Hwaccel -hwaccel_output_format $HwaccelOutput -ss $Start -i $File -t $dur -c:v $cv -b:v $Bitrate $Output
+	<# if ($Hwaccel) {
+		$Extra1 += "-hwaccel $Hwaccel"
+	}
+	if ($HwaccelOutput) {
+		$Extra1 += "-hwaccel_output_format $HwaccelOutput"
+	}
+	
+	$Extra1 = [string]::Join(' ', $Extra1) #>
+
+	<# Write-Debug "$Extra1"
+	Write-Debug "$Extra2"
+	foreach ($arg in $PSBoundParameters.Keys) {
+		Write-Debug "$arg = $($PSBoundParameters[$arg])"
+	} #>
+	
+	ffmpeg -ss $Start -i $File -t $dur -c:v $cv -b:v $Bitrate $Output $Extra2
+	
 }

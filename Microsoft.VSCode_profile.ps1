@@ -941,6 +941,9 @@ Set-Alias python310 "C:\Users\Deci\AppData\Local\Programs\Python\Python310\pytho
 	-Option None
 
 
+
+
+gh completion -s powershell | Out-String | Invoke-Expression
 gh copilot alias pwsh | Out-String | Invoke-Expression
 
 Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
