@@ -71,16 +71,16 @@ function Prompt {
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
 	
-	$u = "$($PSStyle.Bold)$($PSStyle.Foreground.FromRgb(255,165,0))$user$($PSStyle.Reset)"
-	$c = "$($PSStyle.Italic)$($PSStyle.Foreground.BrightGreen)$cname$($PSStyle.Reset)"
-	$p = "$($PSStyle.Bold)$($PSStyle.Background.Blue)$ps$($PSStyle.Reset) "
+	$u = ($PSStyle.Bold, $CustomColors.DeepRed1, $user, $PSStyle.Reset) -join ''
+	$c = ($PSStyle.Italic, $CustomColors.LightGreen1, $cname, $PSStyle.Reset) -join ''
+	$p = ($PSStyle.Bold, $PSStyle.Background.Blue, $ps, $PSStyle.Reset) -join ''
 	# $f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
-	$f = "$($PSStyle.Italic)$($PSStyle.Foreground.Cyan)$cd$($PSStyle.Reset)"
+	$f = ($PSStyle.Italic, $PSStyle.Foreground.Cyan, $cd, $PSStyle.Reset) -join ''
 
-	$l = "$($PSStyle.Foreground.BrightYellow)$p1$($PSStyle.Reset)"
+	$l = ($PSStyle.Bold, $PSStyle.Foreground.BrightYellow, $p1, $PSStyle.Reset) -join ''
 	$d = " $(Get-Date -Format "yyyy-MM-dd @ HH:mm:ss") "
 
-	Write-Host $($p, $u, "@", $c, $d, $f, " $(U 0x27EB)", "`n", "$l") -NoNewline -Separator ''
+	Write-Host $($p, ' ', $u, "@", $c, $d, $f, " $(U 0x27EB)", "`n", "$l") -NoNewline -Separator ''
 
 	return ' '
 }
@@ -149,16 +149,16 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 # $esc = $([char]0x1b);
 
 
-$global:CustomColors = @(
-	$PSStyle.Foreground.FromRgb(106, 255, 106),
-	$PSStyle.Foreground.FromRgb(0xff, 0xff, 0),
-	$PSStyle.Foreground.FromRgb(118, 118, 118),
-	$PSStyle.Foreground.FromRgb(0xff, 0xff, 0xff),
-	$PSStyle.Foreground.FromRgb(234, 67, 54),
-	$PSStyle.Foreground.FromRgb(255, 134, 112),
-	$PSStyle.Foreground.FromRgb(121, 192, 255)
-
-)
+$global:CustomColors = @{
+	Green1      =	$PSStyle.Foreground.FromRgb(106, 255, 106)
+	Yellow1     =	$PSStyle.Foreground.FromRgb(0xff, 0xff, 0)
+	Gray1       =	$PSStyle.Foreground.FromRgb(118, 118, 118)
+	White1      =	$PSStyle.Foreground.FromRgb(0xff, 0xff, 0xff)
+	DeepRed1    =	$PSStyle.Foreground.FromRgb(234, 67, 54)
+	LightRed1   =	$PSStyle.Foreground.FromRgb(255, 134, 112)
+	LightCyan1  =	$PSStyle.Foreground.FromRgb(121, 192, 255)
+	LightGreen1 = $PSStyle.Foreground.FromRgb(216, 247, 121)
+}
 
 $PSROptions = @{
 	PredictionSource              = 'HistoryAndPlugin'
@@ -179,15 +179,15 @@ $PSROptions = @{
 
 	Colors                        = @{
 
-		Command                = $PSStyle.Bold + $global:CustomColors[1]
+		Command                = $PSStyle.Bold + $global:CustomColors.Yellow1
 		Comment                = $PSStyle.Foreground.Green
-		ContinuationPrompt     = $PSStyle.Blink + $global:CustomColors[0]
+		ContinuationPrompt     = $PSStyle.Blink + $global:CustomColors.Green1
 		Emphasis               = $PSStyle.Foreground.FromRgb(209, 143, 52)
 		Error                  = $PSStyle.Foreground.BrightRed
-		InlinePrediction       = $global:CustomColors[2]
+		InlinePrediction       = $global:CustomColors.Gray1
 		Keyword                = $PSStyle.Foreground.FromRgb(0, 135, 255) + $PSStyle.Bold
 		ListPrediction         = $PSStyle.Foreground.FromRgb(129, 134, 0)
-		ListPredictionSelected = $PSStyle.Background.FromRgb(28, 28, 28) + $PSStyle.Underline + $global:CustomColors[3]
+		ListPredictionSelected = $PSStyle.Background.FromRgb(28, 28, 28) + $PSStyle.Underline + $global:CustomColors.White1
 
 		Member                 = $PSStyle.Italic + $PSStyle.Foreground.FromRgb(0xc353c3)
 		Number                 = $PSStyle.Foreground.FromRgb(127, 186, 87)
@@ -806,7 +806,6 @@ Set-PSReadLineKeyHandler -Key "Alt+p" `
 
 #endregion
 
-$global:LoadTime = (Get-Date -Format $QDateFormat)
 
 # region 
 
@@ -945,5 +944,8 @@ Set-Alias python310 "C:\Users\Deci\AppData\Local\Programs\Python\Python310\pytho
 
 gh completion -s powershell | Out-String | Invoke-Expression
 gh copilot alias pwsh | Out-String | Invoke-Expression
+# pip completion --powershell | Out-String | Invoke-Expression
+
+$global:LoadTime = (Get-Date -Format $QDateFormat)
 
 Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
