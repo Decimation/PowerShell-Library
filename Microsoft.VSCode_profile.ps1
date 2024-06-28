@@ -771,6 +771,57 @@ Set-PSReadLineKeyHandler -Key "Alt+p" `
 	}
 }
 
+<# $global:CurCursor = 0
+Set-PSReadlineKeyHandler -Key Alt+x -ScriptBlock {
+	param($key, $arg)
+
+	# Get the current command line
+	$global:ast = $null
+	$global:tokens = $null
+	$global:errors = $null
+	$global:cursor = $null
+	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+
+	# Find the innermost command token
+	$innermostCommandToken = $tokens | Where-Object { $_.TokenFlags -band [TokenFlags]::CommandName } | Select-Object -Last 1
+
+	$innermostCommand = $innermostCommandToken.Extent.Text
+
+	# Write-Debug "$ast | $tokens | $errors | $cursor"
+	# Get the current cursor position
+	
+	$cmd = Get-Command -Name $innermostCommand -ErrorAction SilentlyContinue
+
+	if ($cmd) {
+		$parameters = $cmd.Parameters.Keys
+		$parameters = $parameters | Where-Object { $_ -notmatch '^-' }
+		$parameters = $parameters | Sort-Object
+
+		$selectedParameter = $parameters[0]
+		$selectedParameter = $selectedParameter -replace '^(-[^:]+).*', '$1'
+		$selectedParameter = $selectedParameter.Trim()
+
+		# Replace the current token with the selected parameter
+		$tokens[$innermostCommandToken.TokenIndex] = $selectedParameter
+
+		# Update the command line with the modified tokens
+		$newLine = $tokens -join ' '
+		[Microsoft.PowerShell.PSConsoleReadLine]::Setc($newLine, $cursor + ($selectedParameter.Length - $innermostCommand.Length), $null)
+		$global:CurCursor = $cursor + ($selectedParameter.Length - $innermostCommand.Length)
+	}
+	else {
+		[Microsoft.PowerShell.PSConsoleReadLine]::Ding()
+	}
+	# Split the command line into tokens
+	# $tokens = $line -split '\s+'
+	# $command = ($tokens | Where-Object { $_.TokenFlags -like 'CommandName' })
+	# $tok = ($tokens | Where-Object { $_.Text.Length -le $cursor })
+	# $tokenIndex = [Math]::Max(0, [Array]::IndexOf($tokens, $tok))
+	# $token = $tokens[$tokenIndex]
+	# Write-Debug "$ast | $tokens | $errors | $cursor | $command | $tok"
+
+}
+#>
 <# Set-PSReadLineKeyHandler -Chord 'Ctrl+\' -ScriptBlock {
 	param($key, $arg)
 	# [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
