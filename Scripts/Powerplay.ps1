@@ -26,12 +26,13 @@ function Get-NvConfig {
 $NvConfig = Get-NvConfig
 $HttpClient = New-Object System.Net.Http.HttpClient
 $NvEndpointInstantReplay = "ShadowPlay/v.1.0/InstantReplay/Enable"
+$NvEndpointShadowplayLaunch = '/ShadowPlay/v.1.0/Launch'
 
 # $BaseUri = "127.0.0.1:$($NvConfig.port)"
 
 
 
-function Build-Uri {
+function Build-NvUri {
 	param (
 		[Parameter(Mandatory = $false)]
 		$UriArgs = @{}
@@ -54,15 +55,23 @@ function Assert-NvConfig {
 	}
 }
 
-function Build-Request {
+function Build-NvRequest {
 	param (
 		[Parameter(Mandatory = $false)]
 		$RequestArgs = @{},
 		[Parameter(Mandatory = $false)]
-		$UriArgs = $null
+		$UriArgs = $null,
+		[Parameter(Mandatory = $false)]
+		$Content
 	)
 	
-	$UriArgs = Build-Uri $UriArgs
+	if ($Content) {
+		if ($Content -is [string]) {
+			$Content = [System.Net.Http.StringContent]$Content
+		}
+	}
+
+	$UriArgs = Build-NvUri $UriArgs
 
 	return Assert-NvConfig {
 		$ctor = @{
@@ -70,11 +79,12 @@ function Build-Request {
 		} + $RequestArgs
 		$request = [System.Net.Http.HttpRequestMessage] $ctor
 		$request.Headers.Add('X_LOCAL_SECURITY_COOKIE', $NvConfig.secret)
+		$request.Content = $Content
 		return $request
 	}
 }
 
-function Parse-Response {
+function Read-NvResponse {
 	param (
 		[System.Net.Http.HttpResponseMessage]$Response
 	)
@@ -85,10 +95,12 @@ function Parse-Response {
 
 function Get-NvInstantReplay {
 	
-	$req = Build-Request -RequestArgs @{Method = "Get" } -UriArgs @{Path = $NvEndpointInstantReplay }
+	$req = Build-NvRequest -RequestArgs @{Method = "Get" } `
+		-UriArgs @{Path = $NvEndpointInstantReplay }
+
 	$res = $HttpClient.Send($req)
 	Write-Debug "$res"
-	$res2 = Parse-Response $res
+	$res2 = Read-NvResponse $res
 	return $res2
 }
 
@@ -96,11 +108,42 @@ function Set-NvInstantReplay {
 	param (
 		$Status
 	)
-	$req = Build-Request -RequestArgs @{Method = "Post" } -UriArgs @{Path = $NvEndpointInstantReplay }
-	$req.Content = [System.Net.Http.StringContent]"{`"status`": $($Status.ToString().ToLower())}"
+	
+	$req = Build-NvRequest -RequestArgs @{Method = "Post" } `
+		-UriArgs @{Path = $NvEndpointInstantReplay } `
+		-Content "{`"status`": $($Status.ToString().ToLower())}"
+
 	Write-Debug "$req"
 	$res = $HttpClient.Send($req)
 	Write-Debug "$res"
-	$res2 = Parse-Response $res
+	$res2 = Read-NvResponse $res
+	return $res2
+}
+
+function Get-NvShadowplay {
+	
+	$req = Build-NvRequest -RequestArgs @{Method = "Get" } `
+		-UriArgs @{Path = $NvEndpointShadowplayLaunch }
+
+	$res = $HttpClient.Send($req)
+	Write-Debug "$res"
+	$res2 = Read-NvResponse $res
+	return $res2
+
+}
+
+function Set-NvShadowplay {
+	param (
+		$Status
+	)
+	
+	$req = Build-NvRequest -RequestArgs @{Method = "Post" } `
+		-UriArgs @{Path = $NvEndpointShadowplayLaunch } `
+		-Content "{`"launch`": $($Status.ToString().ToLower())}"
+
+	Write-Debug "$req"
+	$res = $HttpClient.Send($req)
+	Write-Debug "$res"
+	$res2 = Read-NvResponse $res
 	return $res2
 }
