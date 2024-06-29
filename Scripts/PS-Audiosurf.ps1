@@ -9,7 +9,7 @@ function Get-SongName {
 		[Parameter(Mandatory = $true)]
 		$Path,
 		$Seek = 15,
-		[switch]$DeleteTmp
+		[switch]$DeleteTmp = $true
 	)
 
 	
@@ -26,6 +26,7 @@ function Get-SongName {
 
 	$ocr = tesseract -l eng "$TmpFile" stdout 2>nul
 	$name = ($ocr -is [array] ? $ocr[-1] : $ocr) -replace '\s+', ' '
+	$name = ($name -split ': ')[-1] -replace '\s+', ' '
 	
 	$res = @{
 		Input = $Path
@@ -38,6 +39,7 @@ function Get-SongName {
 	$p.Kill()
 	$p.Dispose() #>
 	# Start-Process $TmpFile -Wait
+
 	if ($DeleteTmp) {
 		Remove-Item -Path $TmpFile -ErrorAction SilentlyContinue
 	}
@@ -70,13 +72,21 @@ function Get-SongNames {
 
 
 	$j = 0
+
+	Write-Progress -Activity "Processing" -Status "Running jobs" -PercentComplete 0
+
 	while ($j2 = Wait-Job -Any -Name "as_*") {
 		
-		$j2 | Receive-Job -AutoRemoveJob -Wait
-		Write-Progress -Activity "Processing" -Status "Received" -PercentComplete ($j++ / $i) `
-			-CurrentOperation "$output"
-	
+		
+		
+		$output = $j2 | Receive-Job -AutoRemoveJob -Wait
+		# Write-Progress -CurrentOperation "$output" -Id 1 -Activity "Processing"
+
+		Write-Progress -Activity "Processing" -Status "$output" -PercentComplete (($j++ / $jobs.Length) * 100.0)
+		$output
+		
 	}
 
+	Write-Progress -Activity "Processing" -Status "Completed" -Completed
 }
 
