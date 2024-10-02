@@ -11,8 +11,8 @@ using namespace Microsoft.PowerShell
 #>
 
 $global:PSROOT = "$HOME\Documents\PowerShell\"
-$global:PSModules = Join-Path $global:PSROOT "\Modules\"
-$global:PSScripts = Join-Path "$global:PSROOT" "\Scripts\"
+$global:PSModules = Join-Path $global:PSROOT '\Modules\'
+$global:PSScripts = Join-Path "$global:PSROOT" '\Scripts\'
 
 function Reload-Module {
 	param ($x)
@@ -65,8 +65,8 @@ function Prompt {
 	
 	$cd = Get-Location
 	# $p1 = ""
-	$p1 = ""
-	$ps = "PS"
+	$p1 = ''
+	$ps = 'PS'
 	# $p2 = "$(U 0x26a1)"
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
@@ -78,9 +78,14 @@ function Prompt {
 	$f = ($PSStyle.Italic, $PSStyle.Foreground.Cyan, $cd, $PSStyle.Reset) -join ''
 
 	$l = ($PSStyle.Bold, $PSStyle.Foreground.BrightYellow, $p1, $PSStyle.Reset) -join ''
-	$d = " $(Get-Date -Format "yyyy-MM-dd @ HH:mm:ss") "
+	$d = "$(Get-Date -Format 'yyyy-MM-dd @ HH:mm:ss')"
 
-	Write-Host $($p, ' ', $u, "@", $c, $d, $f, " $(U 0x27EB)", "`n", "$l") -NoNewline -Separator ''
+	$dc = $(U 0x27EB)
+	$s = "$p $u@$c 🕒 $d 📂 $f $dc`n$l"
+
+	# $s = Join-String -Separator ' ' -Values $p, $u, "@", $c, '🕒', $d, $f, "$(U 0x27EB)", "`n", "$l"
+	Write-Host $s -NoNewline -Separator ''
+	# Write-Host $($p, ' ', $u, "@", $c, '🕒', $d, $f, " $(U 0x27EB)", "`n", "$l") -NoNewline -Separator ''
 
 	return ' '
 }
@@ -133,7 +138,8 @@ $VerbosePreference = 'SilentlyContinue'
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Out-Default:OutVariable'] = '__'
 
-$PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
+#$PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::All
+# $PSModuleAutoLoadingPreference = [System.Management.Automation.PSModuleAutoLoadingPreference]::ModuleQualified
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automation.ActionPreference]) `
@@ -169,7 +175,7 @@ $PSROptions = @{
 	MaximumHistoryCount           = 10000
 	# MaximumHistoryCount           = 5000
 	# MaximumHistoryCount           = 1000
-	ContinuationPrompt            = " "
+	ContinuationPrompt            = ' '
 	WordDelimiters                = ";:,.[]{}()/\|^&*-=+'`"–—―@"
 	
 	AddToHistoryHandler           = {
@@ -223,6 +229,15 @@ function CycleValues {
 	
 }
 
+<# function CycleValues2 {
+	param (
+		[ref]$Var
+	)
+
+	CycleValues $Var ([ref]$Var)
+	Write-Host "Error action preference: $($Global:ErrorActionPreference)" -NoNewline -ForegroundColor Yellow
+	[PSConsoleReadLine]::AcceptLine()
+} #>
 
 $global:PSRKeyMap = @(
 	@{
@@ -237,10 +252,10 @@ $global:PSRKeyMap = @(
 			[PSConsoleReadLine]::MenuComplete()
 		} #>
 	}, 
-	@{
+	<# @{
 		Chord    = 'Ctrl+Tab'
 		Function = 'AcceptSuggestion'
-	}, 
+	},  #>
 	@{
 		Chord    = 'Ctrl+q'
 		Function = 'TabCompleteNext'
@@ -336,7 +351,7 @@ $global:PSRKeyMap = @(
 			[Microsoft.PowerShell.PSConsoleReadLine]::SelectShellForwardWord($null, $null)
 		}
 	},
-	@{
+	<# @{
 		# Character search
 		
 		Chord       = 'Alt+q'
@@ -354,7 +369,7 @@ $global:PSRKeyMap = @(
 			$global:CharBufferIndex++
 			[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
 		}
-	},
+	}, #>
 	@{
 		Chord    = 'Alt+f'
 		Function = 'AcceptSuggestion'
@@ -390,13 +405,16 @@ $global:PSRKeyMap = @(
 		Function = 'CharacterSearchBackward'
 	},
 	@{
+		Chord    = 'Alt+F3'
+		Function = 'RepeatLastCharSearch'
+	},
+	@{
+		Chord    = 'Shift+Alt+F3'
+		Function = 'RepeatLastCharSearchBackwards'
+	},
+	<# @{
 		Chord       = 'F6'
 		ScriptBlock = {
-			<# $idx = WrapNumber ($script:ActionPreferences.IndexOf($global:DebugPreference) + 1) ($script:ActionPreferences.Count)
-			$global:DebugPreference = $script:ActionPreferences[$idx]
-			[PSConsoleReadLine]::AcceptLine()
-			Write-Host "$global:DebugPreference" -ForegroundColor Green
-			[PSConsoleReadLine]::Ding() #>
 			
 			CycleValues $script:ActionPreferences ([ref]$global:DebugPreference)
 			Write-Host "Debug preference: $($global:DebugPreference)" -NoNewline -ForegroundColor Yellow
@@ -406,11 +424,6 @@ $global:PSRKeyMap = @(
 	@{
 		Chord       = 'F7'
 		ScriptBlock = {
-			<# $idx = WrapNumber ($script:ActionPreferences.IndexOf($global:ErrorActionPreference) + 1) ($script:ActionPreferences.Count)
-			$global:ErrorActionPreference = $script:ActionPreferences[$idx]
-			[PSConsoleReadLine]::AcceptLine()
-			Write-Host "$global:ErrorActionPreference" -ForegroundColor Green
-			[PSConsoleReadLine]::Ding() #>
 			CycleValues $script:ActionPreferences ([ref]$global:ErrorActionPreference)
 			Write-Host "Error action preference: $($Global:ErrorActionPreference)" -NoNewline -ForegroundColor Yellow
 			[PSConsoleReadLine]::AcceptLine()
@@ -419,26 +432,24 @@ $global:PSRKeyMap = @(
 	@{
 		Chord       = 'F8'
 		ScriptBlock = {
-			<# $idx = WrapNumber ($script:ActionPreferences.IndexOf($global:VerbosePreference) + 1) ($script:ActionPreferences.Count)
-			$global:VerbosePreference = $script:ActionPreferences[$idx]
-			[PSConsoleReadLine]::AcceptLine()
-			Write-Host "$global:VerbosePreference" -ForegroundColor Green
-			[PSConsoleReadLine]::Ding() #>
-			
 			CycleValues $script:ActionPreferences ([ref]$global:VerbosePreference)
 			Write-Host "Verbose preference: $($global:VerbosePreference)" -NoNewline -ForegroundColor Yellow
 			[PSConsoleReadLine]::AcceptLine()
 
 		}
-	},
+	}, #>
 	@{
+		Chord    = 'F9'
+		Function	= 'AddLine'
+	},
+	<# @{
 		Chord    = 'F4'
 		Function = 'RepeatLastCharSearch'
 	},
 	@{
 		Chord    = 'Shift+F4'
 		Function = 'RepeatLastCharSearchBackwards'
-	},
+	}, #>
 	@{
 		Chord    = 'Ctrl+f'
 		Function = 'ForwardWord'
@@ -452,6 +463,14 @@ $global:PSRKeyMap = @(
 		ScriptBlock = {
 			Invoke-GuiCompletion
 		}
+	},
+	@{
+		Chord    = 'Ctrl+s'
+		Function = 'ForwardSearchHistory'
+	},
+	@{
+		Chord    = 'Ctrl+r'
+		Function = 'ReverseSearchHistory'
 	}
 	<# ,
 	@{
@@ -721,9 +740,9 @@ Set-PSReadLineKeyHandler -Key Backspace `
 } #>
 
 # This example will replace any aliases on the command line with the resolved commands.
-Set-PSReadLineKeyHandler -Key "Alt+p" `
+Set-PSReadLineKeyHandler -Key 'Alt+p' `
 	-BriefDescription ExpandAliases `
-	-LongDescription "Replace all aliases with the full command" `
+	-LongDescription 'Replace all aliases with the full command' `
 	-ScriptBlock {
 	param($key, $arg)
 
@@ -917,12 +936,19 @@ function Get-ScoopPath {
 @(
 	"$(Get-ScoopPath)\modules\scoop-completion\",
 	# $(Get-Command gsudo).Module.Path,
-	"gsudoModule",
+	'gsudoModule',
 	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg",
 	#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg",
 	'Terminal-Icons',
 	'PoshFunctions'
-	# 'RoughDraft'
+	# 'RoughDraft',
+	'Microsoft.WinGet.CommandNotFound'
+	# 'CompletionPredictor'
+
+	#f45873b3-b655-43a6-b217-97c00aa0db58 PowerToys CommandNotFound module
+
+	#f45873b3-b655-43a6-b217-97c00aa0db58
+
 ) | ForEach-Object {
 	Import-Module $_ 
 }
@@ -984,13 +1010,11 @@ $pythonExe | ForEach-Object {
 
 } #>
 
-$script:PYTHON_NAME = 'python'
+<# $script:PYTHON_NAME = 'python'
 $script:PYTHON_NAMEEXE = 'python.exe'
 # $P = $(Get-Command -Name $PYTHON_NAMEEXE -CommandType All) | Where-Object { $_.Path -cmatch '310' }
 Set-Alias python310 "C:\Users\Deci\AppData\Local\Programs\Python\Python310\python.exe" -Scope Global `
-	-Option None
-
-
+	-Option None #>
 
 
 gh completion -s powershell | Out-String | Invoke-Expression
@@ -1000,3 +1024,14 @@ gh copilot alias pwsh | Out-String | Invoke-Expression
 $global:LoadTime = (Get-Date -Format $QDateFormat)
 
 Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
+
+# Import the Chocolatey Profile that contains the necessary code to enable
+# tab-completions to function for `choco`.
+# Be aware that if you are missing these lines from your profile, tab completion
+# for `choco` will not function.
+# See https://ch0.co/tab-completion for details.
+$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+if (Test-Path($ChocolateyProfile)) {
+	Import-Module "$ChocolateyProfile"
+}
+

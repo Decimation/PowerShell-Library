@@ -6,5 +6,4 @@ xcopy "$env:APPDATA\..\LocalLow\MCC\Temporary\UserContent\*.*" "E:\Recording\Hal
 
 Write-Host "Done"
 
-
 Start-Sleep -Seconds 3
