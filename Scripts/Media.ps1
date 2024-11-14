@@ -1,6 +1,6 @@
 
 
-function Compress-Item {
+function Compress-Image {
 	param (
 		[Parameter(Mandatory = $true)]
 		$f,
@@ -11,11 +11,11 @@ function Compress-Item {
 	)
 	
 	magick convert -filter Triangle -define filter:support=2 `
-		   -unsharp 0.25x0.08+8.3+0.045 -dither None `
-		   -posterize 136 -quality $q -define png:compression-filter=5 `
-		   -define png:compression-level=9 `
-		   -define png:compression-strategy=1 -define png:exclude-chunk=all `
-		   -interlace none -colorspace sRGB $f $f2
+		-unsharp 0.25x0.08+8.3+0.045 -dither None `
+		-posterize 136 -quality $q -define png:compression-filter=5 `
+		-define png:compression-level=9 `
+		-define png:compression-strategy=1 -define png:exclude-chunk=all `
+		-interlace none -colorspace sRGB $f $f2
 }
 
 function Get-ConcatVideo {
@@ -47,4 +47,19 @@ function Get-Clip {
 	$tStr = [string]$t
 	
 	ffmpeg -ss $startStr -i $i -t $tStr $o
+}
+
+
+function Extract-Audio {
+	param (
+		$Item
+	)
+	
+	$ItemName = $Item -split '\.' | Select-Object -Index 0
+
+	ffmpeg -hwaccel 'cuda' `
+		-hwaccel_output_format 'cuda' `
+		-i $Item `
+		-vn -c:a copy -y `
+		"$($ItemName).aac"
 }

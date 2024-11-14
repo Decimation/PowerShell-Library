@@ -2,10 +2,6 @@ using namespace System.Management.Automation.Language
 using namespace Microsoft.PowerShell
 
 
-[console]::InputEncoding = `
-	[console]::OutputEncoding = `
-	[System.Text.UTF8Encoding]::new()
-
 <#
 # Profile
 #>
@@ -13,6 +9,10 @@ using namespace Microsoft.PowerShell
 $global:PSROOT = "$HOME\Documents\PowerShell\"
 $global:PSModules = Join-Path $global:PSROOT '\Modules\'
 $global:PSScripts = Join-Path "$global:PSROOT" '\Scripts\'
+
+[console]::InputEncoding = `
+	[console]::OutputEncoding = `
+	[System.Text.UTF8Encoding]::new()
 
 function Reload-Module {
 	param ($x)
@@ -61,27 +61,85 @@ New-Module {
 	}
 } | Import-Module
 
+# region Terminal
+
+$InVS2022 = $env:VSAPPIDNAME -eq 'devenv.exe'
+$InVSCode = $env:TERM_PROGRAM -eq 'vscode'
+$InDocker = $env:TERM_PROGRAM -match 'docker'
+
+# endregion
+
+
+# region Glyphs
+
+$global:UNI_BOLT = ''
+$global:UNI_DC = $(U 0x27EB)
+
+
+$global:TI_VS = ""
+$global:TI_VSCode = '󰨞'
+$global:TI_Pwsh = ''
+$global:TI_Docker = ''
+$global:TI_Terminal = ''
+$global:TI_Clock = "`u{f1441}"
+$global:TI_Folder = "`u{f0770}"
+
+
+$global:EMO_CLOCK = "🕒"
+$global:EMO_FOLDER = "📂"
+
+# endregion
+
+function Get-TerminalIconGlyphForEnv {
+	param (
+		$Name = $env:TERM_PROGRAM
+	)
+	
+	$glyph = switch ($Name) {
+		'vscode' {
+			$global:TI_VSCode
+			break
+		}
+		'docker_desktop' {
+			$global:TI_Docker
+			break
+		}
+		'devenv.exe' {
+			$global:TI_VS
+			break
+		}
+		Default {
+			$global:TI_Terminal
+		}
+	}
+
+	return $glyph
+}
+
 function Prompt {
 	
 	$cd = Get-Location
 	# $p1 = ""
-	$p1 = ''
-	$ps = 'PS'
+	$ico = Get-TerminalIconGlyphForEnv
+	$ps = $ico ?? 'PS'
 	# $p2 = "$(U 0x26a1)"
 	$user = $env:USERNAME
 	$cname = $env:COMPUTERNAME
 	
+
 	$u = ($PSStyle.Bold, $CustomColors.DeepRed1, $user, $PSStyle.Reset) -join ''
 	$c = ($PSStyle.Italic, $CustomColors.LightGreen1, $cname, $PSStyle.Reset) -join ''
+	# $p = ($PSStyle.Bold, $PSStyle.Background.Blue, $ps, $PSStyle.Reset) -join ''
 	$p = ($PSStyle.Bold, $PSStyle.Background.Blue, $ps, $PSStyle.Reset) -join ''
+
 	# $f = Text "`e[4m$cd$ANSI_END" -ForegroundColor 'cyan'
 	$f = ($PSStyle.Italic, $PSStyle.Foreground.Cyan, $cd, $PSStyle.Reset) -join ''
+	# $f = $PSStyle.Italic + $PSStyle.Foreground.Cyan + $cd + $PSStyle.Reset
 
-	$l = ($PSStyle.Bold, $PSStyle.Foreground.BrightYellow, $p1, $PSStyle.Reset) -join ''
+	$l = ($PSStyle.Bold, $PSStyle.Foreground.BrightYellow, $global:UNI_BOLT, $PSStyle.Reset) -join ''
 	$d = "$(Get-Date -Format 'yyyy-MM-dd @ HH:mm:ss')"
 
-	$dc = $(U 0x27EB)
-	$s = "$p $u@$c 🕒 $d 📂 $f $dc`n$l"
+	$s = "$p $u@$c $EMO_Clock $d $EMO_Folder $f $($global:UNI_DC)`n$l"
 
 	# $s = Join-String -Separator ' ' -Values $p, $u, "@", $c, '🕒', $d, $f, "$(U 0x27EB)", "`n", "$l"
 	Write-Host $s -NoNewline -Separator ''
@@ -122,8 +180,8 @@ $private:ReloadThis = [string] {
 	Reload-Module PSKantan
 }
 
-#Note: ie $qr	| Re-imports profile and PSKantan
-#Note: ie $qr2	| Re-imports profile, removes PSKantan and then re-imports it
+# Note: ie $qr	| Re-imports profile and PSKantan
+# Note: ie $qr2	| Re-imports profile, removes PSKantan and then re-imports it
 
 $script:qr = ".`$PROFILE; $ImportThis"
 $script:qr2 = ".`$PROFILE; $ReloadThis"
@@ -153,7 +211,6 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 #region Keys
 
 # $esc = $([char]0x1b);
-
 
 $global:CustomColors = @{
 	Green1      =	$PSStyle.Foreground.FromRgb(106, 255, 106)
@@ -472,47 +529,7 @@ $global:PSRKeyMap = @(
 		Chord    = 'Ctrl+r'
 		Function = 'ReverseSearchHistory'
 	}
-	<# ,
-	@{
-		Chord    = 'F5'
-		ScriptBlock={
-			$line = $null
-			$cursor = $null
-			$ast=$null
-			[Token[]]$tok=$null
-			[ParseError[]]$pe=$null
-			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast,[ref]$tok,[ref]$pe, [ref]$cursor)
-
-			#([ref] System.Management.Automation.Language.Ast ast, [ref] System.Management.Automation.Language.Token[] tokens, [ref] System.Management.Automation.Language.ParseError[] parseErrors, [ref] int cursor)
-			
-
-			# $ls=$line.Substring($cursor).Split(' ')
-
-			# $ls|%{
-
-			# 	$c = (Get-Command -Type All $_)
-				
-			# 	if ($c) {
-			# 		Write-Debug "$($global:CharBufferIndex) | $_ | $line | $cursor | $c"
-			# 		$global:CharBufferIndex =$line.IndexOf($_,$global:CharBufferIndex)
-			# 		[PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
-			# 		[PSConsoleReadLine]::SelectShellForwardWord($null, $null)
-			# 		$global:CharBufferIndex+=$_.Length
-			# 	}
-			# }
-			Write-Debug "$cursor"
-			$tok|%{Write-Debug "$_"}
-
-			$tok|%{
-				$c=Get-Command -Type All $_
-				if ($c) {
-					$global:CharBufferIndex = $line.IndexOf($_, $global:CharBufferIndex)
-					[PSConsoleReadLine]::SetCursorPosition($global:CharBufferIndex)
-					[PSConsoleReadLine]::SelectShellForwardWord($null, $null)
-				}
-			}
-		}
-	} #>
+	
 ) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
 
 $global:CharBufferIndex = 0
@@ -698,47 +715,6 @@ Set-PSReadLineKeyHandler -Key Backspace `
 }
 
 
-
-<# Set-PSReadLineKeyHandler -Key "Alt+c" `
-	-ScriptBlock {
-	param($key, $arg)
-
-	$ast = $null
-	$tokens = $null
-	$errors = $null
-	$cursor = $null
-	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
-
-	$startAdjustment = 0
-	foreach ($token in $tokens) {
-		# Write-Verbose "$token | $($token.TokenFlags)"
-		if ($token.TokenFlags -band [TokenFlags]::CommandName) {
-			$extent = $token.Extent
-			
-			$length = $extent.EndOffset - $extent.StartOffset
-
-			[PSConsoleReadLine]::SetCursorPosition($token.Extent.StartOffset)
-			[PSConsoleReadLine]::SelectForwardWord($null, $null)
-			
-			$l = $null
-			$c = $null
-			[PSConsoleReadLine]::GetBufferState([ref]$l, [ref]$c);
-			
-			if ($sz -ne $token.Text) {
-				$s = $null
-				$li = $null
-				[PSConsoleReadLine]::GetSelectionState([ref]$s, [ref]$li)
-				[PSConsoleReadLine]::SelectForwardWord($null, $null)
-				$sz = $l[$s..$li]
-				Write-Verbose "`n$length $c $l $s $li $sz"
-				
-			}
-
-
-		}
-	}
-} #>
-
 # This example will replace any aliases on the command line with the resolved commands.
 Set-PSReadLineKeyHandler -Key 'Alt+p' `
 	-BriefDescription ExpandAliases `
@@ -789,90 +765,6 @@ Set-PSReadLineKeyHandler -Key 'Alt+p' `
 		} #>
 	}
 }
-
-<# $global:CurCursor = 0
-Set-PSReadlineKeyHandler -Key Alt+x -ScriptBlock {
-	param($key, $arg)
-
-	# Get the current command line
-	$global:ast = $null
-	$global:tokens = $null
-	$global:errors = $null
-	$global:cursor = $null
-	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
-
-	# Find the innermost command token
-	$innermostCommandToken = $tokens | Where-Object { $_.TokenFlags -band [TokenFlags]::CommandName } | Select-Object -Last 1
-
-	$innermostCommand = $innermostCommandToken.Extent.Text
-
-	# Write-Debug "$ast | $tokens | $errors | $cursor"
-	# Get the current cursor position
-	
-	$cmd = Get-Command -Name $innermostCommand -ErrorAction SilentlyContinue
-
-	if ($cmd) {
-		$parameters = $cmd.Parameters.Keys
-		$parameters = $parameters | Where-Object { $_ -notmatch '^-' }
-		$parameters = $parameters | Sort-Object
-
-		$selectedParameter = $parameters[0]
-		$selectedParameter = $selectedParameter -replace '^(-[^:]+).*', '$1'
-		$selectedParameter = $selectedParameter.Trim()
-
-		# Replace the current token with the selected parameter
-		$tokens[$innermostCommandToken.TokenIndex] = $selectedParameter
-
-		# Update the command line with the modified tokens
-		$newLine = $tokens -join ' '
-		[Microsoft.PowerShell.PSConsoleReadLine]::Setc($newLine, $cursor + ($selectedParameter.Length - $innermostCommand.Length), $null)
-		$global:CurCursor = $cursor + ($selectedParameter.Length - $innermostCommand.Length)
-	}
-	else {
-		[Microsoft.PowerShell.PSConsoleReadLine]::Ding()
-	}
-	# Split the command line into tokens
-	# $tokens = $line -split '\s+'
-	# $command = ($tokens | Where-Object { $_.TokenFlags -like 'CommandName' })
-	# $tok = ($tokens | Where-Object { $_.Text.Length -le $cursor })
-	# $tokenIndex = [Math]::Max(0, [Array]::IndexOf($tokens, $tok))
-	# $token = $tokens[$tokenIndex]
-	# Write-Debug "$ast | $tokens | $errors | $cursor | $command | $tok"
-
-}
-#>
-<# Set-PSReadLineKeyHandler -Chord 'Ctrl+\' -ScriptBlock {
-	param($key, $arg)
-	# [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition(0)
-	
-	$ast = $null
-	$tokens = $null
-	$errors = $null
-	$cursor = $null
-	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
-
-	# Write-Debug "$ast | $tokens | $errors | $cursor"
-
-	# Identify the token at the cursor position
-	$selectedToken = $tokens | Where-Object { 
-		
-		($cursor -ge $_.Extent.StartOffset -and $cursor -le $_.Extent.EndOffset) `
-			-and ($_.TokenFlags -band [TokenFlags]::CommandName)
-	}
-
-	# Select the token (highlight it, for example)
-	# This is a placeholder action; you can customize what you want to do with the selected token
-	if ($selectedToken -ne $null) {
-		#Write-Host "Selected Token: $($selectedToken)" -ForegroundColor Cyan
-	}
-	
-	[Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($selectedToken.Extent.StartOffset + $cursor)
-	# $nextToken = $tokens | Where-Object { $_ -eq $selectedToken } | Select-Object -Skip 1 -First 1
-
-    # # Move the cursor to the next token's start position
-    # if ($nextToken -ne $null) {
-    # }
-} #>
 
 #endregion
 
@@ -953,18 +845,27 @@ function Get-ScoopPath {
 	Import-Module $_ 
 }
 
-$gsudoLoadProfile = $true
-$InVS2022 = $env:VSAPPIDNAME -eq 'devenv.exe'
-$InVSCode = $env:TERM_PROGRAM -eq 'vscode'
 
-if ($InVS2022) {
+# Import the Chocolatey Profile that contains the necessary code to enable
+# tab-completions to function for `choco`.
+# Be aware that if you are missing these lines from your profile, tab completion
+# for `choco` will not function.
+# See https://ch0.co/tab-completion for details.
+$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+if (Test-Path($ChocolateyProfile)) {
+	Import-Module "$ChocolateyProfile"
+}
+
+$gsudoLoadProfile = $true
+
+
+<# if ($InVS2022) {
 	Write-Debug "$($PSStyle.Foreground.BrightCyan)In VS2022 terminal$($PSStyle.Reset)"
 }
 if ($InVSCode) {
 	Write-Debug "$($PSStyle.Foreground.BrightCyan)In VS Code terminal$($PSStyle.Reset)"
-	
 }
-
+ #>
 
 Set-Alias ffmpeg ffmpeg.exe
 Set-Alias ffprobe ffprobe.exe
@@ -1021,17 +922,6 @@ gh completion -s powershell | Out-String | Invoke-Expression
 gh copilot alias pwsh | Out-String | Invoke-Expression
 # pip completion --powershell | Out-String | Invoke-Expression
 
+
 $global:LoadTime = (Get-Date -Format $QDateFormat)
-
 Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
-
-# Import the Chocolatey Profile that contains the necessary code to enable
-# tab-completions to function for `choco`.
-# Be aware that if you are missing these lines from your profile, tab completion
-# for `choco` will not function.
-# See https://ch0.co/tab-completion for details.
-$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-	Import-Module "$ChocolateyProfile"
-}
-
