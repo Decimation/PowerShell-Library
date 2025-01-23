@@ -223,6 +223,8 @@ $global:CustomColors = @{
 	LightGreen1 = $PSStyle.Foreground.FromRgb(216, 247, 121)
 }
 
+# region PSReadline options
+
 $PSROptions = @{
 	PredictionSource              = 'HistoryAndPlugin'
 	HistorySearchCursorMovesToEnd = $true
@@ -263,8 +265,11 @@ $PSROptions = @{
 	}
 	
 }
+
+
 # Set-PSReadLineKeyHandler
 Set-PSReadLineOption @PSROptions
+
 
 function Get-BufferState {
 	$line = $null
@@ -295,6 +300,31 @@ function CycleValues {
 	Write-Host "Error action preference: $($Global:ErrorActionPreference)" -NoNewline -ForegroundColor Yellow
 	[PSConsoleReadLine]::AcceptLine()
 } #>
+
+function Get-NearestCommand {
+	param (
+		[int]$Direction = 1
+	)
+
+	$line = $null
+	$cursor = $null
+	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+	# $historyItems = [Microsoft.PowerShell.PSConsoleReadLine]::GetHistoryItems()
+	# $nextCommand = $historyItems[$Direction]
+
+	# $tokens = [System.Management.Automation.PSParser]::Tokenize($line, [ref]$null)
+	# $commandTokens = $tokens | Where-Object { $_.Type -eq 'Command' }
+
+
+	$ast = [System.Management.Automation.Language.Parser]::ParseInput($line, [ref]$null, [ref]$null)
+	$commandAsts = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true)
+
+
+	return $commandAsts[0]
+}
+
+# region PSReadline key bindings
 
 $global:PSRKeyMap = @(
 	@{
@@ -450,6 +480,16 @@ $global:PSRKeyMap = @(
 		}
 	},
 	@{
+		Chord       = 'Alt+F1'
+		ScriptBlock = {
+			$cmd = Get-NearestCommand -Direction 1
+			# $cmdVal = $cmd.CommandLine
+			# Write-Debug "$cmd"
+			$cmdObj = Get-Command $($cmd.CommandElements[0].Value)
+			Get-Help -Name $cmdObj.Name -Online
+		}
+	},
+	@{
 		Chord    = 'F2'
 		Function = 'SwitchPredictionView'
 	}, 
@@ -532,6 +572,8 @@ $global:PSRKeyMap = @(
 	
 ) | ForEach-Object { Set-PSReadLineKeyHandler @_ }
 
+# endregion
+
 $global:CharBufferIndex = 0
 
 #region Smart Insert/Delete
@@ -541,13 +583,17 @@ function FindToken {
 	param($tokens, $cursor)
 
 	foreach ($token in $tokens) {
-		if ($cursor -lt $token.Extent.StartOffset) { continue }
+		if ($cursor -lt $token.Extent.StartOffset) {
+			continue 
+  }
 		if ($cursor -lt $token.Extent.EndOffset) {
 			$result = $token
 			$token = $token -as [StringExpandableToken]
 			if ($token) {
 				$nested = FindToken $token.NestedTokens $cursor
-				if ($nested) { $result = $nested }
+				if ($nested) {
+					$result = $nested 
+    }
 			}
 
 			return $result
@@ -640,9 +686,15 @@ Set-PSReadLineKeyHandler -Key '(', '{', '[' `
 	param($key, $arg)
 
 	$closeChar = switch ($key.KeyChar) {
-		<#case#> '(' { [char]')'; break }
-		<#case#> '{' { [char]'}'; break }
-		<#case#> '[' { [char]']'; break }
+		<#case#> '(' {
+			[char]')'; break 
+  }
+		<#case#> '{' {
+			[char]'}'; break 
+  }
+		<#case#> '[' {
+			[char]']'; break 
+  }
 	}
 
 	$selectionStart = $null
@@ -697,11 +749,21 @@ Set-PSReadLineKeyHandler -Key Backspace `
 		$toMatch = $null
 		if ($cursor -lt $line.Length) {
 			switch ($line[$cursor]) {
-				<#case#> '"' { $toMatch = '"'; break }
-				<#case#> "'" { $toMatch = "'"; break }
-				<#case#> ')' { $toMatch = '('; break }
-				<#case#> ']' { $toMatch = '['; break }
-				<#case#> '}' { $toMatch = '{'; break }
+				<#case#> '"' {
+					$toMatch = '"'; break 
+    }
+				<#case#> "'" {
+					$toMatch = "'"; break 
+    }
+				<#case#> ')' {
+					$toMatch = '('; break 
+    }
+				<#case#> ']' {
+					$toMatch = '['; break 
+    }
+				<#case#> '}' {
+					$toMatch = '{'; break 
+    }
 			}
 		}
 
@@ -767,6 +829,8 @@ Set-PSReadLineKeyHandler -Key 'Alt+p' `
 }
 
 #endregion
+
+# endregion
 
 
 # region 

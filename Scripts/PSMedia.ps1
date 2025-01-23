@@ -72,7 +72,17 @@ function ConvertToTimeSpan([string]$time) {
 
 	return $timeSpan
 }
+function Format-TimeSpan {
+	param (
+		[Parameter(Mandatory = $true)]
+		[TimeSpan]$TimeSpan
+	)
 
+	$totalSeconds = [math]::Floor($TimeSpan.TotalSeconds)
+	$milliseconds = $TimeSpan.Milliseconds
+
+	return "{0}.{1:D3}" -f $totalSeconds, $milliseconds
+}
 function Get-Duration {
 	param (
 		[Parameter(Mandatory = $true)]
@@ -151,7 +161,7 @@ function Get-Clip {
 	Write-Debug "$ffmpegArgs"
 	ffmpeg @ffmpegArgs #>
 
-	$dur = Get-Duration -Start $Start -End $End
+	$dur = Format-TimeSpan (Get-Duration -Start $Start -End $End)
 
 	<# if ($Hwaccel) {
 		$Extra1 += "-hwaccel $Hwaccel"
@@ -168,6 +178,42 @@ function Get-Clip {
 		Write-Debug "$arg = $($PSBoundParameters[$arg])"
 	} #>
 	
-	ffmpeg -ss $Start -i $File -t $dur -c:v $cv -b:v $Bitrate $Output $Extra2
+	$ffmpegArgs = Convert-HashtableToSplat @{
+		'-ss'                    = $Start
+		'-hwaccel'               = $Hwaccel
+		'-hwaccel_output_format' = $HwaccelOutput
+		'-i'                     = "$File"
+		'-t'                     = $dur
+		'-c:v'                   = $cv
+		'-b:v'                   = $Bitrate
+		''                       = @($Output, $Extra2)
+
+	}
 	
+	Write-Debug "$ffmpegArgs"
+
+	
+	Start-Process -FilePath 'ffmpeg' -ArgumentList $ffmpegArgs -Wait -NoNewWindow
+	
+}
+
+function Get-Clip2 {
+	param (
+		[Parameter(Mandatory = $true)]
+		$InputVideo,
+		[Parameter(Mandatory = $true)]
+		$OutputVideo,
+
+		[Parameter(Mandatory=$false)]
+		$Start = '00:00:00',
+		[Parameter(Mandatory = $false)]
+		$End
+	)
+
+	$dur = Format-TimeSpan (Get-Duration -Start $Start -End $End)
+
+	ffmpeg.exe -ss $Start -i "$InputVideo" -c:v h264_nvenc -rc cqp -qp_i 15 -g 0 -preset slow -tune hq `
+		-profile:v high -look_ahead 1 -spatial_aq 1 -multipass 2 -bf 4 `
+		-c:a aac -f matroska -t $dur "$OutputVideo"
+
 }

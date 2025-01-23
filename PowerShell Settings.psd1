@@ -10,13 +10,13 @@
 		'PSUseApprovedVerbs', 
 		'PSReviewUnusedParameter', 
 		'PSAvoidGlobalVars',
-		# 'PSUseShouldProcessForStateChangingFunctions', 
+		'PSUseShouldProcessForStateChangingFunctions', 
 		'PSUseSingularNouns', 
 		'PSAvoidUsingInvokeExpression',
 		'PSAvoidUsingPositionalParameters', 
-		'PSUseApprovedVerbs',
 		'PSAvoidTrailingWhitespace'
 		# 'PSPossibleIncorrectComparisonWithNull', 
-		# 'PSShouldProcess'
+		'PSShouldProcess',
+		'PSUseDeclaredVarsMoreThanAssigments'
 	)
 }
