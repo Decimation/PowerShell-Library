@@ -15,8 +15,9 @@
 		'PSAvoidUsingInvokeExpression',
 		'PSAvoidUsingPositionalParameters', 
 		'PSAvoidTrailingWhitespace'
+		'PSUseDeclaredVarsMoreThanAssigments',
 		# 'PSPossibleIncorrectComparisonWithNull', 
 		'PSShouldProcess',
-		'PSUseDeclaredVarsMoreThanAssigments'
+		'PSUseDeclaredVarsMoreThanAssignments'
 	)
 }

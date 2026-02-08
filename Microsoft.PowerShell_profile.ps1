@@ -1,6 +1,8 @@
 using namespace System.Management.Automation.Language
 using namespace Microsoft.PowerShell
+using namespace System.Diagnostics.CodeAnalysis
 
+[SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', $null, Justification = 'Reason for suppressing', Scope = 'Script')]
 
 <#
 # Profile
@@ -10,9 +12,9 @@ $global:PSROOT = "$HOME\Documents\PowerShell\"
 $global:PSModules = Join-Path $global:PSROOT '\Modules\'
 $global:PSScripts = Join-Path "$global:PSROOT" '\Scripts\'
 
-[console]::InputEncoding = `
+<# [console]::InputEncoding = `
 	[console]::OutputEncoding = `
-	[System.Text.UTF8Encoding]::new()
+	[System.Text.UTF8Encoding]::new() #>
 
 function Reload-Module {
 	param ($x)
@@ -21,9 +23,9 @@ function Reload-Module {
 }
 
 Import-Module -DisableNameChecking PSKantan
-Import-Module -Name GuiCompletion
+# Import-Module -Name GuiCompletion
 
-$global:GuiCompletionConfig.Colors = @{
+<# $global:GuiCompletionConfig.Colors = @{
 	Background        = [System.ConsoleColor]::DarkGray
 	Foreground        = [System.ConsoleColor]::White
 	TextColor         = [System.ConsoleColor]::White
@@ -36,7 +38,7 @@ $global:GuiCompletionConfig.Colors = @{
 	FilterColor       = [System.ConsoleColor]::DarkYellow
 }
 
-$global:GuiCompletionConfig.MinimumTextWidth = 50
+$global:GuiCompletionConfig.MinimumTextWidth = 50 #>
 
 # https://stackoverflow.com/questions/46528262/is-there-any-way-for-a-powershell-module-to-get-at-its-callers-scope
 	
@@ -63,17 +65,17 @@ New-Module {
 
 # region Terminal
 
-$InVS2022 = $env:VSAPPIDNAME -eq 'devenv.exe'
+$InVSTerm = $env:VSAPPIDNAME -eq 'devenv.exe'
 $InVSCode = $env:TERM_PROGRAM -eq 'vscode'
 $InDocker = $env:TERM_PROGRAM -match 'docker'
 
 # endregion
 
-
 # region Glyphs
 
 $global:UNI_BOLT = ''
-$global:UNI_DC = $(U 0x27EB)
+$global:UNI_GRN = '🟢'
+$global:UNI_DC = '⟫'
 
 
 $global:TI_VS = ""
@@ -83,7 +85,7 @@ $global:TI_Docker = ''
 $global:TI_Terminal = ''
 $global:TI_Clock = "`u{f1441}"
 $global:TI_Folder = "`u{f0770}"
-
+$global:TI_Bolt = "`u{f140b}"
 
 $global:EMO_CLOCK = "🕒"
 $global:EMO_FOLDER = "📂"
@@ -108,7 +110,7 @@ function Get-TerminalIconGlyphForEnv {
 			$global:TI_VS
 			break
 		}
-		Default {
+		default {
 			$global:TI_Terminal
 		}
 	}
@@ -169,7 +171,6 @@ Set-Alias -Name kill -Value kill.exe
 Set-Alias ^ Select-Object
 Set-Alias ~ Select-String
 
-
 # endregion
 
 $private:ImportThis = [string] {
@@ -213,14 +214,17 @@ $script:ActionPreferences = [System.Enum]::GetValues([System.Management.Automati
 # $esc = $([char]0x1b);
 
 $global:CustomColors = @{
-	Green1      =	$PSStyle.Foreground.FromRgb(106, 255, 106)
-	Yellow1     =	$PSStyle.Foreground.FromRgb(0xff, 0xff, 0)
-	Gray1       =	$PSStyle.Foreground.FromRgb(118, 118, 118)
-	White1      =	$PSStyle.Foreground.FromRgb(0xff, 0xff, 0xff)
-	DeepRed1    =	$PSStyle.Foreground.FromRgb(234, 67, 54)
-	LightRed1   =	$PSStyle.Foreground.FromRgb(255, 134, 112)
-	LightCyan1  =	$PSStyle.Foreground.FromRgb(121, 192, 255)
+	Green1      = $PSStyle.Foreground.FromRgb(106, 255, 106)
+	Yellow1     = $PSStyle.Foreground.FromRgb(0xff, 0xff, 0)
+	Gray1       = $PSStyle.Foreground.FromRgb(118, 118, 118)
+	White1      = $PSStyle.Foreground.FromRgb(0xff, 0xff, 0xff)
+	DeepRed1    = $PSStyle.Foreground.FromRgb(234, 67, 54)
+	LightRed1   = $PSStyle.Foreground.FromRgb(255, 134, 112)
+	LightCyan1  = $PSStyle.Foreground.FromRgb(121, 192, 255)
 	LightGreen1 = $PSStyle.Foreground.FromRgb(216, 247, 121)
+	Tan1        = $PSStyle.Foreground.FromRgb(210, 180, 140)
+	Pink1       = $PSStyle.Foreground.FromRgb(0xc353c3)
+	Teal1       = $PSStyle.Foreground.FromRgb(0xADD8E6)
 }
 
 # region PSReadline options
@@ -233,16 +237,19 @@ $PSROptions = @{
 	CompletionQueryItems          = 250
 	MaximumHistoryCount           = 10000
 	# MaximumHistoryCount           = 5000
-	# MaximumHistoryCount           = 1000
 	ContinuationPrompt            = ' '
-	WordDelimiters                = ";:,.[]{}()/\|^&*-=+'`"–—―@"
+	WordDelimiters                = ";:,.[]{}()/\|^&*-=+'`"–—―@_"
+	TerminateOrphanedConsoleApps  = $true
+	
+	PromptText                    = @("$($UNI_BOLT) ", "$($UNI_BOLT) ")
 	
 	AddToHistoryHandler           = {
 		param([string]$line)
 		return $line;
 	}
 
-	Colors                        = @{
+
+	Color                         = @{
 
 		Command                = $PSStyle.Bold + $global:CustomColors.Yellow1
 		Comment                = $PSStyle.Foreground.Green
@@ -253,76 +260,22 @@ $PSROptions = @{
 		Keyword                = $PSStyle.Foreground.FromRgb(0, 135, 255) + $PSStyle.Bold
 		ListPrediction         = $PSStyle.Foreground.FromRgb(129, 134, 0)
 		ListPredictionSelected = $PSStyle.Background.FromRgb(28, 28, 28) + $PSStyle.Underline + $global:CustomColors.White1
-
-		Member                 = $PSStyle.Italic + $PSStyle.Foreground.FromRgb(0xc353c3)
+		Member                 = $PSStyle.Foreground.FromRgb(0x86E49B)
 		Number                 = $PSStyle.Foreground.FromRgb(127, 186, 87)
 		Operator               = $PSStyle.Foreground.FromRgb(244, 194, 194)
 		Parameter              = $PSStyle.Italic + $PSStyle.Foreground.BrightCyan
 		Selection              = $PSStyle.Reverse + $PSStyle.Underline
 		String                 = $PSStyle.Foreground.FromRgb(215, 95, 0)
-		Variable               = $PSStyle.Foreground.BrightGreen
-		Type                   = $PSStyle.Bold + $PSStyle.Foreground.BrightBlue
+		Variable               = $PSStyle.Foreground.FromRgb(0xA9, 0xAA, 0xFF)
+		Type                   = $PSStyle.Bold + $CustomColors.Teal1
 	}
-	
 }
-
 
 # Set-PSReadLineKeyHandler
 Set-PSReadLineOption @PSROptions
 
 
-function Get-BufferState {
-	$line = $null
-	$cursor = $null
-	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-	return $line, $cursor
-}
 
-function CycleValues {
-	param([array]$Values, [ref]$ValueRef)
-	$ov = $ValueRef.Value
-	$idx = WrapNumber ($Values.IndexOf($ov) + 1) ($Values.Count)
-	$ValueRef.Value = $Values[$idx]
-
-	#[PSConsoleReadLine]::AcceptLine()
-	#Write-Debug "$($ov) → $($nval)"
-	# Write-Host "$global:DebugPreference" -ForegroundColor Green
-	#[PSConsoleReadLine]::Ding()
-	
-}
-
-<# function CycleValues2 {
-	param (
-		[ref]$Var
-	)
-
-	CycleValues $Var ([ref]$Var)
-	Write-Host "Error action preference: $($Global:ErrorActionPreference)" -NoNewline -ForegroundColor Yellow
-	[PSConsoleReadLine]::AcceptLine()
-} #>
-
-function Get-NearestCommand {
-	param (
-		[int]$Direction = 1
-	)
-
-	$line = $null
-	$cursor = $null
-	[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-
-	# $historyItems = [Microsoft.PowerShell.PSConsoleReadLine]::GetHistoryItems()
-	# $nextCommand = $historyItems[$Direction]
-
-	# $tokens = [System.Management.Automation.PSParser]::Tokenize($line, [ref]$null)
-	# $commandTokens = $tokens | Where-Object { $_.Type -eq 'Command' }
-
-
-	$ast = [System.Management.Automation.Language.Parser]::ParseInput($line, [ref]$null, [ref]$null)
-	$commandAsts = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true)
-
-
-	return $commandAsts[0]
-}
 
 # region PSReadline key bindings
 
@@ -482,11 +435,42 @@ $global:PSRKeyMap = @(
 	@{
 		Chord       = 'Alt+F1'
 		ScriptBlock = {
-			$cmd = Get-NearestCommand -Direction 1
+			$cmdBuf = Get-CommandsInBuffer
+
+			$line = $null
+			$cursor = $null
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+			
+			$cmd = $cmdBuf | Where-Object { $_.Extent.StartOffset -le $cursor -and $_.Extent.EndOffset -ge $cursor }
+
 			# $cmdVal = $cmd.CommandLine
-			# Write-Debug "$cmd"
+			Write-Debug "$cmdBuf"
+			$cmd = $cmdBuf[0]
 			$cmdObj = Get-Command $($cmd.CommandElements[0].Value)
 			Get-Help -Name $cmdObj.Name -Online
+		}
+	},
+	@{
+		Chord       = 'ctrl+alt+a'
+		ScriptBlock = {
+			[CommandAst[]]$cmdBuf = Get-CommandsInBuffer
+
+			$line = $null
+			$cursor = $null
+			[Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+			$cmd = $cmdBuf | Where-Object { $_.Extent.StartOffset -le $cursor -and $_.Extent.EndOffset -ge $cursor }
+			
+			# $cmdVal = $cmd.CommandLine
+			Write-Debug "$cmdBuf"
+
+			$cmd = $cmdBuf[0]
+			$cmdObj = Get-Command $($cmd.CommandElements[0].Value)
+
+			$paramLine = [regex]::Matches($line, '(\W-\w+)') | ForEach-Object { $_.Value } | Sort-Object -Unique
+			
+
+			Write-Debug "$paramLine"
 		}
 	},
 	@{
@@ -509,32 +493,6 @@ $global:PSRKeyMap = @(
 		Chord    = 'Shift+Alt+F3'
 		Function = 'RepeatLastCharSearchBackwards'
 	},
-	<# @{
-		Chord       = 'F6'
-		ScriptBlock = {
-			
-			CycleValues $script:ActionPreferences ([ref]$global:DebugPreference)
-			Write-Host "Debug preference: $($global:DebugPreference)" -NoNewline -ForegroundColor Yellow
-			[PSConsoleReadLine]::AcceptLine()
-		}
-	},
-	@{
-		Chord       = 'F7'
-		ScriptBlock = {
-			CycleValues $script:ActionPreferences ([ref]$global:ErrorActionPreference)
-			Write-Host "Error action preference: $($Global:ErrorActionPreference)" -NoNewline -ForegroundColor Yellow
-			[PSConsoleReadLine]::AcceptLine()
-		}
-	},
-	@{
-		Chord       = 'F8'
-		ScriptBlock = {
-			CycleValues $script:ActionPreferences ([ref]$global:VerbosePreference)
-			Write-Host "Verbose preference: $($global:VerbosePreference)" -NoNewline -ForegroundColor Yellow
-			[PSConsoleReadLine]::AcceptLine()
-
-		}
-	}, #>
 	@{
 		Chord    = 'F9'
 		Function	= 'AddLine'
@@ -585,7 +543,7 @@ function FindToken {
 	foreach ($token in $tokens) {
 		if ($cursor -lt $token.Extent.StartOffset) {
 			continue 
-  }
+		}
 		if ($cursor -lt $token.Extent.EndOffset) {
 			$result = $token
 			$token = $token -as [StringExpandableToken]
@@ -593,7 +551,7 @@ function FindToken {
 				$nested = FindToken $token.NestedTokens $cursor
 				if ($nested) {
 					$result = $nested 
-    }
+				}
 			}
 
 			return $result
@@ -688,13 +646,13 @@ Set-PSReadLineKeyHandler -Key '(', '{', '[' `
 	$closeChar = switch ($key.KeyChar) {
 		<#case#> '(' {
 			[char]')'; break 
-  }
+		}
 		<#case#> '{' {
 			[char]'}'; break 
-  }
+		}
 		<#case#> '[' {
 			[char]']'; break 
-  }
+		}
 	}
 
 	$selectionStart = $null
@@ -751,19 +709,19 @@ Set-PSReadLineKeyHandler -Key Backspace `
 			switch ($line[$cursor]) {
 				<#case#> '"' {
 					$toMatch = '"'; break 
-    }
+				}
 				<#case#> "'" {
 					$toMatch = "'"; break 
-    }
+				}
 				<#case#> ')' {
 					$toMatch = '('; break 
-    }
+				}
 				<#case#> ']' {
 					$toMatch = '['; break 
-    }
+				}
 				<#case#> '}' {
 					$toMatch = '{'; break 
-    }
+				}
 			}
 		}
 
@@ -845,6 +803,8 @@ Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
 	}
 }
 
+dotnet completions script pwsh | Out-String | Invoke-Expression
+
 Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
 	param($wordToComplete, $commandAst, $cursorPosition)
 	[Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
@@ -880,50 +840,45 @@ Import-Module AudioDeviceCmdlets #>
 # tdl completion powershell | Out-String | Invoke-Expression
 
 #New-Item -ItemType SymbolicLink -Target .\Microsoft.PowerShell_profile.ps1 -Force .\Microsoft.VSCode_profile.ps1
-# endregion
 
-# Import-Module "$(get-item ((Find-Item gsudo)[0])|^ -exp Directory)\gsudoModule.psd1"
-# Get-Command gsudoModule.psd1
+# endregion
 
 function Get-ScoopPath {
 	return "$($(Get-Item $(Get-Command scoop.ps1).Path).Directory.Parent.FullName)"
 }
 
-@(
-	"$(Get-ScoopPath)\modules\scoop-completion\",
-	# $(Get-Command gsudo).Module.Path,
+
+
+<# @(
+	$(Resolve-Path "$(Get-ScoopPath)\*mod*\*comp*\"),
 	'gsudoModule',
 	"$(Get-ScoopPath)\apps\vcpkg\current\scripts\posh-vcpkg",
 	#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg\scripts\posh-vcpkg",
 	'Terminal-Icons',
-	'PoshFunctions'
+	'PoshFunctions',
 	# 'RoughDraft',
 	'Microsoft.WinGet.CommandNotFound'
 	# 'CompletionPredictor'
 
-	#f45873b3-b655-43a6-b217-97c00aa0db58 PowerToys CommandNotFound module
-
-	#f45873b3-b655-43a6-b217-97c00aa0db58
-
 ) | ForEach-Object {
-	Import-Module $_ 
-}
-
+	Import-Module $_
+} #>
 
 # Import the Chocolatey Profile that contains the necessary code to enable
 # tab-completions to function for `choco`.
 # Be aware that if you are missing these lines from your profile, tab completion
 # for `choco` will not function.
 # See https://ch0.co/tab-completion for details.
+
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
+
+<# if (Test-Path($ChocolateyProfile)) {
 	Import-Module "$ChocolateyProfile"
 }
 
-$gsudoLoadProfile = $true
+$gsudoLoadProfile = $true #>
 
-
-<# if ($InVS2022) {
+<# if ($InVSTerm) {
 	Write-Debug "$($PSStyle.Foreground.BrightCyan)In VS2022 terminal$($PSStyle.Reset)"
 }
 if ($InVSCode) {
@@ -946,7 +901,6 @@ Set-Alias ffplay ffplay.exe
 
 # Set-Alias python3 python.exe
 # Set-Alias python39 python3.9.exe
-
 
 <# $pythonExe = Get-Command -CommandType Application 'python*'
 $pythonExe | ForEach-Object { 
@@ -983,9 +937,16 @@ Set-Alias python310 "C:\Users\Deci\AppData\Local\Programs\Python\Python310\pytho
 
 
 gh completion -s powershell | Out-String | Invoke-Expression
-gh copilot alias pwsh | Out-String | Invoke-Expression
+arduino-cli completion powershell | Out-String | Invoke-Expression
+
 # pip completion --powershell | Out-String | Invoke-Expression
 
-
 $global:LoadTime = (Get-Date -Format $QDateFormat)
-Write-Debug "$LoadTime | gsudo: $gsudoLoadProfile"
+Write-Debug "$LoadTime 💥"
+
+
+
+#f45873b3-b655-43a6-b217-97c00aa0db58 PowerToys CommandNotFound module
+
+Import-Module -Name Microsoft.WinGet.CommandNotFound
+#f45873b3-b655-43a6-b217-97c00aa0db58
